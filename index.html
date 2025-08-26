@@ -10,6 +10,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 
+  <!-- PWA Support -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
   <!-- App styles -->
   <link rel="stylesheet" href="./styles.css">
 </head>
@@ -104,6 +109,7 @@
               <button id="progress-report-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تقرير التقدم</button>
               <button id="achievements-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإنجازات</button>
               <button id="important-note-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📌 ملاحظة مهمة</button>
+              <button id="install-app-button" class="hidden w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
               <button id="unlock-all" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">فتح الكل</button>
               <button id="reset-progress" class="block w-full text-right px-4 py-2 text-sm text-red-700 hover:bg-red-50">إعادة تعيين التقدم</button>
             </div>
@@ -195,7 +201,7 @@
             ويمكنك أيضاً اختيار <b>"فتح الكل"</b> من القائمة الجانبية للانتقال مباشرةً لأي درس في حال بدأت من جهاز جديد.
           </p>
           <p>
-            إذا كان لديك أي ملاحظات أرحب بتواصلك معي عبر الإيميل
+            إذا لاحظت أخطاء أو كان لديك أي ملاحظات أرحب بتواصلك معي عبر الإيميل
             <span class="text-gray-500">—</span>
             <span class="font-bold">hello@my2ndlang.com</span> :
           </p>
@@ -241,4 +247,3 @@
   <script src="https://cdn.counter.dev/script.js" data-id="35518a59-3260-4067-a297-1de0e9870d4a" data-utcoffset="3"></script>
 </body>
 </html>
-
