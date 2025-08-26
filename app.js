@@ -1032,3 +1032,59 @@ startLearningBtn.addEventListener('click', () => {
   init();
   initAudio();
 });
+
+// -------------------- PWA Installation --------------------
+let deferredPrompt = null;
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(registration => console.log('ServiceWorker registered:', registration.scope))
+      .catch(err => console.log('ServiceWorker registration failed:', err));
+  });
+}
+
+// Capture the install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install button
+  const installButton = document.getElementById('install-app-button');
+  if (installButton) {
+    installButton.classList.remove('hidden');
+  }
+});
+
+// Handle install button click
+document.getElementById('install-app-button')?.addEventListener('click', async () => {
+  dropdownMenu.classList.add('hidden');
+  
+  if (!deferredPrompt) {
+    alert('التطبيق مثبت بالفعل أو غير متاح للتثبيت');
+    return;
+  }
+  
+  // Show the install prompt
+  deferredPrompt.prompt();
+  
+  // Wait for the user to respond
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log(`User response: ${outcome}`);
+  
+  // Clear the deferred prompt
+  deferredPrompt = null;
+  
+  // Hide the install button
+  document.getElementById('install-app-button').classList.add('hidden');
+});
+
+// Hide install button if app is already installed
+window.addEventListener('appinstalled', () => {
+  console.log('PWA was installed');
+  const installButton = document.getElementById('install-app-button');
+  if (installButton) {
+    installButton.classList.add('hidden');
+  }
+  deferredPrompt = null;
+});
