@@ -471,8 +471,12 @@ function startActivity(chunkId, activityType) {
     chunkId,
     activityType,
     questions: shuffleArray(questions).slice(0, Math.min(5, questions.length)),
-    currentIndex: 0
+    currentIndex: 0,
+    originalQuestionCount: 0,
+    questionsWithErrors: new Set(),
+    requeuedFromIndex: new Set()
   };
+  currentActivity.originalQuestionCount = currentActivity.questions.length;
 
   document.getElementById('activity-title').textContent = title;
   mainTitle.textContent = 'نشاط';
@@ -505,7 +509,15 @@ function handleCorrectAnswer() {
   setTimeout(() => appBody.classList.remove('correct-flash'), 700);
 
   if (currentActivity.currentIndex >= currentActivity.questions.length - 1) {
-    const { chunkId, activityType } = currentActivity;
+    const { chunkId, activityType, originalQuestionCount, questionsWithErrors } = currentActivity;
+    const accuracy = Math.round(((originalQuestionCount - questionsWithErrors.size) / originalQuestionCount) * 100);
+
+    if (accuracy < 70) {
+      showModal(`تحتاج إلى دقة ٧٠٪ على الأقل. حصلت على ${accuracy}٪. حاول مرة أخرى!`);
+      saveProgress();
+      return;
+    }
+
     if (!userProgress.completedActivities[chunkId]) userProgress.completedActivities[chunkId] = [];
     if (!userProgress.completedActivities[chunkId].includes(activityType)) {
       userProgress.completedActivities[chunkId].push(activityType);
@@ -538,6 +550,18 @@ function handleCorrectAnswer() {
     checkAchievements();
     saveProgress();
     setTimeout(displayCurrentQuestion, 700);
+  }
+}
+
+function handleWrongAttempt() {
+  playFailureSound();
+  const idx = currentActivity.currentIndex;
+  if (idx < currentActivity.originalQuestionCount) {
+    currentActivity.questionsWithErrors.add(idx);
+  }
+  if (!currentActivity.requeuedFromIndex.has(idx)) {
+    currentActivity.requeuedFromIndex.add(idx);
+    currentActivity.questions.push(currentActivity.questions[idx]);
   }
 }
 
@@ -587,9 +611,10 @@ function renderInitialSoundUI(word, container) {
       if (letter.toLowerCase() === correctLetter) {
         handleCorrectAnswer();
       } else {
-        playFailureSound();
+        handleWrongAttempt();
+        btn.disabled = true;
         btn.classList.add('incorrect');
-        setTimeout(() => btn.classList.remove('incorrect'), 500);
+        setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500);
       }
     };
     optionsContainer.appendChild(btn);
@@ -644,7 +669,7 @@ function renderSoundMatchUI(correctItem, container) {
     btn.textContent = item;
     btn.onclick = () => {
       if (item === correctItem) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -683,7 +708,7 @@ function renderWordMatchUI(correctWord, container) {
     btn.textContent = word;
     btn.onclick = () => {
       if (word === correctWord) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -729,7 +754,7 @@ function renderFillInTheBlankUI(word, container) {
     btn.textContent = letter;
     btn.onclick = () => {
       if (letter === correctLetter) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -777,7 +802,7 @@ function renderWordBuildUI(word, container) {
           if (builtWord.join('') === word) {
             handleCorrectAnswer();
           } else {
-            playFailureSound();
+            handleWrongAttempt();
             answerSlots.forEach(s => { s.classList.add('incorrect'); setTimeout(() => s.classList.remove('incorrect'), 500); });
             const retryBtn = document.createElement('button');
             retryBtn.textContent = 'حاول مرة أخرى';
@@ -850,7 +875,7 @@ function renderSentenceBuildUI(sentence, container) {
     btn.textContent = word;
     btn.onclick = () => {
       if (word === correctWord) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -885,7 +910,7 @@ function renderCapitalMatchUI(letter, container) {
     btn.textContent = optionLetter;
     btn.onclick = () => {
       if (optionLetter === correctLetter) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
