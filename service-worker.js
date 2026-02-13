@@ -1,15 +1,16 @@
 // service-worker.js - Minimal PWA service worker for offline functionality
-const CACHE_NAME = 'lughatii-v1';
+const CACHE_NAME = 'lughatii-v2';
 const urlsToCache = [
   '/',
   '/index.html',
   '/app.js',
+  '/logic.js',
   '/data.js',
   '/styles.css',
+  '/tailwind.css',
   '/icon-192.png',
   '/icon-512.png',
   // External resources
-  'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap'
 ];

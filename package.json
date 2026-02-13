@@ -1,0 +1,22 @@
+{
+  "name": "literacy-app",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "build:css": "tailwindcss -i tailwind-input.css -o tailwind.css --minify",
+    "test": "node --test tests/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:16487/git/m2ndl/literacy-app"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
+  }
+}
