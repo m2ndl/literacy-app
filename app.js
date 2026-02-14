@@ -209,8 +209,12 @@ function getSystemTheme() {
 }
 
 function getInitialTheme() {
-  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-  if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
+  try {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
+  } catch (e) {
+    console.warn('Cannot read theme preference:', e);
+  }
   return getSystemTheme();
 }
 
@@ -231,7 +235,11 @@ function applyTheme(theme) {
 function toggleTheme() {
   const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
   applyTheme(nextTheme);
-  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  } catch (e) {
+    console.warn('Cannot save theme preference:', e);
+  }
 }
 
 // -------------------- View Switching --------------------
@@ -1025,8 +1033,12 @@ function init() {
 
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   mediaQuery.addEventListener('change', () => {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (!savedTheme) applyTheme(getSystemTheme());
+    try {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (!savedTheme) applyTheme(getSystemTheme());
+    } catch (e) {
+      applyTheme(getSystemTheme());
+    }
   });
 
   window.addEventListener('beforeunload', () => {
@@ -1037,10 +1049,8 @@ function init() {
   });
 }
 
-// Apply theme before app start for consistent landing appearance
-applyTheme(getInitialTheme());
-
 // Landing actions
+applyTheme(getInitialTheme());
 document.getElementById('landing-year').textContent = new Date().getFullYear();
 
 startLearningBtn.addEventListener('click', () => {
