@@ -202,8 +202,38 @@ const pointsDisplay = document.getElementById('points-display');
 const streakDisplay = document.getElementById('streak-display');
 const achievementUnlockedModal = document.getElementById('achievement-unlocked-modal');
 const loadingIndicator = document.getElementById('loading-indicator');
-const themeToggleButton = document.getElementById('theme-toggle');
-const themeToggleHeaderButton = document.getElementById('theme-toggle-header');
+let themeToggleButton = document.getElementById('theme-toggle');
+let themeToggleHeaderButton = document.getElementById('theme-toggle-header');
+
+function ensureThemeControls() {
+  if (!themeToggleHeaderButton && backButton?.parentElement) {
+    themeToggleHeaderButton = document.createElement('button');
+    themeToggleHeaderButton.id = 'theme-toggle-header';
+    themeToggleHeaderButton.type = 'button';
+    themeToggleHeaderButton.className = 'bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-3 rounded-lg';
+    themeToggleHeaderButton.textContent = '🌙';
+    themeToggleHeaderButton.setAttribute('aria-pressed', 'false');
+    themeToggleHeaderButton.setAttribute('aria-label', 'تبديل الوضع الداكن');
+    backButton.parentElement.insertBefore(themeToggleHeaderButton, backButton);
+  }
+
+  if (!themeToggleButton) {
+    const menuActions = dropdownMenu?.querySelector('.py-1');
+    if (menuActions) {
+      themeToggleButton = document.createElement('button');
+      themeToggleButton.id = 'theme-toggle';
+      themeToggleButton.type = 'button';
+      themeToggleButton.className = 'block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
+      themeToggleButton.setAttribute('aria-pressed', 'false');
+      themeToggleButton.textContent = '🌙 تفعيل الوضع الداكن';
+      const unlockAllBtn = document.getElementById('unlock-all');
+      if (unlockAllBtn) menuActions.insertBefore(themeToggleButton, unlockAllBtn);
+      else menuActions.appendChild(themeToggleButton);
+    }
+  }
+}
+
+ensureThemeControls();
 
 function getSystemTheme() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
