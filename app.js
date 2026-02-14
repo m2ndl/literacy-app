@@ -33,9 +33,6 @@ let achievementQueue = [];
 let isShowingAchievement = false;
 let speechTimeout = null;
 
-const THEME_STORAGE_KEY = 'literacyAppTheme';
-let currentTheme = 'light';
-
 // -------------------- Audio Engine --------------------
 function initAudio() {
   if (!audioCtx) {
@@ -202,84 +199,6 @@ const pointsDisplay = document.getElementById('points-display');
 const streakDisplay = document.getElementById('streak-display');
 const achievementUnlockedModal = document.getElementById('achievement-unlocked-modal');
 const loadingIndicator = document.getElementById('loading-indicator');
-let themeToggleButton = document.getElementById('theme-toggle');
-let themeToggleHeaderButton = document.getElementById('theme-toggle-header');
-
-function ensureThemeControls() {
-  if (!themeToggleHeaderButton && backButton?.parentElement) {
-    themeToggleHeaderButton = document.createElement('button');
-    themeToggleHeaderButton.id = 'theme-toggle-header';
-    themeToggleHeaderButton.type = 'button';
-    themeToggleHeaderButton.className = 'bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-3 rounded-lg';
-    themeToggleHeaderButton.textContent = '🌙';
-    themeToggleHeaderButton.setAttribute('aria-pressed', 'false');
-    themeToggleHeaderButton.setAttribute('aria-label', 'تبديل الوضع الداكن');
-    backButton.parentElement.insertBefore(themeToggleHeaderButton, backButton);
-  }
-
-  if (!themeToggleButton) {
-    const menuActions = dropdownMenu?.querySelector('.py-1');
-    if (menuActions) {
-      themeToggleButton = document.createElement('button');
-      themeToggleButton.id = 'theme-toggle';
-      themeToggleButton.type = 'button';
-      themeToggleButton.className = 'block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-      themeToggleButton.setAttribute('aria-pressed', 'false');
-      themeToggleButton.textContent = '🌙 تفعيل الوضع الداكن';
-      const unlockAllBtn = document.getElementById('unlock-all');
-      if (unlockAllBtn) menuActions.insertBefore(themeToggleButton, unlockAllBtn);
-      else menuActions.appendChild(themeToggleButton);
-    }
-  }
-}
-
-ensureThemeControls();
-
-function getSystemTheme() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function getInitialTheme() {
-  try {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-  } catch (e) {
-    console.warn('Cannot read theme preference:', e);
-  }
-  return getSystemTheme();
-}
-
-function updateThemeToggleLabel() {
-  const isDark = currentTheme === 'dark';
-
-  if (themeToggleButton) {
-    themeToggleButton.textContent = isDark ? '☀️ تفعيل الوضع الفاتح' : '🌙 تفعيل الوضع الداكن';
-    themeToggleButton.setAttribute('aria-pressed', String(isDark));
-  }
-
-  if (themeToggleHeaderButton) {
-    themeToggleHeaderButton.textContent = isDark ? '☀️' : '🌙';
-    themeToggleHeaderButton.setAttribute('aria-pressed', String(isDark));
-    themeToggleHeaderButton.setAttribute('aria-label', isDark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن');
-  }
-}
-
-function applyTheme(theme) {
-  currentTheme = theme === 'dark' ? 'dark' : 'light';
-  document.body.classList.toggle('dark-mode', currentTheme === 'dark');
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  updateThemeToggleLabel();
-}
-
-function toggleTheme() {
-  const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  applyTheme(nextTheme);
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-  } catch (e) {
-    console.warn('Cannot save theme preference:', e);
-  }
-}
 
 // -------------------- View Switching --------------------
 function showView(viewName) {
@@ -1007,19 +926,6 @@ document.getElementById('progress-report-button').addEventListener('click', () =
 document.getElementById('achievements-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderAchievementsPage(); });
 document.getElementById('important-note-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderImportantNotePage(); });
 
-if (themeToggleButton) {
-  themeToggleButton.addEventListener('click', () => {
-    dropdownMenu.classList.add('hidden');
-    toggleTheme();
-  });
-}
-
-if (themeToggleHeaderButton) {
-  themeToggleHeaderButton.addEventListener('click', () => {
-    toggleTheme();
-  });
-}
-
 // Copy email functionality
 document.getElementById('copy-email-btn').addEventListener('click', async () => {
   try {
@@ -1059,7 +965,6 @@ document.getElementById('achievement-close-btn').addEventListener('click', () =>
 });
 
 function init() {
-  applyTheme(getInitialTheme());
   loadProgress();
   handleStreak();
   updateHeaderStats();
@@ -1076,16 +981,6 @@ function init() {
     if (document.hidden) stopLearningTimer(); else startLearningTimer();
   });
 
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  mediaQuery.addEventListener('change', () => {
-    try {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-      if (!savedTheme) applyTheme(getSystemTheme());
-    } catch (e) {
-      applyTheme(getSystemTheme());
-    }
-  });
-
   window.addEventListener('beforeunload', () => {
     stopLearningTimer();
     if (saveTimeout) clearTimeout(saveTimeout);
@@ -1095,7 +990,6 @@ function init() {
 }
 
 // Landing actions
-applyTheme(getInitialTheme());
 document.getElementById('landing-year').textContent = new Date().getFullYear();
 
 startLearningBtn.addEventListener('click', () => {
