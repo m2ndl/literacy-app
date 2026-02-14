@@ -1,0 +1,89 @@
+/* Theme + enhanced activity card styles isolated from core styles.css to reduce merge conflicts */
+:root {
+  --ui-text-muted: #6b7280;
+  --ui-border-default: #e5e7eb;
+  --ui-surface-default: #ffffff;
+  --ui-surface-complete-grad-start: #dcfce7;
+  --ui-surface-complete-grad-end: #d1fae5;
+  --ui-text-default: #1f2937;
+  --ui-text-success: #166534;
+  --ui-border-success: #86efac;
+  --ui-chip-bg: #e5e7eb;
+  --ui-chip-text: #374151;
+  --ui-chip-success-bg: #bbf7d0;
+  --ui-chip-success-text: #166534;
+  --ui-icon-bg: rgba(59, 130, 246, 0.12);
+}
+
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+body.dark-mode {
+  --ui-text-muted: #9ca3af;
+  --ui-border-default: #374151;
+  --ui-surface-default: #111827;
+  --ui-surface-complete-grad-start: #064e3b;
+  --ui-surface-complete-grad-end: #065f46;
+  --ui-text-default: #e5e7eb;
+  --ui-text-success: #d1fae5;
+  --ui-border-success: #10b981;
+  --ui-chip-bg: #374151;
+  --ui-chip-text: #e5e7eb;
+  --ui-chip-success-bg: #10b981;
+  --ui-chip-success-text: #052e16;
+  --ui-icon-bg: rgba(96, 165, 250, 0.2);
+  background-color: #0b1220;
+  color: #e5e7eb;
+}
+
+body.dark-mode #app-container .bg-gray-50,
+body.dark-mode #app-container.bg-gray-50,
+body.dark-mode .bg-gray-50 { background-color: #0f172a !important; }
+
+body.dark-mode #app-container .bg-white,
+body.dark-mode #app-container .chunk-card,
+body.dark-mode #app-container #activity-content,
+body.dark-mode #app-container #dropdown-menu,
+body.dark-mode #message-modal > div,
+body.dark-mode #achievement-card,
+body.dark-mode #loading-indicator > div {
+  background-color: #111827 !important;
+  color: #e5e7eb;
+}
+
+body.dark-mode #app-container .text-gray-500,
+body.dark-mode #app-container .text-gray-600,
+body.dark-mode #app-container .text-gray-700,
+body.dark-mode #app-container .text-gray-800,
+body.dark-mode #app-container .text-gray-900 { color: #d1d5db !important; }
+
+.activity-btn.enhanced {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+  text-align: right;
+  border: 1px solid var(--ui-border-default);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.activity-btn.enhanced:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -12px rgba(0,0,0,.35); }
+.activity-btn.enhanced:active { transform: translateY(0); }
+.activity-btn.enhanced:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+
+.activity-btn.enhanced.activity-btn-default { background: var(--ui-surface-default); color: var(--ui-text-default); }
+.activity-btn.enhanced.activity-btn-complete {
+  background: linear-gradient(135deg, var(--ui-surface-complete-grad-start) 0%, var(--ui-surface-complete-grad-end) 100%);
+  color: var(--ui-text-success);
+  border-color: var(--ui-border-success);
+}
+
+.activity-icon {
+  width: 2rem; height:2rem; display:inline-flex; align-items:center; justify-content:center;
+  border-radius:9999px; background: var(--ui-icon-bg); font-size:1.1rem;
+}
+.activity-chip {
+  padding: .22rem .6rem; border-radius:9999px; font-weight:700; font-size:.78rem;
+  background: var(--ui-chip-bg); color: var(--ui-chip-text);
+}
+.activity-btn-complete .activity-chip { background: var(--ui-chip-success-bg); color: var(--ui-chip-success-text); }
