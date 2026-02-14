@@ -42,3 +42,77 @@ body { font-family: 'Tajawal', 'Inter', sans-serif; }
 
 .letter-slot { cursor: pointer; user-select: none; }
 .letter-slot.filled:hover { background-color: #fca5a5; }
+
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+body.dark-mode {
+  background-color: #0b1220;
+  color: #e5e7eb;
+}
+
+body.dark-mode #app-container .bg-gray-50,
+body.dark-mode #app-container.bg-gray-50,
+body.dark-mode .bg-gray-50 {
+  background-color: #0f172a !important;
+}
+
+body.dark-mode #app-container .bg-white,
+body.dark-mode #app-container .chunk-card,
+body.dark-mode #app-container #activity-content,
+body.dark-mode #app-container #dropdown-menu,
+body.dark-mode #message-modal > div,
+body.dark-mode #achievement-card,
+body.dark-mode #loading-indicator > div {
+  background-color: #111827 !important;
+  color: #e5e7eb;
+}
+
+body.dark-mode #app-container .bg-gray-100,
+body.dark-mode #app-container .bg-gray-200,
+body.dark-mode #app-container .hover\:bg-gray-100:hover,
+body.dark-mode #app-container .hover\:bg-gray-200:hover,
+body.dark-mode #app-container .hover\:bg-gray-300:hover {
+  background-color: #1f2937 !important;
+}
+
+body.dark-mode #app-container .text-gray-500,
+body.dark-mode #app-container .text-gray-600,
+body.dark-mode #app-container .text-gray-700,
+body.dark-mode #app-container .text-gray-800,
+body.dark-mode #app-container .text-gray-900,
+body.dark-mode #message-modal .text-gray-800,
+body.dark-mode #achievement-card .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+body.dark-mode #app-container .border,
+body.dark-mode #app-container .border-2,
+body.dark-mode #app-container .border-gray-200,
+body.dark-mode #app-container .border-gray-300,
+body.dark-mode #app-container .border-gray-600,
+body.dark-mode #dropdown-menu,
+body.dark-mode #message-modal > div,
+body.dark-mode #achievement-card {
+  border-color: #374151 !important;
+}
+
+body.dark-mode .locked {
+  opacity: 0.75;
+  background-color: #1f2937;
+}
+
+body.dark-mode .completed {
+  background-color: #064e3b;
+  border-color: #10b981;
+}
+
+body.dark-mode #email-field {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+
+body.dark-mode .letter-slot.filled:hover {
+  background-color: #b91c1c;
+}
