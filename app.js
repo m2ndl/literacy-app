@@ -328,17 +328,6 @@ function renderActivities(chunkId) {
   const chunk = appData.chunks.find(c => c.id === chunkId);
   const activities = [];
 
-  const activityMeta = {
-    'sound-match': { icon: '🔊', desc: 'استمع واختر الحرف المطابق.' },
-    'capital-match': { icon: '🔠', desc: 'طابق بين الحروف الكبيرة والصغيرة.' },
-    'combined-sound-match': { icon: '🎧', desc: 'ميّز أصوات الكلمات والمقاطع.' },
-    'word-build': { icon: '🧩', desc: 'كوّن الكلمة بالترتيب الصحيح.' },
-    'fill-in-the-blank': { icon: '✍️', desc: 'أكمل الحرف أو الكلمة الناقصة.' },
-    'word-match': { icon: '🔗', desc: 'اختر التطابق الصحيح للكلمات.' },
-    'initial-sound': { icon: '🎯', desc: 'حدّد الصوت الأول في الكلمة.' },
-    'sentence-build': { icon: '📝', desc: 'رتّب الكلمات لبناء جملة.' }
-  };
-
   if (chunk.letters && chunk.letters.length > 0) {
     activities.push({ id: 'sound-match', name: 'مطابقة صوت الحروف' });
     activities.push({ id: 'capital-match', name: 'مطابقة الحروف الكبيرة والصغيرة' });
@@ -356,30 +345,14 @@ function renderActivities(chunkId) {
     activities.push({ id: 'sentence-build', name: 'بناء الجمل' });
   }
 
-  container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5';
+  container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
   const completed = userProgress.completedActivities[chunkId] || [];
 
   activities.forEach(activity => {
     const isCompleted = completed.includes(activity.id);
-    const meta = activityMeta[activity.id] || { icon: '📘', desc: 'نشاط تدريبي تفاعلي.' };
-
     const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `activity-btn w-full text-right rounded-xl border p-5 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${isCompleted ? 'activity-btn-complete' : 'activity-btn-default'}`;
-
-    btn.innerHTML = `
-      <div class="flex items-start justify-between gap-3">
-        <div class="text-right">
-          <h4 class="text-lg font-bold leading-7">${activity.name}</h4>
-          <p class="mt-1 text-sm text-gray-500 font-medium">${meta.desc}</p>
-        </div>
-        <span class="activity-icon" aria-hidden="true">${meta.icon}</span>
-      </div>
-      <div class="mt-4 flex items-center justify-between text-sm">
-        <span class="activity-chip">${isCompleted ? 'مكتمل ✓' : 'ابدأ الآن'}</span>
-        <span class="text-xs ${isCompleted ? 'text-green-700' : 'text-gray-500'}">${isCompleted ? 'تم الإنجاز' : 'نشاط قصير'}</span>
-      </div>`;
-
+    btn.className = `activity-btn p-4 rounded-lg text-right text-lg font-semibold shadow-sm ${isCompleted ? 'bg-green-200 text-green-800' : 'bg-white hover:bg-gray-100'}`;
+    btn.innerHTML = `<span class="block">${activity.name}</span> ${isCompleted ? '<span class="text-sm font-normal">مكتمل ✓</span>' : ''}`;
     btn.onclick = () => startActivity(chunkId, activity.id);
     container.appendChild(btn);
   });
