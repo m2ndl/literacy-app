@@ -1,5 +1,5 @@
 // service-worker.js - Minimal PWA service worker for offline functionality
-const CACHE_NAME = 'lughatii-v2';
+const CACHE_NAME = 'lughatii-v3';
 const urlsToCache = [
   '/',
   '/index.html',
