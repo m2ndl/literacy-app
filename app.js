@@ -1,5 +1,6 @@
 // app.js (ES module)
 import { appData, getAchievements } from './data.js';
+import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete } from './logic.js';
 
 // -------------------- Constants --------------------
 const PLAY_SVG = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
@@ -89,26 +90,12 @@ function loadProgress() {
     const saved = localStorage.getItem('literacyAppProgress');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (!parsed.version) parsed.version = 2;
-      userProgress = parsed;
+      userProgress = validateProgress(parsed);
     }
   } catch (e) {
     console.error('Error loading progress:', e);
-    userProgress = {
-      unlockedChunk: 1, completedChunks: [], completedActivities: {},
-      points: 0, streak: 0, lastLoginDate: null, earnedAchievements: [],
-      timeSpent: 0, version: 2
-    };
+    userProgress = getDefaultProgress();
   }
-}
-
-function getLearnedContent(chunkId, contentType) {
-  const content = new Set();
-  for (let i = 1; i <= chunkId; i++) {
-    const chunk = appData.chunks.find(c => c.id === i);
-    if (chunk && chunk[contentType]) chunk[contentType].forEach(item => content.add(item));
-  }
-  return Array.from(content);
 }
 
 function updateHeaderStats() {
@@ -117,21 +104,10 @@ function updateHeaderStats() {
 }
 
 function handleStreak() {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayStr = today.toISOString().slice(0,10);
-
-  const last = userProgress.lastLoginDate;
-  if (last === todayStr) return;
-
-  const y = new Date(today);
-  y.setDate(y.getDate() - 1);
-  const yStr = y.toISOString().slice(0,10);
-
-  if (last === yStr) userProgress.streak++;
-  else userProgress.streak = 1;
-
-  userProgress.lastLoginDate = todayStr;
+  const updated = computeStreak(userProgress);
+  if (updated.lastLoginDate === userProgress.lastLoginDate && updated.streak === userProgress.streak) return;
+  userProgress.streak = updated.streak;
+  userProgress.lastLoginDate = updated.lastLoginDate;
   checkAchievements();
   saveProgress();
 }
@@ -149,17 +125,6 @@ function stopLearningTimer() {
     learningTimer = null;
   }
   saveProgress();
-}
-
-function formatTime(seconds) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  let str = '';
-  if (h > 0) str += `${h}س `;
-  if (m > 0 || h > 0) str += `${m}د `;
-  str += `${s}ث`;
-  return str;
 }
 
 // -------------------- Speech --------------------
@@ -472,15 +437,6 @@ function showAchievementUnlockedModal(achievement) {
 }
 
 // -------------------- Activity Engine --------------------
-function shuffleArray(array) {
-  const a = [...array];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 function startActivity(chunkId, activityType) {
   const chunk = appData.chunks.find(c => c.id === chunkId);
   let questions = [];
@@ -515,8 +471,12 @@ function startActivity(chunkId, activityType) {
     chunkId,
     activityType,
     questions: shuffleArray(questions).slice(0, Math.min(5, questions.length)),
-    currentIndex: 0
+    currentIndex: 0,
+    originalQuestionCount: 0,
+    questionsWithErrors: new Set(),
+    requeuedFromIndex: new Set()
   };
+  currentActivity.originalQuestionCount = currentActivity.questions.length;
 
   document.getElementById('activity-title').textContent = title;
   mainTitle.textContent = 'نشاط';
@@ -549,30 +509,21 @@ function handleCorrectAnswer() {
   setTimeout(() => appBody.classList.remove('correct-flash'), 700);
 
   if (currentActivity.currentIndex >= currentActivity.questions.length - 1) {
-    const { chunkId, activityType } = currentActivity;
+    const { chunkId, activityType, originalQuestionCount, questionsWithErrors } = currentActivity;
+    const accuracy = Math.round(((originalQuestionCount - questionsWithErrors.size) / originalQuestionCount) * 100);
+
+    if (accuracy < 70) {
+      showModal(`تحتاج إلى دقة ٧٠٪ على الأقل. حصلت على ${accuracy}٪. حاول مرة أخرى!`);
+      saveProgress();
+      return;
+    }
+
     if (!userProgress.completedActivities[chunkId]) userProgress.completedActivities[chunkId] = [];
     if (!userProgress.completedActivities[chunkId].includes(activityType)) {
       userProgress.completedActivities[chunkId].push(activityType);
     }
 
-    // Determine all possible activities for the chunk to decide completion
-    const chunk = appData.chunks.find(c => c.id === chunkId);
-    const possible = [];
-    if (chunk.letters && chunk.letters.length > 0) {
-      possible.push('sound-match', 'capital-match');
-    }
-    if ((chunk.words && chunk.words.length > 0) || (chunk.letterPairs && chunk.letterPairs.length > 0)) {
-      possible.push('combined-sound-match');
-    }
-    if (chunk.words && chunk.words.length > 0) {
-      possible.push('word-build','fill-in-the-blank','word-match','initial-sound');
-    }
-    if (chunk.sentences && chunk.sentences.length > 0) {
-      possible.push('sentence-build');
-    }
-
-    const completedForChunk = userProgress.completedActivities[chunkId] || [];
-    if (possible.every(act => completedForChunk.includes(act))) {
+    if (isChunkComplete(chunkId, userProgress.completedActivities)) {
       if (!userProgress.completedChunks.includes(chunkId)) {
         userProgress.completedChunks.push(chunkId);
 
@@ -602,6 +553,18 @@ function handleCorrectAnswer() {
   }
 }
 
+function handleWrongAttempt() {
+  playFailureSound();
+  const idx = currentActivity.currentIndex;
+  if (idx < currentActivity.originalQuestionCount) {
+    currentActivity.questionsWithErrors.add(idx);
+  }
+  if (!currentActivity.requeuedFromIndex.has(idx)) {
+    currentActivity.requeuedFromIndex.add(idx);
+    currentActivity.questions.push(currentActivity.questions[idx]);
+  }
+}
+
 // -------------------- Activity Renderers --------------------
 function renderInitialSoundUI(word, container) {
   const firstChar = word[0];
@@ -614,9 +577,10 @@ function renderInitialSoundUI(word, container) {
 
   let options = [correctLetter];
   const maxOptions = Math.min(4, allLearnedLetters.length);
-  while (options.length < maxOptions && distractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * distractors.length);
-    const randomDistractor = distractors[randomIndex];
+  const availableDistractors = [...distractors];
+  while (options.length < maxOptions && availableDistractors.length > 0) {
+    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
+    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
     if (!options.includes(randomDistractor)) {
       options.push(randomDistractor);
     }
@@ -647,9 +611,10 @@ function renderInitialSoundUI(word, container) {
       if (letter.toLowerCase() === correctLetter) {
         handleCorrectAnswer();
       } else {
-        playFailureSound();
+        handleWrongAttempt();
+        btn.disabled = true;
         btn.classList.add('incorrect');
-        setTimeout(() => btn.classList.remove('incorrect'), 500);
+        setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500);
       }
     };
     optionsContainer.appendChild(btn);
@@ -704,7 +669,7 @@ function renderSoundMatchUI(correctItem, container) {
     btn.textContent = item;
     btn.onclick = () => {
       if (item === correctItem) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -716,9 +681,10 @@ function renderWordMatchUI(correctWord, container) {
 
   let options = [correctWord];
   const maxOptions = Math.min(4, allLearnedWords.length);
-  while (options.length < maxOptions && distractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * distractors.length);
-    const randomDistractor = distractors[randomIndex];
+  const availableDistractors = [...distractors];
+  while (options.length < maxOptions && availableDistractors.length > 0) {
+    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
+    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
     if (!options.includes(randomDistractor)) options.push(randomDistractor);
   }
 
@@ -742,7 +708,7 @@ function renderWordMatchUI(correctWord, container) {
     btn.textContent = word;
     btn.onclick = () => {
       if (word === correctWord) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -758,9 +724,10 @@ function renderFillInTheBlankUI(word, container) {
 
   let options = [correctLetter];
   const maxOptions = Math.min(4, allLearnedLetters.length);
-  while (options.length < maxOptions && distractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * distractors.length);
-    const randomDistractor = distractors[randomIndex];
+  const availableDistractors = [...distractors];
+  while (options.length < maxOptions && availableDistractors.length > 0) {
+    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
+    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
     if (!options.includes(randomDistractor)) options.push(randomDistractor);
   }
 
@@ -787,7 +754,7 @@ function renderFillInTheBlankUI(word, container) {
     btn.textContent = letter;
     btn.onclick = () => {
       if (letter === correctLetter) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -835,7 +802,7 @@ function renderWordBuildUI(word, container) {
           if (builtWord.join('') === word) {
             handleCorrectAnswer();
           } else {
-            playFailureSound();
+            handleWrongAttempt();
             answerSlots.forEach(s => { s.classList.add('incorrect'); setTimeout(() => s.classList.remove('incorrect'), 500); });
             const retryBtn = document.createElement('button');
             retryBtn.textContent = 'حاول مرة أخرى';
@@ -878,9 +845,10 @@ function renderSentenceBuildUI(sentence, container) {
 
   let options = [correctWord];
   const maxOptions = Math.min(4, allLearnedWords.length);
-  while (options.length < maxOptions && distractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * distractors.length);
-    const randomDistractor = distractors[randomIndex];
+  const availableDistractors = [...distractors];
+  while (options.length < maxOptions && availableDistractors.length > 0) {
+    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
+    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
     if (!options.includes(randomDistractor)) options.push(randomDistractor);
   }
 
@@ -907,7 +875,7 @@ function renderSentenceBuildUI(sentence, container) {
     btn.textContent = word;
     btn.onclick = () => {
       if (word === correctWord) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -919,13 +887,13 @@ function renderCapitalMatchUI(letter, container) {
   const questionLetter = isQuestionUppercase ? letter.toUpperCase() : letter.toLowerCase();
   const correctLetter = isQuestionUppercase ? letter.toLowerCase() : letter.toUpperCase();
 
-  const distractors = allLearnedLetters.filter(l => l !== letter);
+  const availableDistractors = allLearnedLetters.filter(l => l !== letter);
   let options = [correctLetter];
   const maxOptions = Math.min(4, allLearnedLetters.length);
 
-  while (options.length < maxOptions && distractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * distractors.length);
-    const randomDistractor = distractors[randomIndex];
+  while (options.length < maxOptions && availableDistractors.length > 0) {
+    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
+    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
     const distractorOption = isQuestionUppercase ? randomDistractor.toLowerCase() : randomDistractor.toUpperCase();
     if (!options.includes(distractorOption)) options.push(distractorOption);
   }
@@ -942,7 +910,7 @@ function renderCapitalMatchUI(letter, container) {
     btn.textContent = optionLetter;
     btn.onclick = () => {
       if (optionLetter === correctLetter) handleCorrectAnswer();
-      else { playFailureSound(); btn.classList.add('incorrect'); setTimeout(() => btn.classList.remove('incorrect'), 500); }
+      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
     };
     optionsContainer.appendChild(btn);
   });
@@ -974,7 +942,7 @@ document.getElementById('reset-progress').addEventListener('click', () => {
   dropdownMenu.classList.add('hidden');
   showConfirmationModal('هل أنت متأكد من رغبتك في إعادة تعيين كل تقدمك؟ لا يمكن التراجع عن هذا الإجراء.', () => {
     try { localStorage.removeItem('literacyAppProgress'); } catch (e) { console.warn('Cannot clear localStorage (private browsing?):', e); }
-    userProgress = { unlockedChunk: 1, completedChunks: [], completedActivities: {}, points: 0, streak: 0, lastLoginDate: null, earnedAchievements: [], timeSpent: 0, version: 2 };
+    userProgress = getDefaultProgress();
     updateHeaderStats();
     renderDashboard();
   });
