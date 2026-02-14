@@ -1,0 +1,70 @@
+/* Recommendation #7 only: semantic tokens to stabilize contrast over time */
+:root {
+  --ui-text-default: #1f2937;
+  --ui-text-muted: #6b7280;
+  --ui-text-success: #166534;
+
+  --ui-surface-default: #ffffff;
+  --ui-surface-complete-grad-start: #dcfce7;
+  --ui-surface-complete-grad-end: #d1fae5;
+
+  --ui-border-default: #e5e7eb;
+  --ui-border-success: #86efac;
+
+  --ui-chip-bg: #e5e7eb;
+  --ui-chip-text: #374151;
+  --ui-chip-success-bg: #bbf7d0;
+  --ui-chip-success-text: #166534;
+
+  --ui-icon-bg: rgba(59, 130, 246, 0.12);
+}
+
+body.dark-mode {
+  --ui-text-default: #e5e7eb;
+  --ui-text-muted: #9ca3af;
+  --ui-text-success: #d1fae5;
+
+  --ui-surface-default: #111827;
+  --ui-surface-complete-grad-start: #064e3b;
+  --ui-surface-complete-grad-end: #065f46;
+
+  --ui-border-default: #374151;
+  --ui-border-success: #10b981;
+
+  --ui-chip-bg: #374151;
+  --ui-chip-text: #e5e7eb;
+  --ui-chip-success-bg: #10b981;
+  --ui-chip-success-text: #052e16;
+
+  --ui-icon-bg: rgba(96, 165, 250, 0.2);
+}
+
+/* token-driven mapping layer */
+.activity-btn.enhanced {
+  border-color: var(--ui-border-default);
+}
+
+.activity-btn.enhanced.activity-btn-default {
+  background: var(--ui-surface-default);
+  color: var(--ui-text-default);
+}
+
+.activity-btn.enhanced.activity-btn-complete {
+  background: linear-gradient(135deg, var(--ui-surface-complete-grad-start) 0%, var(--ui-surface-complete-grad-end) 100%);
+  color: var(--ui-text-success);
+  border-color: var(--ui-border-success);
+}
+
+.activity-icon {
+  background: var(--ui-icon-bg);
+}
+
+.activity-chip {
+  background: var(--ui-chip-bg);
+  color: var(--ui-chip-text);
+}
+
+.activity-btn-complete .activity-chip {
+  background: var(--ui-chip-success-bg);
+  color: var(--ui-chip-success-text);
+}
