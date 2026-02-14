@@ -2,6 +2,22 @@
 import { appData, getAchievements } from './data.js';
 import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete } from './logic.js';
 
+// -------------------- Optional UI Layers (conflict-safe) --------------------
+function ensureOptionalStyles() {
+  const cssFiles = ['./ui-overrides.css', './semantic-tokens.css'];
+  cssFiles.forEach((href) => {
+    if (document.querySelector(`link[href=\"${href}\"]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+}
+
+ensureOptionalStyles();
+import('./theme.js').catch((e) => console.warn('Optional module not loaded: theme.js', e));
+import('./activities-enhance.js').catch((e) => console.warn('Optional module not loaded: activities-enhance.js', e));
+
 // -------------------- Constants --------------------
 const PLAY_SVG = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
   <path fill-rule="evenodd"
