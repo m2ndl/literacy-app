@@ -31,6 +31,8 @@
   <!-- Google Fonts load without blocking the page (media="print" switches to "all" once loaded) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- Andika: made by SIL for beginning readers (single-storey a and g, distinct I, l and 1) -->
+  <link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
   <!-- PWA Support -->
   <link rel="manifest" href="./manifest.json">
@@ -105,7 +107,7 @@
   <div id="app-container" class="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 hidden">
 
     <!-- Header -->
-    <header class="flex flex-wrap gap-3 justify-between items-center mb-8">
+    <header id="app-header" class="flex flex-wrap gap-3 justify-between items-center mb-8">
       <div class="flex items-center gap-4 flex-wrap">
         <div class="flex items-center gap-1 text-yellow-500" title="نقاطك" aria-label="نقاطك">
           <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -189,7 +191,8 @@
         <p class="text-gray-600 mb-6">انقر على حرف أو كلمة لسماع صوتها.</p>
         <div class="bg-white p-6 rounded-lg shadow-md">
           <div class="mb-6">
-            <h3 class="font-semibold text-lg mb-3 text-gray-700">حروف جديدة</h3>
+            <h3 class="font-semibold text-lg mb-1 text-gray-700">حروف جديدة</h3>
+            <p class="text-sm text-gray-500 mb-3">حروف العلّة <span class="vowel font-bold" lang="en" dir="ltr">a e i o u</span> ملوّنة دائماً بهذا اللون لأنها أهم ما تنتبه له عند القراءة.</p>
             <div id="lesson-letters" class="flex flex-wrap gap-4 english-content" lang="en"></div>
           </div>
           <div>
@@ -202,6 +205,7 @@
             <div id="lesson-sight-words" class="flex flex-wrap gap-4 english-content" lang="en"></div>
           </div>
         </div>
+        <button id="lesson-start-btn" type="button" class="big-btn big-btn-primary mt-6"></button>
         <div class="mt-8">
           <h3 class="font-semibold text-xl mb-4 text-center text-gray-800">أنشطة تدريبية</h3>
           <div id="activities-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -210,11 +214,32 @@
 
       <!-- Activity View -->
       <div id="activity-view" class="hidden text-center">
-        <div class="flex justify-between items-center mb-4">
-          <h2 id="activity-title" class="text-2xl font-bold"></h2>
-          <div id="activity-progress" class="text-lg font-medium text-gray-600"></div>
+        <!-- Focus mode: only a close button and progress while answering -->
+        <div class="flex items-center gap-3 mb-4">
+          <button id="activity-close" type="button" class="activity-close" aria-label="الخروج من النشاط">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18 18 6M6 6l12 12"/></svg>
+          </button>
+          <div class="progress-track flex-1" role="progressbar" aria-label="التقدم في النشاط" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="activity-progressbar">
+            <div id="activity-progress-fill" class="progress-fill" style="width:0%"></div>
+          </div>
+          <span id="activity-progress" class="text-sm font-medium text-gray-500 whitespace-nowrap"></span>
         </div>
-        <div id="activity-content" class="bg-white p-4 sm:p-8 rounded-lg shadow-lg min-h-[350px] flex flex-col justify-center items-center"></div>
+        <h2 id="activity-title" class="text-lg font-bold text-gray-700 mb-3"></h2>
+        <div id="activity-content" class="bg-white p-4 sm:p-8 rounded-xl shadow-lg min-h-[350px] flex flex-col justify-center items-center"></div>
+        <div id="activity-footer" class="mt-4">
+          <button id="check-btn" type="button" class="big-btn big-btn-primary" disabled>تحقق</button>
+          <div id="feedback" class="feedback hidden text-right" role="status" aria-live="polite">
+            <p id="feedback-title" class="text-xl font-bold mb-2"></p>
+            <div class="flex items-center gap-3 mb-1 flex-wrap">
+              <span id="feedback-answer" class="text-3xl font-bold english-content" lang="en"></span>
+              <button id="feedback-replay" type="button" class="feedback-replay" aria-label="استمع مرة أخرى">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414z"/></svg>
+              </button>
+            </div>
+            <p id="feedback-hint" class="text-base mb-3"></p>
+            <button id="feedback-continue" type="button" class="big-btn">متابعة</button>
+          </div>
+        </div>
       </div>
 
       <!-- Achievements View -->

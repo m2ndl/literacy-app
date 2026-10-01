@@ -23,6 +23,26 @@
   --slow-text: #4b5563;
   --slow-hover-text: #2563eb;
   --slow-hover-bg: #eff6ff;
+
+  --option-bg: #f3f4f6;
+  --option-hover: #e5e7eb;
+  --option-border: #e5e7eb;
+  --select-bg: #dbeafe;
+  --select-ring: #60a5fa;
+  --ok-bg: #dcfce7;
+  --ok-text: #14532d;
+  --ok-border: #86efac;
+  --ok-strong: #16a34a;
+  --bad-bg: #fee2e2;
+  --bad-text: #7f1d1d;
+  --bad-border: #fca5a5;
+  --bad-strong: #dc2626;
+  --disabled-bg: #e5e7eb;
+  --disabled-text: #9ca3af;
+  --track: #e5e7eb;
+  --slot-bg: #e5e7eb;
+  --slot-filled: #ffffff;
+  --vowel: #c81e3a;
 }
 
 body.dark-mode {
@@ -46,6 +66,26 @@ body.dark-mode {
   --slow-text: #cbd5e1;
   --slow-hover-text: #93c5fd;
   --slow-hover-bg: #1e293b;
+
+  --option-bg: #1f2937;
+  --option-hover: #273449;
+  --option-border: #374151;
+  --select-bg: #1e3a8a;
+  --select-ring: #60a5fa;
+  --ok-bg: #064e3b;
+  --ok-text: #d1fae5;
+  --ok-border: #10b981;
+  --ok-strong: #16a34a;
+  --bad-bg: #4c0519;
+  --bad-text: #fecdd3;
+  --bad-border: #be123c;
+  --bad-strong: #e11d48;
+  --disabled-bg: #1f2937;
+  --disabled-text: #6b7280;
+  --track: #1f2937;
+  --slot-bg: #1f2937;
+  --slot-filled: #0f172a;
+  --vowel: #fb7185;
 }
 
 body {
@@ -54,6 +94,18 @@ body {
 }
 
 .english-content { direction: ltr !important; text-align: left; }
+
+/* English the learner reads: Andika, designed for beginning readers */
+[lang="en"], .english-content { font-family: 'Andika', 'Inter', ui-sans-serif, sans-serif; }
+
+/* Vowels: one colour plus an underline, so it doesn't rely on colour alone */
+.vowel {
+  color: var(--vowel);
+  text-decoration: underline;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.16em;
+}
+body.dark-mode #app-container .vowel { color: var(--vowel) !important; }
 
 /* -------------------- Home -------------------- */
 .chunk-card {
@@ -106,24 +158,73 @@ body {
 .slow-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* -------------------- Activities -------------------- */
-.sound-option-btn { width: 5.5rem; height: 5.5rem; font-size: 2.25rem; }
-.word-option-btn { padding: 0.75rem 1.5rem; font-size: 1.5rem; }
+/* Focus mode: the app header steps aside while the learner answers */
+body.in-activity #app-header,
+body.in-activity #main-title { display: none; }
 
-.letter-slot { cursor: pointer; user-select: none; }
-.letter-slot.filled:hover { background-color: #fca5a5; }
-
-.incorrect { animation: incorrect-shake 0.5s; }
-@keyframes incorrect-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
+.activity-close {
+  width: 2.75rem; height: 2.75rem; flex-shrink: 0; border-radius: 9999px;
+  display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted);
 }
+.activity-close:hover { background: var(--option-hover); color: var(--text); }
+.activity-close:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-.correct-flash { animation: correct-flash 0.7s ease-out; }
-@keyframes correct-flash {
-  0%, 100% { background-color: #f9fafb; }
-  50% { background-color: #d1fae5; }
+.progress-track { height: 0.75rem; border-radius: 9999px; background: var(--track); overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 9999px; background: var(--ok-strong); transition: width 0.3s ease; }
+
+.big-btn {
+  display: block; width: 100%; padding: 0.9rem 1rem; border-radius: 0.875rem;
+  font-size: 1.125rem; font-weight: 700; text-align: center;
 }
+.big-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.big-btn-primary { background: #3b82f6; color: #fff; }
+.big-btn-primary:hover:not(:disabled) { background: #2563eb; }
+.big-btn-primary:disabled { background: var(--disabled-bg); color: var(--disabled-text); cursor: not-allowed; }
+.big-btn-secondary { background: var(--option-bg); color: var(--text); border: 1px solid var(--option-border); }
+.big-btn-secondary:hover { background: var(--option-hover); }
+
+/* Answer options: pick one, then "Check" */
+.option-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--option-bg); color: var(--text); font-weight: 700;
+  border: 2px solid var(--option-border); border-bottom-width: 4px; border-radius: 0.875rem;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.option-btn:hover:not(:disabled) { background: var(--option-hover); }
+.option-btn:active:not(:disabled) { transform: translateY(1px); }
+.option-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.option-btn:disabled { cursor: default; }
+.option-letter { width: 5.5rem; height: 5.5rem; font-size: 2.25rem; }
+.option-word { min-width: 6rem; padding: 0.75rem 1.25rem; font-size: 1.5rem; }
+.option-selected { background: var(--select-bg); box-shadow: 0 0 0 3px var(--select-ring); }
+.option-correct { background: var(--ok-bg); border-color: var(--ok-border); box-shadow: 0 0 0 3px var(--ok-strong); color: var(--ok-text); }
+.option-wrong { background: var(--bad-bg); border-color: var(--bad-border); box-shadow: 0 0 0 3px var(--bad-strong); color: var(--bad-text); }
+
+.letter-slot {
+  cursor: pointer; user-select: none; background: var(--slot-bg); border-radius: 0.75rem;
+  display: flex; align-items: center; justify-content: center; font-size: 1.875rem; font-weight: 700;
+}
+.letter-slot.filled { background: var(--slot-filled); border: 2px solid var(--option-border); }
+.letter-slot.filled:hover { background-color: var(--bad-bg); }
+.letter-slot.slot-correct { background: var(--ok-bg); border-color: var(--ok-strong); color: var(--ok-text); }
+.letter-slot.slot-wrong { background: var(--bad-bg); border-color: var(--bad-strong); color: var(--bad-text); }
+.letter-tile { width: 100%; aspect-ratio: 1; font-size: 1.875rem; }
+.letter-tile.used { visibility: hidden; }
+
+/* Feedback after "Check": what was right, with the answer and its sound */
+.feedback { border-radius: 1rem; padding: 1rem 1.25rem; border: 1px solid; }
+.feedback-correct { background: var(--ok-bg); color: var(--ok-text); border-color: var(--ok-border); }
+.feedback-wrong { background: var(--bad-bg); color: var(--bad-text); border-color: var(--bad-border); }
+.feedback-correct .big-btn { background: var(--ok-strong); color: #fff; }
+.feedback-wrong .big-btn { background: var(--bad-strong); color: #fff; }
+.feedback-replay {
+  width: 2.75rem; height: 2.75rem; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.6); color: inherit;
+}
+body.dark-mode .feedback-replay { background: rgba(0, 0, 0, 0.25); }
+.feedback-replay:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.result-stat { border-radius: 0.875rem; background: var(--option-bg); padding: 0.75rem 1.25rem; min-width: 7rem; }
 
 /* -------------------- Achievements -------------------- */
 .achievement-card.locked { filter: grayscale(1); opacity: 0.5; }
@@ -135,6 +236,10 @@ body {
 
 .fade-in { animation: fadeIn 0.3s ease-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Tailwind's .hidden lives in a cascade layer, so the unlayered component rules above
+   (.big-btn, .feedback-replay, ...) would otherwise win and keep hidden elements visible */
+.hidden { display: none; }
 
 /* Returning learners: the landing page stays hidden while the app starts */
 html.returning #landing-page { display: none; }

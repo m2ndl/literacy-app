@@ -361,12 +361,31 @@ export function courseProgress(completedActivities) {
 
 // The next activity to do: the first unfinished one in the first open group that isn't complete.
 // null when everything open is done.
-export function nextStep(progress) {
-  for (const chunk of appData.chunks) {
-    if (chunk.id > progress.unlockedChunk) break;
+export function nextStep(progress, afterChunkId = null) {
+  const completedChunks = progress.completedChunks || [];
+  // Look forward from afterChunkId first (the group just finished), then from the start
+  const start = afterChunkId === null ? 0 : appData.chunks.findIndex(c => c.id === afterChunkId) + 1;
+  const ordered = [...appData.chunks.slice(start), ...appData.chunks.slice(0, start)];
+  for (const chunk of ordered) {
+    if (chunk.id > progress.unlockedChunk || completedChunks.includes(chunk.id)) continue;
     const completed = progress.completedActivities[chunk.id] || [];
     const activityId = getPossibleActivities(chunk).find(a => !completed.includes(a));
     if (activityId) return { chunkId: chunk.id, activityId };
   }
   return null;
+}
+
+// -------------------- Answer options --------------------
+// The right answer plus up to max-1 others: first from `preferred` (e.g. this group's letters),
+// then from `fallback` (e.g. every letter learned so far). Order is random.
+export function pickOptions(correct, preferred, fallback = [], max = 4) {
+  const options = [correct];
+  const add = (pool) => {
+    shuffleArray([...new Set(pool)]).forEach(item => {
+      if (options.length < max && !options.includes(item)) options.push(item);
+    });
+  };
+  add(preferred);
+  add(fallback);
+  return shuffleArray(options);
 }

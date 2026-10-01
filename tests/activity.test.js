@@ -8,7 +8,8 @@ import {
   PASS_ACCURACY,
   clipKeyFor,
   slugify,
-  neededClips
+  neededClips,
+  pickOptions
 } from '../logic.js';
 
 // The pool each activity draws from, as in startActivity (app.js)
@@ -107,5 +108,29 @@ describe('audio clip keys', () => {
       (chunk.sentences || []).forEach(s => assert.ok(keys.includes(`sentences/${slugify(s.text)}`), s.text));
     });
     assert.ok(keys.includes('pairs/do'), 'the pair "do" has its own clip');
+  });
+});
+
+describe('pickOptions', () => {
+  it('always includes the right answer once, with no duplicates', () => {
+    for (let run = 0; run < 100; run++) {
+      const options = pickOptions('b', ['b', 't', 'a'], ['b', 't', 'a', 'p', 'i', 'n']);
+      assert.equal(options.length, 4);
+      assert.equal(options.filter(o => o === 'b').length, 1);
+      assert.equal(new Set(options).size, 4);
+    }
+  });
+
+  it('prefers the group\'s own items before falling back', () => {
+    for (let run = 0; run < 50; run++) {
+      const options = pickOptions('q', ['q', 'x'], ['a', 'b', 'c', 'd', 'q', 'x']);
+      assert.ok(options.includes('x'));
+      assert.equal(options.length, 4);
+    }
+  });
+
+  it('returns fewer options when there are not enough items', () => {
+    assert.equal(pickOptions('a', ['a', 'b'], []).length, 2);
+    assert.deepEqual(pickOptions('a', [], []), ['a']);
   });
 });

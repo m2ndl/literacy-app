@@ -1,6 +1,6 @@
 // service-worker.js - Minimal PWA service worker for offline functionality
 // Bump CACHE_NAME whenever this file changes so old caches get cleaned up.
-const CACHE_NAME = 'lughatii-v7';
+const CACHE_NAME = 'lughatii-v8';
 // Paths are relative to this file so they work when the app is served from a sub-folder
 // (e.g. GitHub Pages: /literacy-app/).
 const urlsToCache = [
@@ -21,7 +21,8 @@ const urlsToCache = [
   './icon-512.png',
   // External resources
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap'
 ];
 
 // Install event - cache all static assets

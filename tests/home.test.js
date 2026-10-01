@@ -71,3 +71,16 @@ describe('achievements', () => {
     assert.equal(first.condition({ ...getDefaultProgress(), completedActivities: { 1: ['sound-match'] } }), true);
   });
 });
+
+describe('nextStep after finishing a group', () => {
+  it('skips groups already marked complete', () => {
+    const p = { ...getDefaultProgress(), unlockedChunk: 5, completedChunks: [1, 2, 3, 4], completedActivities: {} };
+    assert.deepEqual(nextStep(p), { chunkId: 5, activityId: 'sound-match' });
+  });
+
+  it('moves forward from the group just finished', () => {
+    const p = { ...getDefaultProgress(), unlockedChunk: 10, completedChunks: [4], completedActivities: {} };
+    assert.equal(nextStep(p, 4).chunkId, 5);
+    assert.equal(nextStep(p).chunkId, 1);
+  });
+});

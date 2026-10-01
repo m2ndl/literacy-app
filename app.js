@@ -1,6 +1,6 @@
 // app.js (ES module)
 import { appData, getAchievements } from './data.js';
-import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete, buildQuestionSet, activityAccuracy, PASS_ACCURACY, resetProgress, liveStreak, courseProgress, nextStep } from './logic.js';
+import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete, buildQuestionSet, activityAccuracy, PASS_ACCURACY, resetProgress, liveStreak, courseProgress, nextStep, pickOptions } from './logic.js';
 import { playItem, initSpeech, loadClipManifest, onAudioProblem } from './audio.js';
 import { initSync, isSyncConfigured, getSyncState, hasAuthReturn, notifyProgressChanged, startSignIn, syncNow, signOut, deleteServerData } from './sync.js';
 
@@ -10,6 +10,15 @@ const PLAY_SVG = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
         d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
         clip-rule="evenodd"></path>
 </svg>`;
+
+// English text for learners, with vowels marked. Arabic rarely writes short vowels, so a/e/i/o/u
+// are the hardest part of reading English for these learners; they get one colour everywhere they
+// are taught (never on answer buttons, where the colour would give answers away).
+function vowelHtml(text) {
+  return String(text)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/[aeiou]/gi, v => `<span class="vowel">${v}</span>`);
+}
 
 // Every activity type, in the order a lesson goes through them
 const ACTIVITIES = {
@@ -78,9 +87,10 @@ function playFailureSound() {
   try {
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    oscillator.type = 'sawtooth';
-    oscillator.frequency.setValueAtTime(120, audioCtx.currentTime);
-    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(330, audioCtx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.25);
+    gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
@@ -150,7 +160,9 @@ function checkAchievements() {
       achievementQueue.push(ach);
     }
   });
-  if (!isShowingAchievement && achievementQueue.length > 0) showNextAchievement();
+  // Badges wait for the results screen instead of interrupting an activity
+  const answering = Boolean(currentActivity.questions) && !currentActivity.finished;
+  if (!answering && !isShowingAchievement && achievementQueue.length > 0) showNextAchievement();
 }
 function showNextAchievement() {
   if (achievementQueue.length === 0) { isShowingAchievement = false; return; }
@@ -177,7 +189,6 @@ const messageModal = document.getElementById('message-modal');
 const modalMessage = document.getElementById('modal-message');
 const modalButtons = document.getElementById('modal-buttons');
 const activityProgress = document.getElementById('activity-progress');
-const appBody = document.querySelector('body');
 const menuButton = document.getElementById('menu-button');
 const dropdownMenu = document.getElementById('dropdown-menu');
 const pointsDisplay = document.getElementById('points-display');
@@ -187,6 +198,7 @@ const loadingIndicator = document.getElementById('loading-indicator');
 
 // -------------------- View Switching --------------------
 function showView(viewName) {
+  document.body.classList.toggle('in-activity', viewName === 'activity');
   [dashboardView, lessonView, activityView, achievementsView, progressReportView, importantNoteView, syncView].forEach(v => v.classList.add('hidden'));
   backButton.classList.add('hidden');
 
@@ -238,7 +250,7 @@ function isActivityLive(chunkId) {
 // True once the learner has answered something, so leaving would throw work away
 function isActivityInProgress() {
   return Boolean(currentActivity.questions) && !currentActivity.finished &&
-    (currentActivity.currentIndex > 0 || currentActivity.questionsWithErrors.size > 0);
+    (currentActivity.currentIndex > 0 || currentActivity.questionsWithErrors.size > 0 || answerChecked);
 }
 
 function renderRoute(state) {
@@ -343,9 +355,9 @@ function renderDashboard() {
         </svg>
       </div>
       ${hasLetters
-        ? `<p class="text-3xl font-bold mt-2 text-gray-800 english-content tracking-wider" lang="en">${chunk.letters.join(' ')}</p>`
+        ? `<p class="text-3xl font-bold mt-2 text-gray-800 english-content tracking-wider" lang="en">${vowelHtml(chunk.letters.join(' '))}</p>`
         : `<p class="text-2xl font-bold mt-2 text-gray-800">مراجعة</p>`}
-      ${sample.length ? `<p class="mt-2 text-sm text-gray-600">ستقرأ: <span dir="ltr" lang="en" class="font-semibold">${sample.join(', ')}</span></p>` : ''}
+      ${sample.length ? `<p class="mt-2 text-sm text-gray-600">ستقرأ: <span dir="ltr" lang="en" class="font-semibold">${vowelHtml(sample.join(', '))}</span></p>` : ''}
       <div class="mt-4 flex items-center gap-3">
         <div class="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden" aria-hidden="true"><div class="h-full rounded-full bg-green-500" style="width:${percent}%"></div></div>
         <span class="text-xs text-gray-500">${status}</span>
@@ -395,7 +407,7 @@ function showLesson(chunkId) {
     const mainBtn = document.createElement('button');
     // min-w + padding lets long words ("Hamad") grow instead of spilling out of the tile
     mainBtn.className = 'text-2xl font-bold bg-blue-100 text-blue-800 min-w-16 h-16 px-3 rounded-lg flex items-center justify-center hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500';
-    mainBtn.textContent = text;
+    mainBtn.innerHTML = vowelHtml(text);
     mainBtn.lang = 'en';
     let isPlaying = false;
     mainBtn.onclick = () => {
@@ -446,7 +458,20 @@ function showLesson(chunkId) {
   document.getElementById('lesson-sight-section').classList.toggle('hidden', sightWords.length === 0);
 
   renderActivities(chunkId);
+  renderLessonStartButton(chunk);
   showView('lesson');
+}
+
+// One button that runs the lesson's activities in order
+function renderLessonStartButton(chunk) {
+  const order = getPossibleActivities(chunk);
+  const completed = userProgress.completedActivities[chunk.id] || [];
+  const next = order.find(a => !completed.includes(a));
+  const btn = document.getElementById('lesson-start-btn');
+  btn.textContent = !next ? 'راجع الدرس من البداية'
+    : completed.length === 0 ? 'ابدأ الدرس'
+    : `تابع الدرس: ${ACTIVITIES[next].name}`;
+  btn.onclick = () => startActivity(chunk.id, next || order[0]);
 }
 
 function renderActivities(chunkId) {
@@ -531,46 +556,6 @@ function itemKind(item, chunk, activityType) {
   return 'word';
 }
 
-function showActivityPassed(message) {
-  openModal(message, [{ label: 'متابعة', onClick: () => history.back() }]);
-}
-
-function showActivityFailed(accuracy, missedItems) {
-  const { chunkId, activityType } = currentActivity;
-  const chunk = appData.chunks.find(c => c.id === chunkId);
-
-  // The items the learner got wrong, as buttons they can tap to hear again
-  const details = document.createElement('div');
-  details.className = 'mb-6';
-  const label = document.createElement('p');
-  label.className = 'text-sm text-gray-600 mb-2';
-  label.textContent = 'راجع هذه ثم حاول مرة أخرى:';
-  const list = document.createElement('div');
-  list.className = 'flex flex-wrap justify-center gap-2';
-  list.dir = 'ltr';
-  const shown = new Set();
-  missedItems.forEach(item => {
-    const text = typeof item === 'string' ? item : item.text;
-    const kind = itemKind(item, chunk, activityType);
-    const display = kind === 'letter' ? text.toUpperCase() + text.toLowerCase() : text;
-    if (shown.has(display)) return;
-    shown.add(display);
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.lang = 'en';
-    chip.className = 'bg-blue-100 text-blue-800 font-bold text-xl px-3 py-1 rounded-lg hover:bg-blue-200';
-    chip.textContent = display;
-    chip.onclick = () => playItem(text, { kind });
-    list.appendChild(chip);
-  });
-  details.append(label, list);
-
-  openModal(`حصلت على ${toArabicDigits(accuracy)}٪، وتحتاج ${toArabicDigits(PASS_ACCURACY)}٪ للنجاح.`, [
-    { label: 'أعد المحاولة', focus: true, onClick: () => startActivity(chunkId, activityType, { replace: true }) },
-    { label: 'العودة للدرس', variant: 'secondary', onClick: () => history.back() }
-  ], details);
-}
-
 function renderAchievementsPage() {
   const grid = document.getElementById('achievements-grid');
   grid.innerHTML = '';
@@ -608,7 +593,7 @@ function renderProgressReportPage() {
     arr.forEach(letter => {
       const el = document.createElement('span');
       el.className = 'w-12 h-12 flex items-center justify-center bg-green-100 text-green-800 font-bold text-2xl rounded-md';
-      el.textContent = letter;
+      el.innerHTML = vowelHtml(letter);
       lettersGrid.appendChild(el);
     });
   }
@@ -627,10 +612,22 @@ function showAchievementUnlockedModal(achievement) {
 }
 
 // -------------------- Activity Engine --------------------
+// Each question type draws itself into the activity card and returns
+//   { audio, autoplay, display, hint, isCorrect(answer), mark(answer, correct) }
+// The learner picks or builds an answer (setAnswer), then presses "Check". A feedback panel says
+// whether it was right and shows the right answer with its sound. Nothing counts before "Check",
+// and a wrong answer is never retried by guessing: it comes back once at the end instead.
+const activityContent = document.getElementById('activity-content');
+const checkButton = document.getElementById('check-btn');
+const feedbackPanel = document.getElementById('feedback');
+let currentQuestion = null;
+let selectedAnswer = null;
+let answerChecked = false;
+let replayTimer = null; // replays the right answer after a mistake; cancelled when moving on
+
 // replace: true restarts in place (the "try again" button) instead of adding a history entry
 function startActivity(chunkId, activityType, { replace = false } = {}) {
   const chunk = appData.chunks.find(c => c.id === chunkId);
-  const title = ACTIVITIES[activityType].name;
   let questions = [];
   if (activityType === 'sound-match' || activityType === 'capital-match') {
     questions = chunk.letters || [];
@@ -641,8 +638,7 @@ function startActivity(chunkId, activityType, { replace = false } = {}) {
   } else {
     questions = chunk.words || [];
   }
-
-  if (!questions || questions.length === 0) {
+  if (questions.length === 0) {
     openModal('لا توجد أسئلة لهذا النشاط.', [{ label: 'حسناً' }]);
     return;
   }
@@ -655,459 +651,482 @@ function startActivity(chunkId, activityType, { replace = false } = {}) {
     originalQuestionCount: 0,
     questionsWithErrors: new Set(),
     requeuedFromIndex: new Set(),
+    pointsEarned: 0,
     finished: false
   };
   currentActivity.originalQuestionCount = currentActivity.questions.length;
 
   const state = { view: 'activity', chunkId };
   if (replace) history.replaceState(state, ''); else history.pushState(state, '');
-  document.getElementById('activity-title').textContent = title;
-  mainTitle.textContent = 'نشاط';
+  document.getElementById('activity-title').textContent = ACTIVITIES[activityType].name;
   showView('activity');
   window.scrollTo(0, 0);
   displayCurrentQuestion();
 }
 
+function setAnswer(value) {
+  if (answerChecked) return;
+  selectedAnswer = value;
+  checkButton.disabled = value === null || value === undefined;
+}
+
+function updateActivityProgress(done) {
+  const { currentIndex, questions } = currentActivity;
+  const percent = done ? 100 : Math.round((currentIndex / questions.length) * 100);
+  document.getElementById('activity-progress-fill').style.width = `${percent}%`;
+  document.getElementById('activity-progressbar').setAttribute('aria-valuenow', String(percent));
+  activityProgress.textContent = done ? '' : `${toArabicDigits(currentIndex + 1)} من ${toArabicDigits(questions.length)}`;
+}
+
 function displayCurrentQuestion() {
-  const { questions, currentIndex, activityType } = currentActivity;
-  activityProgress.textContent = `${currentIndex + 1} / ${questions.length}`;
-  const question = questions[currentIndex];
-  const container = document.getElementById('activity-content');
-  container.innerHTML = '';
-
-  if (activityType === 'sound-match' || activityType === 'combined-sound-match') {
-    renderSoundMatchUI(question, container);
-  } else if (activityType === 'word-build') renderWordBuildUI(question, container);
-  else if (activityType === 'fill-in-the-blank') renderFillInTheBlankUI(question, container);
-  else if (activityType === 'word-match') renderWordMatchUI(question, container);
-  else if (activityType === 'initial-sound') renderInitialSoundUI(question, container);
-  else if (activityType === 'sentence-build') renderSentenceBuildUI(question, container);
-  else if (activityType === 'capital-match') renderCapitalMatchUI(question, container);
+  const { questions, currentIndex, activityType, chunkId } = currentActivity;
+  const chunk = appData.chunks.find(c => c.id === chunkId);
+  updateActivityProgress(false);
+  feedbackPanel.classList.add('hidden');
+  checkButton.classList.remove('hidden');
+  checkButton.disabled = true;
+  selectedAnswer = null;
+  answerChecked = false;
+  clearTimeout(replayTimer);
+  activityContent.innerHTML = '';
+  currentQuestion = QUESTION_TYPES[activityType](questions[currentIndex], activityContent, chunk);
+  if (currentQuestion.autoplay && currentQuestion.audio) playQuestionAudio();
 }
 
-function handleCorrectAnswer() {
-  playSuccessSound();
-  userProgress.points += 5;
-  updateHeaderStats();
-  appBody.classList.add('correct-flash');
-  setTimeout(() => appBody.classList.remove('correct-flash'), 700);
+function playQuestionAudio(slow = false) {
+  const { text, kind } = currentQuestion.audio;
+  playItem(text, { slow, kind });
+}
 
-  if (currentActivity.currentIndex >= currentActivity.questions.length - 1) {
-    currentActivity.finished = true;
-    const { chunkId, activityType, originalQuestionCount, questionsWithErrors, questions } = currentActivity;
-    const accuracy = activityAccuracy(originalQuestionCount, questionsWithErrors.size);
+function checkAnswer() {
+  if (answerChecked || selectedAnswer === null || !currentQuestion) return;
+  answerChecked = true;
+  checkButton.disabled = true;
+  const correct = currentQuestion.isCorrect(selectedAnswer);
+  currentQuestion.mark(selectedAnswer, correct);
+  activityContent.querySelectorAll('.option-btn, .letter-slot').forEach(el => { el.disabled = true; el.style.pointerEvents = 'none'; });
 
-    if (accuracy < PASS_ACCURACY) {
-      showActivityFailed(accuracy, [...questionsWithErrors].map(i => questions[i]));
-      saveProgress();
-      return;
-    }
-
-    recordLearningDay();
+  if (correct) {
+    playSuccessSound();
+    userProgress.points += 5;
+    currentActivity.pointsEarned += 5;
     updateHeaderStats();
-    if (!userProgress.completedActivities[chunkId]) userProgress.completedActivities[chunkId] = [];
-    if (!userProgress.completedActivities[chunkId].includes(activityType)) {
-      userProgress.completedActivities[chunkId].push(activityType);
-    }
-
-    if (isChunkComplete(chunkId, userProgress.completedActivities)) {
-      if (!userProgress.completedChunks.includes(chunkId)) {
-        userProgress.completedChunks.push(chunkId);
-
-        // Unlock by array order (works even if IDs skip numbers)
-        const currentIdx = appData.chunks.findIndex(c => c.id === chunkId);
-        const nextChunk = appData.chunks[currentIdx + 1];
-
-        if (userProgress.unlockedChunk === chunkId && nextChunk) {
-          userProgress.unlockedChunk = nextChunk.id;
-          showActivityPassed(`عمل رائع! لقد فتحت ${nextChunk.title}.`);
-        } else {
-          showActivityPassed("اكتملت المجموعة! أحسنت صنعًا.");
-        }
-      } else {
-        showActivityPassed("اكتمل النشاط! عمل جيد.");
-      }
-    } else {
-      showActivityPassed("اكتمل النشاط! استمر في التقدم.");
-    }
-    checkAchievements();
-    saveProgress();
   } else {
-    currentActivity.currentIndex++;
-    checkAchievements();
-    saveProgress();
-    setTimeout(displayCurrentQuestion, 700);
+    playFailureSound();
+    recordMistake();
+    // Let the learner hear the right answer
+    if (currentQuestion.audio) replayTimer = setTimeout(() => playQuestionAudio(), 450);
   }
+  showFeedback(correct);
+  checkAchievements();
+  saveProgress();
 }
 
-function handleWrongAttempt() {
-  playFailureSound();
+// Only a question's first appearance counts toward the score, and it comes back once at the end
+function recordMistake() {
   const idx = currentActivity.currentIndex;
-  if (idx < currentActivity.originalQuestionCount) {
-    currentActivity.questionsWithErrors.add(idx);
-  }
+  if (idx >= currentActivity.originalQuestionCount) return;
+  currentActivity.questionsWithErrors.add(idx);
   if (!currentActivity.requeuedFromIndex.has(idx)) {
     currentActivity.requeuedFromIndex.add(idx);
     currentActivity.questions.push(currentActivity.questions[idx]);
   }
 }
 
-// -------------------- Activity Renderers --------------------
-function renderInitialSoundUI(word, container) {
-  const firstChar = word[0];
-  const correctLetter = firstChar.toLowerCase(); // normalize for capitals like Sara/Ali
-  const partialWord = '<span class="text-blue-500">_</span>' + word.substring(1);
+const PRAISE = ['أحسنت!', 'صحيح!', 'ممتاز!', 'رائع!'];
 
-  const allLearnedLetters = getLearnedContent(currentActivity.chunkId, 'letters')
-    .map(l => l.toLowerCase()); // normalize pool
-  const distractors = allLearnedLetters.filter(l => l !== correctLetter);
+function showFeedback(correct) {
+  checkButton.classList.add('hidden');
+  feedbackPanel.classList.remove('hidden', 'feedback-correct', 'feedback-wrong');
+  feedbackPanel.classList.add(correct ? 'feedback-correct' : 'feedback-wrong');
+  document.getElementById('feedback-title').textContent = correct
+    ? PRAISE[Math.floor(Math.random() * PRAISE.length)]
+    : 'الإجابة الصحيحة:';
+  document.getElementById('feedback-answer').innerHTML = vowelHtml(currentQuestion.display);
+  document.getElementById('feedback-replay').classList.toggle('hidden', !currentQuestion.audio);
+  const hint = document.getElementById('feedback-hint');
+  hint.textContent = currentQuestion.hint || '';
+  hint.classList.toggle('hidden', !currentQuestion.hint);
+  const continueBtn = document.getElementById('feedback-continue');
+  continueBtn.textContent = currentActivity.currentIndex >= currentActivity.questions.length - 1 ? 'عرض النتيجة' : 'متابعة';
+  continueBtn.focus({ preventScroll: true });
+  feedbackPanel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
 
-  let options = [correctLetter];
-  const maxOptions = Math.min(4, allLearnedLetters.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) {
-      options.push(randomDistractor);
+function continueActivity() {
+  if (!answerChecked) return;
+  if (currentActivity.currentIndex >= currentActivity.questions.length - 1) {
+    finishActivity();
+  } else {
+    currentActivity.currentIndex++;
+    displayCurrentQuestion();
+  }
+}
+
+function finishActivity() {
+  clearTimeout(replayTimer);
+  currentActivity.finished = true;
+  const { chunkId, activityType, originalQuestionCount, questionsWithErrors, questions } = currentActivity;
+  const accuracy = activityAccuracy(originalQuestionCount, questionsWithErrors.size);
+  const passed = accuracy >= PASS_ACCURACY;
+  let headline = '';
+
+  if (passed) {
+    recordLearningDay();
+    if (!userProgress.completedActivities[chunkId]) userProgress.completedActivities[chunkId] = [];
+    if (!userProgress.completedActivities[chunkId].includes(activityType)) {
+      userProgress.completedActivities[chunkId].push(activityType);
+    }
+    headline = 'اكتمل النشاط!';
+    if (isChunkComplete(chunkId, userProgress.completedActivities) && !userProgress.completedChunks.includes(chunkId)) {
+      userProgress.completedChunks.push(chunkId);
+      // Unlock by array order (works even if IDs skip numbers)
+      const nextChunk = appData.chunks[appData.chunks.findIndex(c => c.id === chunkId) + 1];
+      if (userProgress.unlockedChunk === chunkId && nextChunk) {
+        userProgress.unlockedChunk = nextChunk.id;
+        headline = `أكملت الدرس وفتحت ${nextChunk.title}!`;
+      } else {
+        headline = 'أكملت الدرس كله!';
+      }
     }
   }
 
-  container.innerHTML = `
-    <p class="text-xl mb-4">اختر الحرف الأول الصحيح لإكمال الكلمة.</p>
-    <div class="flex items-center justify-center gap-4 mb-8">
-      <div class="flex flex-col items-center gap-1">
-        <button id="play-word-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Listen to word">
-          ${PLAY_SVG}
-        </button>
-        <button id="play-word-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-      </div>
-      <p class="text-4xl font-bold tracking-widest english-content">${partialWord}</p>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-word-sound-btn').onclick = () => playItem(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => playItem(word, { slow: true });
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(letter => {
-    const btn = document.createElement('button');
-    btn.className = 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = letter;
-    btn.onclick = () => {
-      if (letter.toLowerCase() === correctLetter) {
-        handleCorrectAnswer();
-      } else {
-        handleWrongAttempt();
-        btn.disabled = true;
-        btn.classList.add('incorrect');
-        setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500);
-      }
-    };
-    optionsContainer.appendChild(btn);
-  });
+  updateHeaderStats();
+  saveProgress();
+  renderResults({ passed, accuracy, headline, missed: [...questionsWithErrors].map(i => questions[i]) });
+  checkAchievements();
 }
 
-function renderSoundMatchUI(correctItem, container) {
-  const chunk = appData.chunks.find(c => c.id === currentActivity.chunkId);
-  let optionsPool;
-  const words = chunk.words || [];
+// The next unfinished activity in this lesson; when the lesson is done, the next open group
+function nextActivityAfter(chunkId, activityType) {
+  const chunk = appData.chunks.find(c => c.id === chunkId);
+  const order = getPossibleActivities(chunk);
+  const completed = userProgress.completedActivities[chunkId] || [];
+  const start = order.indexOf(activityType);
+  for (let i = 1; i <= order.length; i++) {
+    const id = order[(start + i) % order.length];
+    if (!completed.includes(id)) return { chunkId, activityId: id };
+  }
+  return nextStep(userProgress, chunkId);
+}
 
-  if (currentActivity.activityType === 'sound-match') {
-    optionsPool = chunk.letters || [];
+function renderResults({ passed, accuracy, headline, missed }) {
+  const { chunkId, activityType, pointsEarned } = currentActivity;
+  const chunk = appData.chunks.find(c => c.id === chunkId);
+  checkButton.classList.add('hidden');
+  feedbackPanel.classList.add('hidden');
+  updateActivityProgress(true);
+
+  activityContent.innerHTML = `
+    <div class="w-full max-w-md flex flex-col gap-5 items-center">
+      <div class="text-6xl" aria-hidden="true">${passed ? '🎉' : '💪'}</div>
+      <h3 id="results-title" class="text-2xl font-bold text-gray-900 focus:outline-none" tabindex="-1"></h3>
+      <div class="flex justify-center gap-3 flex-wrap">
+        <div class="result-stat"><div class="text-sm text-gray-500">الدقة</div><div class="text-2xl font-bold ${passed ? 'text-green-600' : 'text-orange-500'}">${toArabicDigits(accuracy)}٪</div></div>
+        <div class="result-stat"><div class="text-sm text-gray-500">النقاط</div><div class="text-2xl font-bold text-yellow-500">+${toArabicDigits(pointsEarned)}</div></div>
+      </div>
+      <div id="results-review" class="w-full hidden">
+        <p class="text-sm text-gray-600 mb-2"></p>
+        <div class="flex flex-wrap justify-center gap-2" dir="ltr" lang="en"></div>
+      </div>
+      <div id="results-actions" class="w-full flex flex-col gap-3"></div>
+    </div>`;
+
+  document.getElementById('results-title').textContent = passed
+    ? headline
+    : `قاربت! حصلت على ${toArabicDigits(accuracy)}٪، وتحتاج ${toArabicDigits(PASS_ACCURACY)}٪ للنجاح.`;
+
+  // What to review: tap to hear each one again
+  const review = document.getElementById('results-review');
+  const shown = new Set();
+  missed.forEach(item => {
+    const text = typeof item === 'string' ? item : item.text;
+    const kind = itemKind(item, chunk, activityType);
+    const display = kind === 'letter' ? text.toUpperCase() + text.toLowerCase() : text;
+    if (shown.has(display)) return;
+    shown.add(display);
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'bg-blue-100 text-blue-800 font-bold text-xl px-3 py-1 rounded-lg hover:bg-blue-200';
+    chip.innerHTML = vowelHtml(display);
+    chip.onclick = () => playItem(text, { kind });
+    review.lastElementChild.appendChild(chip);
+  });
+  if (shown.size) {
+    review.firstElementChild.textContent = passed ? 'راجع هذه لاحقاً (اضغط لتسمعها):' : 'راجع هذه ثم حاول مرة أخرى (اضغط لتسمعها):';
+    review.classList.remove('hidden');
+  }
+
+  const actions = document.getElementById('results-actions');
+  const addButton = (label, variant, onClick) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `big-btn ${variant === 'primary' ? 'big-btn-primary' : 'big-btn-secondary'}`;
+    btn.textContent = label;
+    btn.onclick = onClick;
+    actions.appendChild(btn);
+    return btn;
+  };
+  if (passed) {
+    const next = nextActivityAfter(chunkId, activityType);
+    if (next && next.chunkId === chunkId) {
+      addButton(`النشاط التالي: ${ACTIVITIES[next.activityId].name}`, 'primary', () => startActivity(chunkId, next.activityId, { replace: true }));
+    } else if (next) {
+      const nextChunk = appData.chunks.find(c => c.id === next.chunkId);
+      addButton(`ابدأ ${nextChunk.title}`, 'primary', () => {
+        history.replaceState({ view: 'lesson', chunkId: next.chunkId }, '');
+        startActivity(next.chunkId, next.activityId);
+      });
+    }
+    addButton('العودة للدرس', next ? 'secondary' : 'primary', () => history.back());
   } else {
-    const isPair = (correctItem?.length > 1) && !words.includes(correctItem);
-    if (isPair) optionsPool = chunk.letterPairs || [];
-    else if (words.includes(correctItem)) optionsPool = words;
-    else optionsPool = chunk.letters || [];
+    addButton('أعد المحاولة', 'primary', () => startActivity(chunkId, activityType, { replace: true }));
+    addButton('العودة للدرس', 'secondary', () => history.back());
   }
+  document.getElementById('results-title').focus({ preventScroll: true });
+}
 
-  let options = [correctItem];
-  const maxOptions = Math.min(4, optionsPool.length);
-  while (options.length < maxOptions) {
-    const randomItem = optionsPool[Math.floor(Math.random() * optionsPool.length)];
-    if (!options.includes(randomItem)) options.push(randomItem);
-  }
+// -------------------- Question types --------------------
+function soundControlsHtml() {
+  return `
+    <div class="flex flex-col items-center gap-1">
+      <button type="button" data-play class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="استمع">${PLAY_SVG}</button>
+      <button type="button" data-play-slow class="slow-btn" aria-label="استمع ببطء"><span aria-hidden="true">🐢</span> بطيء</button>
+    </div>`;
+}
 
-  const promptText = (currentActivity.activityType === 'sound-match')
-    ? "استمع للصوت واختر الحرف الصحيح."
-    : "استمع للصوت واختر الإجابة الصحيحة.";
+function wireSoundControls(container) {
+  container.querySelector('[data-play]')?.addEventListener('click', () => playQuestionAudio(false));
+  container.querySelector('[data-play-slow]')?.addEventListener('click', () => playQuestionAudio(true));
+}
 
-  container.innerHTML = `
-    <p class="text-xl mb-6">${promptText}</p>
-    <div class="flex flex-col items-center gap-1 mb-8">
-      <button id="play-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play sound">
-        ${PLAY_SVG}
-      </button>
-      <button id="play-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
+// Answer buttons: tapping one selects it (tap another to change your mind) until "Check"
+function renderOptions(container, options, { size = 'letter' } = {}) {
+  const wrap = document.createElement('div');
+  wrap.className = 'flex flex-wrap justify-center gap-4 mt-2';
+  wrap.dir = 'ltr';
+  wrap.lang = 'en';
+  const buttons = options.map(value => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = `option-btn ${size === 'letter' ? 'option-letter' : 'option-word'}`;
+    btn.textContent = value;
+    btn.setAttribute('aria-pressed', 'false');
+    btn.onclick = () => {
+      buttons.forEach(b => { b.classList.remove('option-selected'); b.setAttribute('aria-pressed', 'false'); });
+      btn.classList.add('option-selected');
+      btn.setAttribute('aria-pressed', 'true');
+      setAnswer(value);
+    };
+    wrap.appendChild(btn);
+    return btn;
+  });
+  container.appendChild(wrap);
+  return {
+    mark(selected, correctValue) {
+      buttons.forEach((b, i) => {
+        b.classList.remove('option-selected');
+        if (options[i] === correctValue) b.classList.add('option-correct');
+        else if (options[i] === selected) b.classList.add('option-wrong');
+      });
+    }
+  };
+}
 
-  const kind = itemKind(correctItem, chunk, currentActivity.activityType);
-  document.getElementById('play-sound-btn').onclick = () => playItem(correctItem, { kind });
-  document.getElementById('play-slow-sound-btn').onclick = () => playItem(correctItem, { slow: true, kind });
+function promptHtml(text) {
+  return `<p class="text-xl mb-5">${text}</p>`;
+}
 
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(item => {
+// The same letter in the case it has in the word (so "Hamad" asks for "H", not "h")
+function inCaseOf(letter, sample) {
+  return sample === sample.toUpperCase() ? letter.toUpperCase() : letter.toLowerCase();
+}
+
+// A word with one letter replaced by a blank, as LTR English markup
+function wordWithBlank(word, index) {
+  return `${vowelHtml(word.slice(0, index))}<span class="text-blue-500">_</span>${vowelHtml(word.slice(index + 1))}`;
+}
+
+const QUESTION_TYPES = {
+  'sound-match': (letter, container, chunk) => {
+    const options = pickOptions(letter, chunk.letters, getLearnedContent(chunk.id, 'letters'));
+    container.innerHTML = promptHtml('استمع واختر الحرف الذي تسمعه.') + `<div class="mb-6">${soundControlsHtml()}</div>`;
+    wireSoundControls(container);
+    const opts = renderOptions(container, options);
+    return {
+      audio: { text: letter, kind: 'letter' }, autoplay: true, display: letter.toUpperCase() + letter,
+      isCorrect: v => v === letter, mark: (v) => opts.mark(v, letter)
+    };
+  },
+
+  'combined-sound-match': (item, container, chunk) => {
+    const words = chunk.words || [];
     const isWord = words.includes(item);
-    const btn = document.createElement('button');
-    btn.className = isWord
-      ? 'word-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content'
-      : 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = item;
-    btn.onclick = () => {
-      if (item === correctItem) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
+    const pool = isWord ? words : (chunk.letterPairs || []);
+    const kind = itemKind(item, chunk, 'combined-sound-match');
+    const options = pickOptions(item, pool);
+    container.innerHTML = promptHtml('استمع واختر ما تسمعه.') + `<div class="mb-6">${soundControlsHtml()}</div>`;
+    wireSoundControls(container);
+    const opts = renderOptions(container, options, { size: isWord ? 'word' : 'letter' });
+    return {
+      audio: { text: item, kind }, autoplay: true, display: item,
+      isCorrect: v => v === item, mark: (v) => opts.mark(v, item)
     };
-    optionsContainer.appendChild(btn);
-  });
-}
+  },
 
-function renderWordMatchUI(correctWord, container) {
-  const allLearnedWords = getLearnedContent(currentActivity.chunkId, 'words');
-  const distractors = allLearnedWords.filter(w => w !== correctWord && Math.abs(w.length - correctWord.length) <= 2);
-
-  let options = [correctWord];
-  const maxOptions = Math.min(4, allLearnedWords.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) options.push(randomDistractor);
-  }
-
-  container.innerHTML = `
-    <p class="text-xl mb-6">استمع واختر الكلمة الصحيحة.</p>
-    <div class="flex flex-col items-center gap-1 mb-8">
-      <button id="play-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play word">
-        ${PLAY_SVG}
-      </button>
-      <button id="play-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-sound-btn').onclick = () => playItem(correctWord);
-  document.getElementById('play-slow-sound-btn').onclick = () => playItem(correctWord, { slow: true });
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(word => {
-    const btn = document.createElement('button');
-    btn.className = 'word-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = word;
-    btn.onclick = () => {
-      if (word === correctWord) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
+  'capital-match': (letter, container, chunk) => {
+    const showUpper = Math.random() < 0.5;
+    const shown = showUpper ? letter.toUpperCase() : letter.toLowerCase();
+    const correct = showUpper ? letter.toLowerCase() : letter.toUpperCase();
+    const toCase = l => (showUpper ? l.toLowerCase() : l.toUpperCase());
+    const options = pickOptions(correct, chunk.letters.map(toCase), getLearnedContent(chunk.id, 'letters').map(toCase));
+    container.innerHTML = promptHtml(showUpper ? 'اختر الحرف الصغير لهذا الحرف.' : 'اختر الحرف الكبير لهذا الحرف.') + `
+      <div class="flex items-center justify-center gap-6 mb-6">
+        <div class="text-8xl font-bold english-content" lang="en">${vowelHtml(shown)}</div>
+        ${soundControlsHtml()}
+      </div>`;
+    wireSoundControls(container);
+    const opts = renderOptions(container, options);
+    return {
+      audio: { text: letter, kind: 'letter' }, autoplay: false, display: letter.toUpperCase() + letter.toLowerCase(),
+      isCorrect: v => v === correct, mark: (v) => opts.mark(v, correct)
     };
-    optionsContainer.appendChild(btn);
-  });
-}
+  },
 
-function renderFillInTheBlankUI(word, container) {
-  const missingLetterIndex = Math.floor(Math.random() * word.length);
-  const correctLetter = word[missingLetterIndex];
-  const partialWord = word.substring(0, missingLetterIndex) + '<span class="text-blue-500">_</span>' + word.substring(missingLetterIndex + 1);
+  'word-match': (word, container, chunk) => {
+    const learned = getLearnedContent(chunk.id, 'words');
+    const similar = learned.filter(w => Math.abs(w.length - word.length) <= 1);
+    const options = pickOptions(word, similar, learned);
+    container.innerHTML = promptHtml('استمع واختر الكلمة التي تسمعها.') + `<div class="mb-6">${soundControlsHtml()}</div>`;
+    wireSoundControls(container);
+    const opts = renderOptions(container, options, { size: 'word' });
+    return {
+      audio: { text: word, kind: 'word' }, autoplay: true, display: word,
+      isCorrect: v => v === word, mark: (v) => opts.mark(v, word)
+    };
+  },
 
-  const allLearnedLetters = getLearnedContent(currentActivity.chunkId, 'letters');
-  const distractors = allLearnedLetters.filter(l => l !== correctLetter);
+  'fill-in-the-blank': (word, container, chunk) => {
+    // Vowels are the hardest part for Arabic readers, so ask for a missing vowel more often
+    const vowelIndexes = [...word].map((ch, i) => ('aeiou'.includes(ch.toLowerCase()) ? i : -1)).filter(i => i >= 0);
+    const index = vowelIndexes.length && Math.random() < 0.6
+      ? vowelIndexes[Math.floor(Math.random() * vowelIndexes.length)]
+      : Math.floor(Math.random() * word.length);
+    const missing = word[index];
+    const learned = getLearnedContent(chunk.id, 'letters').map(l => inCaseOf(l, missing));
+    const preferred = 'aeiou'.includes(missing.toLowerCase())
+      ? learned.filter(l => 'aeiou'.includes(l.toLowerCase()))
+      : chunk.letters.map(l => inCaseOf(l, missing));
+    const options = pickOptions(missing, preferred, learned);
+    container.innerHTML = promptHtml('استمع للكلمة واختر الحرف الناقص.') + `
+      <div class="flex items-center justify-center gap-5 mb-6">
+        ${soundControlsHtml()}
+        <p class="text-5xl font-bold tracking-widest english-content" lang="en">${wordWithBlank(word, index)}</p>
+      </div>`;
+    wireSoundControls(container);
+    const opts = renderOptions(container, options);
+    return {
+      audio: { text: word, kind: 'word' }, autoplay: true, display: word,
+      isCorrect: v => v === missing, mark: (v) => opts.mark(v, missing)
+    };
+  },
 
-  let options = [correctLetter];
-  const maxOptions = Math.min(4, allLearnedLetters.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) options.push(randomDistractor);
-  }
+  'initial-sound': (word, container, chunk) => {
+    const first = word[0];
+    const learned = getLearnedContent(chunk.id, 'letters').map(l => inCaseOf(l, first));
+    const options = pickOptions(first, chunk.letters.map(l => inCaseOf(l, first)), learned);
+    container.innerHTML = promptHtml('استمع واختر الحرف الأول من الكلمة.') + `
+      <div class="flex items-center justify-center gap-5 mb-6">
+        ${soundControlsHtml()}
+        <p class="text-5xl font-bold tracking-widest english-content" lang="en">${wordWithBlank(word, 0)}</p>
+      </div>`;
+    wireSoundControls(container);
+    const opts = renderOptions(container, options);
+    return {
+      audio: { text: word, kind: 'word' }, autoplay: true, display: word,
+      isCorrect: v => v === first, mark: (v) => opts.mark(v, first)
+    };
+  },
 
-  container.innerHTML = `
-    <p class="text-xl mb-4">استمع للكلمة واختر الحرف المفقود.</p>
-    <div class="flex items-center justify-center gap-4 mb-8">
-      <div class="flex flex-col items-center gap-1">
-        <button id="play-word-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play word">
-          ${PLAY_SVG}
-        </button>
-        <button id="play-word-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
+  'word-build': (word, container) => {
+    const letters = shuffleArray(word.split(''));
+    // Tiles shrink to fit the card: up to 4rem each, never wider than the screen allows
+    const columns = `grid-template-columns: repeat(${word.length}, minmax(0, 4rem))`;
+    container.innerHTML = promptHtml('استمع للكلمة ثم كوّنها من هذه الحروف.') + `
+      <div class="mb-6">${soundControlsHtml()}</div>
+      <div class="grid justify-center gap-2 w-full mb-6 english-content" lang="en" style="${columns}" data-slots>
+        ${word.split('').map((_, i) => `<button type="button" class="letter-slot aspect-square w-full" data-index="${i}" aria-label="خانة ${toArabicDigits(i + 1)}"></button>`).join('')}
       </div>
-      <p class="text-4xl font-bold tracking-widest english-content">${partialWord}</p>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
+      <div class="grid justify-center gap-2 w-full english-content" lang="en" style="${columns}" data-tiles>
+        ${letters.map((l, i) => `<button type="button" class="option-btn letter-tile" data-tile="${i}">${l}</button>`).join('')}
+      </div>`;
+    wireSoundControls(container);
 
-  document.getElementById('play-word-sound-btn').onclick = () => playItem(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => playItem(word, { slow: true });
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(letter => {
-    const btn = document.createElement('button');
-    btn.className = 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = letter;
-    btn.onclick = () => {
-      if (letter === correctLetter) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
+    const slots = [...container.querySelectorAll('.letter-slot')];
+    const tiles = [...container.querySelectorAll('.letter-tile')];
+    const built = Array(word.length).fill(null); // tile index in each slot
+    const update = () => {
+      slots.forEach((slot, i) => {
+        slot.textContent = built[i] === null ? '' : letters[built[i]];
+        slot.classList.toggle('filled', built[i] !== null);
+      });
+      tiles.forEach((tile, i) => tile.classList.toggle('used', built.includes(i)));
+      setAnswer(built.includes(null) ? null : built.map(i => letters[i]).join(''));
     };
-    optionsContainer.appendChild(btn);
-  });
-}
+    tiles.forEach((tile, i) => tile.addEventListener('click', () => {
+      const empty = built.indexOf(null);
+      if (empty === -1 || built.includes(i)) return;
+      built[empty] = i;
+      update();
+    }));
+    slots.forEach((slot, i) => slot.addEventListener('click', () => {
+      if (built[i] === null) return;
+      built[i] = null;
+      update();
+    }));
 
-function renderWordBuildUI(word, container) {
-  const letters = shuffleArray(word.split(''));
-  // Tiles shrink to fit the card: up to 4rem each, never wider than the screen allows
-  const columns = `grid-template-columns: repeat(${word.length}, minmax(0, 4rem))`;
-  container.innerHTML = `
-    <p class="text-xl mb-4">استمع للكلمة ثم كوّنها باستخدام هذه الحروف.</p>
-    <div class="flex flex-col items-center gap-1 mb-8">
-      <button id="play-word-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play word">
-        ${PLAY_SVG}
-      </button>
-      <button id="play-word-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-    </div>
-    <div id="answer-slots" class="grid justify-center gap-2 w-full mb-8 english-content" style="${columns}">
-      ${word.split('').map((_, i) => `<div class="letter-slot aspect-square w-full bg-gray-200 rounded-lg" data-index="${i}"></div>`).join('')}
-    </div>
-    <div id="letter-choices" class="grid justify-center gap-2 w-full english-content" style="${columns}">
-      ${letters.map((l, i) => `<button class="draggable-letter aspect-square w-full bg-blue-100 text-blue-800 text-3xl font-bold rounded-lg hover:bg-blue-200" data-letter="${l}" data-original-index="${i}">${l}</button>`).join('')}
-    </div>
-    <div id="retry-container" class="h-12 mt-4"></div>`;
-
-  document.getElementById('play-word-sound-btn').onclick = () => playItem(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => playItem(word, { slow: true });
-
-  const letterChoices = container.querySelectorAll('.draggable-letter');
-  const answerSlots = container.querySelectorAll('.letter-slot');
-  let builtWord = Array(word.length).fill(null);
-
-  letterChoices.forEach(btn => {
-    btn.onclick = () => {
-      if (btn.style.visibility === 'hidden') return;
-
-      const firstEmptyIndex = builtWord.indexOf(null);
-      if (firstEmptyIndex !== -1) {
-        btn.style.visibility = 'hidden';
-        const slot = answerSlots[firstEmptyIndex];
-        slot.textContent = btn.textContent;
-        slot.classList.add('bg-white','text-3xl','font-bold','flex','items-center','justify-center','filled');
-        slot.dataset.sourceButton = btn.dataset.originalIndex;
-        builtWord[firstEmptyIndex] = btn.textContent;
-
-        if (!builtWord.includes(null)) {
-          if (builtWord.join('') === word) {
-            handleCorrectAnswer();
-          } else {
-            handleWrongAttempt();
-            answerSlots.forEach(s => { s.classList.add('incorrect'); setTimeout(() => s.classList.remove('incorrect'), 500); });
-            const retryBtn = document.createElement('button');
-            retryBtn.textContent = 'حاول مرة أخرى';
-            retryBtn.className = 'bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-lg';
-            retryBtn.onclick = displayCurrentQuestion;
-            document.getElementById('retry-container').appendChild(retryBtn);
-          }
-        }
-      }
+    return {
+      audio: { text: word, kind: 'word' }, autoplay: true, display: word,
+      isCorrect: v => v === word,
+      mark: (v) => slots.forEach((slot, i) => slot.classList.add(v[i] === word[i] ? 'slot-correct' : 'slot-wrong'))
     };
-  });
+  },
 
-  answerSlots.forEach((slot, index) => {
-    slot.onclick = () => {
-      if (slot.classList.contains('filled')) {
-        const sourceButtonIndex = slot.dataset.sourceButton;
-        if (sourceButtonIndex !== undefined) {
-          const sourceButton = container.querySelector(`.draggable-letter[data-original-index="${sourceButtonIndex}"]`);
-          if (sourceButton) sourceButton.style.visibility = 'visible';
-        }
-        slot.textContent = '';
-        slot.classList.remove('bg-white','text-3xl','font-bold','flex','items-center','justify-center','filled');
-        delete slot.dataset.sourceButton;
-        builtWord[index] = null;
-      }
+  'sentence-build': (sentence, container, chunk) => {
+    const answer = sentence.missing;
+    const inSentence = sentence.text.split(' ');
+    const learned = getLearnedContent(chunk.id, 'words').filter(w => !inSentence.includes(w));
+    const similar = learned.filter(w => Math.abs(w.length - answer.length) <= 1);
+    const options = pickOptions(answer, similar, learned);
+    const shownWords = inSentence.map(w => (w === answer ? '<span class="text-blue-500">_____</span>' : vowelHtml(w)));
+    container.innerHTML = promptHtml('استمع للجملة واختر الكلمة الناقصة.') + `
+      <div class="flex items-center justify-center gap-5 mb-6 flex-wrap">
+        ${soundControlsHtml()}
+        <p class="text-3xl sm:text-4xl font-bold tracking-wide english-content" lang="en">${shownWords.join(' ')}</p>
+      </div>`;
+    wireSoundControls(container);
+    const opts = renderOptions(container, options, { size: 'word' });
+    return {
+      audio: { text: sentence.text, kind: 'sentence' }, autoplay: true, display: sentence.text,
+      hint: `المعنى: ${sentence.translation}`,
+      isCorrect: v => v === answer, mark: (v) => opts.mark(v, answer)
     };
-  });
-}
-
-function renderSentenceBuildUI(sentence, container) {
-  if (!sentence || !sentence.missing) {
-    container.innerHTML = '<p class="text-xl text-red-500">خطأ في تحميل السؤال</p>';
-    return;
   }
-
-  const correctWord = sentence.missing;
-  const partialSentence = sentence.text.replace(correctWord, '<span class="text-blue-500 font-bold">_____</span>');
-  const allLearnedWords = getLearnedContent(currentActivity.chunkId, 'words');
-  const distractors = allLearnedWords.filter(w => w !== correctWord);
-
-  let options = [correctWord];
-  const maxOptions = Math.min(4, allLearnedWords.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) options.push(randomDistractor);
-  }
-
-  container.innerHTML = `
-    <p class="text-lg text-gray-600 mb-4">${sentence.translation}</p>
-    <div class="flex items-center justify-center gap-4 mb-8">
-      <div class="flex flex-col items-center gap-1">
-        <button id="play-sentence-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play sentence">
-          ${PLAY_SVG}
-        </button>
-        <button id="play-sentence-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-      </div>
-      <p class="text-3xl font-bold tracking-wider english-content">${partialSentence}</p>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-sentence-sound-btn').onclick = () => playItem(sentence.text);
-  document.getElementById('play-sentence-slow-sound-btn').onclick = () => playItem(sentence.text, { slow: true });
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(word => {
-    const btn = document.createElement('button');
-    btn.className = 'word-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = word;
-    btn.onclick = () => {
-      if (word === correctWord) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
-    };
-    optionsContainer.appendChild(btn);
-  });
-}
-
-function renderCapitalMatchUI(letter, container) {
-  const allLearnedLetters = getLearnedContent(currentActivity.chunkId, 'letters');
-  const isQuestionUppercase = Math.random() < 0.5;
-  const questionLetter = isQuestionUppercase ? letter.toUpperCase() : letter.toLowerCase();
-  const correctLetter = isQuestionUppercase ? letter.toLowerCase() : letter.toUpperCase();
-
-  const availableDistractors = allLearnedLetters.filter(l => l !== letter);
-  let options = [correctLetter];
-  const maxOptions = Math.min(4, allLearnedLetters.length);
-
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    const distractorOption = isQuestionUppercase ? randomDistractor.toLowerCase() : randomDistractor.toUpperCase();
-    if (!options.includes(distractorOption)) options.push(distractorOption);
-  }
-
-  container.innerHTML = `
-    <p class="text-xl mb-6">اختر الحرف المطابق.</p>
-    <div class="text-8xl font-bold mb-8 english-content">${questionLetter}</div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(optionLetter => {
-    const btn = document.createElement('button');
-    btn.className = 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = optionLetter;
-    btn.onclick = () => {
-      if (optionLetter === correctLetter) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
-    };
-    optionsContainer.appendChild(btn);
-  });
-}
+};
 
 // -------------------- Event Listeners & Init --------------------
 backButton.addEventListener('click', goBack);
+document.getElementById('activity-close').addEventListener('click', goBack);
+checkButton.addEventListener('click', checkAnswer);
+document.getElementById('feedback-continue').addEventListener('click', continueActivity);
+document.getElementById('feedback-replay').addEventListener('click', () => { if (currentQuestion?.audio) playQuestionAudio(); });
+// Enter checks the answer, then continues (unless a button has focus and handles Enter itself)
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' || activityView.classList.contains('hidden') || !messageModal.classList.contains('hidden')) return;
+  if (event.target instanceof HTMLButtonElement) return;
+  if (answerChecked && !currentActivity.finished) continueActivity();
+  else if (!checkButton.disabled) checkAnswer();
+});
 
 menuButton.addEventListener('click', (event) => { event.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
 window.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
