@@ -1036,7 +1036,7 @@ function init() {
   updateHeaderStats();
 
   loadAndSetVoice();
-  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+  if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
     window.speechSynthesis.onvoiceschanged = loadAndSetVoice;
   }
 
