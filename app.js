@@ -4,22 +4,6 @@ import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLear
 import { playItem, initSpeech, loadClipManifest, onAudioProblem } from './audio.js';
 import { initSync, isSyncConfigured, getSyncState, hasAuthReturn, notifyProgressChanged, startSignIn, syncNow, signOut, deleteServerData } from './sync.js';
 
-// -------------------- Optional UI Layers (conflict-safe) --------------------
-function ensureOptionalStyles() {
-  const cssFiles = ['./ui-overrides.css', './semantic-tokens.css'];
-  cssFiles.forEach((href) => {
-    if (document.querySelector(`link[href=\"${href}\"]`)) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-  });
-}
-
-ensureOptionalStyles();
-import('./theme.js').catch((e) => console.warn('Optional module not loaded: theme.js', e));
-import('./activities-enhance.js').catch((e) => console.warn('Optional module not loaded: activities-enhance.js', e));
-
 // -------------------- Constants --------------------
 const PLAY_SVG = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
   <path fill-rule="evenodd"
@@ -60,9 +44,6 @@ let learningTimer = null;
 let saveTimeout = null;
 let achievementQueue = [];
 let isShowingAchievement = false;
-
-const THEME_STORAGE_KEY = 'literacyAppTheme';
-let currentTheme = 'light';
 
 // -------------------- Audio Engine --------------------
 function initAudio() {
@@ -203,45 +184,6 @@ const pointsDisplay = document.getElementById('points-display');
 const streakDisplay = document.getElementById('streak-display');
 const achievementUnlockedModal = document.getElementById('achievement-unlocked-modal');
 const loadingIndicator = document.getElementById('loading-indicator');
-const themeToggleButton = document.getElementById('theme-toggle');
-
-function getSystemTheme() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function getInitialTheme() {
-  try {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-  } catch (e) {
-    console.warn('Cannot read theme preference:', e);
-  }
-  return getSystemTheme();
-}
-
-function updateThemeToggleLabel() {
-  if (!themeToggleButton) return;
-  const isDark = currentTheme === 'dark';
-  themeToggleButton.textContent = isDark ? '☀️ تفعيل الوضع الفاتح' : '🌙 تفعيل الوضع الداكن';
-  themeToggleButton.setAttribute('aria-pressed', String(isDark));
-}
-
-function applyTheme(theme) {
-  currentTheme = theme === 'dark' ? 'dark' : 'light';
-  document.body.classList.toggle('dark-mode', currentTheme === 'dark');
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  updateThemeToggleLabel();
-}
-
-function toggleTheme() {
-  const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  applyTheme(nextTheme);
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-  } catch (e) {
-    console.warn('Cannot save theme preference:', e);
-  }
-}
 
 // -------------------- View Switching --------------------
 function showView(viewName) {
@@ -513,14 +455,26 @@ function renderActivities(chunkId) {
   const chunk = appData.chunks.find(c => c.id === chunkId);
   const activities = getPossibleActivities(chunk).map(id => ({ id, name: ACTIVITIES[id].name }));
 
-  container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
+  container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5';
   const completed = userProgress.completedActivities[chunkId] || [];
 
   activities.forEach(activity => {
     const isCompleted = completed.includes(activity.id);
+    const meta = ACTIVITIES[activity.id];
     const btn = document.createElement('button');
-    btn.className = `activity-btn p-4 rounded-lg text-right text-lg font-semibold shadow-sm ${isCompleted ? 'bg-green-200 text-green-800' : 'bg-white hover:bg-gray-100'}`;
-    btn.innerHTML = `<span class="block">${activity.name}</span> ${isCompleted ? '<span class="text-sm font-normal">مكتمل ✓</span>' : ''}`;
+    btn.type = 'button';
+    btn.className = `activity-btn ${isCompleted ? 'activity-btn-complete' : 'activity-btn-default'}`;
+    btn.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div class="text-right">
+          <h4 class="text-lg font-bold leading-7">${meta.name}</h4>
+          <p class="mt-1 text-sm text-gray-500 font-medium">${meta.desc}</p>
+        </div>
+        <span class="activity-icon" aria-hidden="true">${meta.icon}</span>
+      </div>
+      <div class="mt-4 flex items-center justify-between text-sm">
+        <span class="activity-chip">${isCompleted ? 'مكتمل ✓' : 'ابدأ'}</span>
+      </div>`;
     btn.onclick = () => startActivity(chunkId, activity.id);
     container.appendChild(btn);
   });
@@ -1162,13 +1116,6 @@ document.getElementById('progress-report-button').addEventListener('click', () =
 document.getElementById('achievements-button').addEventListener('click', () => navigate({ view: 'achievements' }));
 document.getElementById('important-note-button').addEventListener('click', () => navigate({ view: 'important-note' }));
 
-if (themeToggleButton) {
-  themeToggleButton.addEventListener('click', () => {
-    dropdownMenu.classList.add('hidden');
-    toggleTheme();
-  });
-}
-
 // Copy email functionality
 document.getElementById('copy-email-btn').addEventListener('click', async () => {
   try {
@@ -1222,7 +1169,6 @@ document.getElementById('achievement-close-btn').addEventListener('click', () =>
 });
 
 function init() {
-  applyTheme(getInitialTheme());
   loadProgress();
   initSync({ getProgress: () => userProgress, applyProgress: applySyncedProgress, onStatus: handleSyncStatus });
   updateHeaderStats();
@@ -1236,16 +1182,6 @@ function init() {
     if (document.hidden) stopLearningTimer(); else startLearningTimer();
   });
 
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  mediaQuery.addEventListener('change', () => {
-    try {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-      if (!savedTheme) applyTheme(getSystemTheme());
-    } catch (e) {
-      applyTheme(getSystemTheme());
-    }
-  });
-
   window.addEventListener('beforeunload', () => {
     stopLearningTimer();
     if (saveTimeout) clearTimeout(saveTimeout);
@@ -1254,8 +1190,7 @@ function init() {
   });
 }
 
-// Landing actions
-applyTheme(getInitialTheme());
+// Landing actions (the theme is handled by theme.js)
 document.getElementById('landing-year').textContent = new Date().getFullYear();
 
 function startApp() {

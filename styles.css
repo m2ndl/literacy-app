@@ -1,7 +1,61 @@
-body { font-family: 'Tajawal', 'Inter', sans-serif; }
+/* styles.css - App styles on top of the compiled Tailwind utilities (tailwind.css).
+   Colours for the app's own components come from the tokens below; dark mode redefines the
+   tokens and remaps the Tailwind colour utilities the markup uses. */
+
+:root {
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --focus: #3b82f6;
+
+  --success-text: #166534;
+  --success-surface-start: #dcfce7;
+  --success-surface-end: #d1fae5;
+  --success-border: #86efac;
+
+  --chip-bg: #e5e7eb;
+  --chip-text: #374151;
+  --chip-success-bg: #bbf7d0;
+  --chip-success-text: #166534;
+  --icon-bg: rgba(59, 130, 246, 0.12);
+
+  --slow-text: #4b5563;
+  --slow-hover-text: #2563eb;
+  --slow-hover-bg: #eff6ff;
+}
+
+body.dark-mode {
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --surface: #111827;
+  --border: #374151;
+  --focus: #60a5fa;
+
+  --success-text: #d1fae5;
+  --success-surface-start: #064e3b;
+  --success-surface-end: #065f46;
+  --success-border: #10b981;
+
+  --chip-bg: #374151;
+  --chip-text: #e5e7eb;
+  --chip-success-bg: #10b981;
+  --chip-success-text: #052e16;
+  --icon-bg: rgba(96, 165, 250, 0.2);
+
+  --slow-text: #cbd5e1;
+  --slow-hover-text: #93c5fd;
+  --slow-hover-bg: #1e293b;
+}
+
+body {
+  font-family: 'Tajawal', 'Inter', sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
 
 .english-content { direction: ltr !important; text-align: left; }
 
+/* -------------------- Home -------------------- */
 .chunk-card {
   transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
@@ -9,10 +63,54 @@ body { font-family: 'Tajawal', 'Inter', sans-serif; }
   transform: translateY(-5px);
   box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
 }
+.chunk-card:disabled { cursor: not-allowed; }
 .locked { opacity: 0.6; cursor: not-allowed; background-color: #f3f4f6; }
 .completed { background-color: #d1fae5; border-color: #10b981; }
 
-.activity-btn { transition: background-color 0.2s; }
+/* -------------------- Lesson: activity cards -------------------- */
+.activity-btn {
+  width: 100%;
+  text-align: right;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+.activity-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -12px rgba(0,0,0,.35); }
+.activity-btn:active { transform: translateY(0); }
+.activity-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.activity-btn-default { background: var(--surface); color: var(--text); }
+.activity-btn-complete {
+  background: linear-gradient(135deg, var(--success-surface-start) 0%, var(--success-surface-end) 100%);
+  color: var(--success-text);
+  border-color: var(--success-border);
+}
+.activity-icon {
+  width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9999px; background: var(--icon-bg); font-size: 1.1rem; flex-shrink: 0;
+}
+.activity-chip {
+  padding: .22rem .6rem; border-radius: 9999px; font-weight: 700; font-size: .78rem;
+  background: var(--chip-bg); color: var(--chip-text);
+}
+.activity-btn-complete .activity-chip { background: var(--chip-success-bg); color: var(--chip-success-text); }
+
+/* Slow-audio button: a full-size tap target (44px), not a tiny link */
+.slow-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;
+  min-height: 2.75rem; padding: 0 0.75rem; border-radius: 9999px;
+  font-size: 0.875rem; font-weight: 600; color: var(--slow-text);
+}
+.slow-btn:hover { color: var(--slow-hover-text); background-color: var(--slow-hover-bg); }
+.slow-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* -------------------- Activities -------------------- */
+.sound-option-btn { width: 5.5rem; height: 5.5rem; font-size: 2.25rem; }
+.word-option-btn { padding: 0.75rem 1.5rem; font-size: 1.5rem; }
+
+.letter-slot { cursor: pointer; user-select: none; }
+.letter-slot.filled:hover { background-color: #fca5a5; }
 
 .incorrect { animation: incorrect-shake 0.5s; }
 @keyframes incorrect-shake {
@@ -27,9 +125,7 @@ body { font-family: 'Tajawal', 'Inter', sans-serif; }
   50% { background-color: #d1fae5; }
 }
 
-.sound-option-btn { width: 5.5rem; height: 5.5rem; font-size: 2.25rem; }
-.word-option-btn { padding: 0.75rem 1.5rem; font-size: 1.5rem; }
-
+/* -------------------- Achievements -------------------- */
 .achievement-card.locked { filter: grayscale(1); opacity: 0.5; }
 .achievement-unlocked-anim { animation: achievement-pop 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
 @keyframes achievement-pop {
@@ -40,23 +136,13 @@ body { font-family: 'Tajawal', 'Inter', sans-serif; }
 .fade-in { animation: fadeIn 0.3s ease-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-.letter-slot { cursor: pointer; user-select: none; }
-.letter-slot.filled:hover { background-color: #fca5a5; }
+/* Returning learners: the landing page stays hidden while the app starts */
+html.returning #landing-page { display: none; }
 
-body {
-  transition: background-color 0.25s ease, color 0.25s ease;
-}
+/* -------------------- Dark mode: Tailwind colours used in the markup -------------------- */
+body.dark-mode { background-color: #0b1220; color: #e5e7eb; }
 
-body.dark-mode {
-  background-color: #0b1220;
-  color: #e5e7eb;
-}
-
-body.dark-mode #app-container .bg-gray-50,
-body.dark-mode #app-container.bg-gray-50,
-body.dark-mode .bg-gray-50 {
-  background-color: #0f172a !important;
-}
+body.dark-mode .bg-gray-50 { background-color: #0f172a !important; }
 
 body.dark-mode #app-container .bg-white,
 body.dark-mode #app-container .chunk-card,
@@ -71,19 +157,22 @@ body.dark-mode #loading-indicator > div {
 
 body.dark-mode #app-container .bg-gray-100,
 body.dark-mode #app-container .bg-gray-200,
+body.dark-mode #app-container .hover\:bg-gray-50:hover,
 body.dark-mode #app-container .hover\:bg-gray-100:hover,
-body.dark-mode #app-container .hover\:bg-gray-200:hover,
-body.dark-mode #app-container .hover\:bg-gray-300:hover {
+body.dark-mode #app-container .hover\:bg-gray-200:hover {
   background-color: #1f2937 !important;
+}
+body.dark-mode #app-container .bg-gray-300,
+body.dark-mode #app-container .hover\:bg-gray-300:hover,
+body.dark-mode #app-container .hover\:bg-gray-400:hover {
+  background-color: #374151 !important;
 }
 
 body.dark-mode #app-container .text-gray-500,
 body.dark-mode #app-container .text-gray-600,
 body.dark-mode #app-container .text-gray-700,
 body.dark-mode #app-container .text-gray-800,
-body.dark-mode #app-container .text-gray-900,
-body.dark-mode #message-modal .text-gray-800,
-body.dark-mode #achievement-card .text-gray-600 {
+body.dark-mode #app-container .text-gray-900 {
   color: #d1d5db !important;
 }
 
@@ -91,47 +180,33 @@ body.dark-mode #app-container .border,
 body.dark-mode #app-container .border-2,
 body.dark-mode #app-container .border-gray-200,
 body.dark-mode #app-container .border-gray-300,
-body.dark-mode #app-container .border-gray-600,
-body.dark-mode #dropdown-menu,
-body.dark-mode #message-modal > div,
-body.dark-mode #achievement-card {
+body.dark-mode #app-container .border-gray-600 {
   border-color: #374151 !important;
 }
 
-body.dark-mode .locked {
-  opacity: 0.75;
-  background-color: #1f2937;
-}
+/* Learning tiles and chips: deep blue instead of glaring light blue */
+body.dark-mode #app-container .bg-blue-100 { background-color: #1e3a8a !important; }
+body.dark-mode #app-container .hover\:bg-blue-200:hover { background-color: #1e40af !important; }
+body.dark-mode #app-container .text-blue-800 { color: #dbeafe !important; }
+body.dark-mode #app-container .bg-blue-50 { background-color: #172554 !important; }
+body.dark-mode #app-container .border-blue-200 { border-color: #1e40af !important; }
+body.dark-mode #app-container .text-blue-900 { color: #dbeafe !important; }
+body.dark-mode #app-container .bg-green-100 { background-color: #064e3b !important; }
+body.dark-mode #app-container .text-green-800,
+body.dark-mode #app-container .text-green-700 { color: #a7f3d0 !important; }
+body.dark-mode #app-container .bg-amber-50 { background-color: #451a03 !important; }
+body.dark-mode #app-container .border-amber-300 { border-color: #92400e !important; }
+body.dark-mode #app-container .text-amber-900,
+body.dark-mode #app-container .text-amber-700 { color: #fde68a !important; }
+body.dark-mode #app-container .bg-red-50,
+body.dark-mode #app-container .hover\:bg-red-100:hover { background-color: #450a0a !important; }
+body.dark-mode #app-container .border-red-200 { border-color: #7f1d1d !important; }
+body.dark-mode #app-container .text-red-700 { color: #fecaca !important; }
 
-body.dark-mode .completed {
-  background-color: #064e3b;
-  border-color: #10b981;
-}
-
-body.dark-mode #email-field {
-  background-color: #1f2937;
-  color: #e5e7eb;
-}
-
-body.dark-mode .letter-slot.filled:hover {
-  background-color: #b91c1c;
-}
-
-/* Slow-audio button: a full-size tap target (44px), not a tiny link */
-.slow-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;
-  min-height: 2.75rem; padding: 0 0.75rem; border-radius: 9999px;
-  font-size: 0.875rem; font-weight: 600; color: #4b5563;
-}
-.slow-btn:hover { color: #2563eb; background-color: #eff6ff; }
-.slow-btn:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
-body.dark-mode .slow-btn { color: #cbd5e1; }
-body.dark-mode .slow-btn:hover { color: #93c5fd; background-color: #1e293b; }
-
-.chunk-card:disabled { cursor: not-allowed; }
-
-/* Returning learners: the landing page stays hidden while the app starts */
-html.returning #landing-page { display: none; }
+body.dark-mode .locked { opacity: 0.75; background-color: #1f2937; }
+body.dark-mode .completed { background-color: #064e3b; border-color: #10b981; }
+body.dark-mode #email-field { background-color: #1f2937; color: #e5e7eb; }
+body.dark-mode .letter-slot.filled:hover { background-color: #b91c1c; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -139,5 +214,5 @@ html.returning #landing-page { display: none; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .chunk-card:not(.locked):hover, .activity-btn.enhanced:hover { transform: none; }
+  .chunk-card:not(.locked):hover, .activity-btn:hover { transform: none; }
 }

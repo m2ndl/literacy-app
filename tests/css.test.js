@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const cli = join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'tailwindcss.cmd' : 'tailwindcss');
-const SOURCES = ['index.html', 'app.js', 'theme.js', 'activities-enhance.js'];
+const SOURCES = ['index.html', 'app.js', 'theme.js', 'sync.js', 'audio.js'];
 
 describe('compiled CSS', () => {
   it('uses no Tailwind v3 opacity utilities (removed in v4)', () => {

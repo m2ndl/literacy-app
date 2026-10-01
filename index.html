@@ -39,9 +39,17 @@
 
   <!-- App styles -->
   <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./ui-overrides.css">
 </head>
 <body class="bg-gray-50 text-gray-800">
+  <script>
+    // Same rule as theme.js: the saved choice, otherwise the system setting
+    (function () {
+      var theme = null;
+      try { theme = localStorage.getItem('literacyAppTheme'); } catch (e) {}
+      if (theme !== 'dark' && theme !== 'light') theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      if (theme === 'dark') document.body.classList.add('dark-mode');
+    })();
+  </script>
 
   <!-- Landing Page -->
   <div id="landing-page" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-700 p-8 text-white text-center">
@@ -348,7 +356,6 @@
   <!-- App scripts (module) -->
   <script type="module" src="./theme.js"></script>
   <script type="module" src="./app.js"></script>
-  <script type="module" src="./activities-enhance.js"></script>
   <script async src="https://cdn.counter.dev/script.js" data-id="35518a59-3260-4067-a297-1de0e9870d4a" data-utcoffset="3"></script>
 </body>
 </html>
