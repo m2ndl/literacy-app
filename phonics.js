@@ -72,6 +72,42 @@ export function clipKey(kind, text) {
   return kind === 'ph' || kind === 'ln' ? `${kind}:${text}` : `${kind}:${slugify(text)}`;
 }
 
+/**
+ * Every audio clip the curriculum needs, with the voices to render.
+ * Voices: f = main (female), m = second talker (male), fs = main voice, slow.
+ * Returns [{ key, kind, text, voices, ipa? }], sorted by key, no duplicates.
+ */
+export function requiredClips(units, gpc, alphabet) {
+  const clips = new Map();
+  const add = (kind, text, voices, extra = {}) => {
+    const key = clipKey(kind, text);
+    const prev = clips.get(key);
+    if (prev) {
+      prev.voices = [...new Set([...prev.voices, ...voices])];
+      return;
+    }
+    clips.set(key, { key, kind, text, voices: [...voices], ...extra });
+  };
+  Object.values(gpc).forEach(info => {
+    add('ph', info.ph, ['f'], { ipa: info.ipa });
+    add('w', info.kw, ['f']);
+    if (info.alt) {
+      add('ph', info.alt.ph, ['f'], { ipa: info.alt.ipa });
+      add('w', info.alt.kw, ['f']);
+    }
+  });
+  alphabet.forEach(l => add('ln', l, ['f']));
+  units.forEach(u => {
+    (u.words || []).forEach(w => add('w', w.w, ['f', 'm', 'fs']));
+    (u.contrasts || []).flat().forEach(w => add('w', w, ['f', 'm', 'fs']));
+    (u.heart || []).forEach(h => add('w', h.w, ['f']));
+    (u.names || []).forEach(n => add('w', n.w, ['f']));
+    (u.sentences || []).forEach(s => add('s', s.text, ['f', 'fs']));
+    (u.texts || []).forEach(t => [...t.sentences, ...t.questions].forEach(s => add('s', s.text, ['f', 'fs'])));
+  });
+  return [...clips.values()].sort((a, b) => a.key.localeCompare(b.key));
+}
+
 // ---------------------------------------------------------------------------
 // Lexicon: what is taught where
 // ---------------------------------------------------------------------------
