@@ -180,54 +180,48 @@ const backButton = document.getElementById('back-button');
 const dashboardView = document.getElementById('dashboard-view');
 const lessonView = document.getElementById('lesson-view');
 const activityView = document.getElementById('activity-view');
-const achievementsView = document.getElementById('achievements-view');
 const progressReportView = document.getElementById('progress-report-view');
 const importantNoteView = document.getElementById('important-note-view');
 const syncView = document.getElementById('sync-view');
+const settingsView = document.getElementById('settings-view');
 const onboardingView = document.getElementById('onboarding-view');
 const chunkGrid = document.getElementById('chunk-grid');
 const messageModal = document.getElementById('message-modal');
 const modalMessage = document.getElementById('modal-message');
 const modalButtons = document.getElementById('modal-buttons');
 const activityProgress = document.getElementById('activity-progress');
-const menuButton = document.getElementById('menu-button');
-const dropdownMenu = document.getElementById('dropdown-menu');
 const pointsDisplay = document.getElementById('points-display');
 const streakDisplay = document.getElementById('streak-display');
 const achievementUnlockedModal = document.getElementById('achievement-unlocked-modal');
 const loadingIndicator = document.getElementById('loading-indicator');
 
 // -------------------- View Switching --------------------
+// Which tab each screen belongs to
+const TAB_OF_VIEW = {
+  dashboard: 'learn', lesson: 'learn',
+  'progress-report': 'progress',
+  settings: 'settings', sync: 'settings', 'important-note': 'settings'
+};
+// Screens one level down from a tab get a back button
+const SUB_VIEWS = ['lesson', 'sync', 'important-note'];
+
 function showView(viewName) {
   document.body.classList.toggle('in-activity', viewName === 'activity' || viewName === 'onboarding');
-  [dashboardView, lessonView, activityView, achievementsView, progressReportView, importantNoteView, syncView, onboardingView].forEach(v => v.classList.add('hidden'));
-  backButton.classList.add('hidden');
+  const views = { dashboard: dashboardView, lesson: lessonView, activity: activityView, 'progress-report': progressReportView,
+    'important-note': importantNoteView, sync: syncView, settings: settingsView, onboarding: onboardingView };
+  Object.values(views).forEach(v => v.classList.add('hidden'));
+  views[viewName]?.classList.remove('hidden');
+  backButton.classList.toggle('hidden', !SUB_VIEWS.includes(viewName));
 
-  if (viewName === 'dashboard') {
-    dashboardView.classList.remove('hidden');
-    mainTitle.textContent = 'مسار التعلم';
-  } else if (viewName === 'lesson' || viewName === 'activity') {
-    backButton.classList.remove('hidden');
-    if (viewName === 'lesson') lessonView.classList.remove('hidden'); else activityView.classList.remove('hidden');
-  } else if (viewName === 'achievements') {
-    achievementsView.classList.remove('hidden');
-    backButton.classList.remove('hidden');
-    mainTitle.textContent = 'الإنجازات';
-  } else if (viewName === 'progress-report') {
-    progressReportView.classList.remove('hidden');
-    backButton.classList.remove('hidden');
-    mainTitle.textContent = 'تقرير التقدم';
-  } else if (viewName === 'important-note') {
-    importantNoteView.classList.remove('hidden');
-    backButton.classList.remove('hidden');
-    mainTitle.textContent = 'ملاحظة مهمة';
-  } else if (viewName === 'onboarding') {
-    onboardingView.classList.remove('hidden');
-  } else if (viewName === 'sync') {
-    syncView.classList.remove('hidden');
-    backButton.classList.remove('hidden');
-    mainTitle.textContent = 'حفظ التقدم على كل أجهزتك';
-  }
+  const titles = { dashboard: 'مسار التعلم', 'progress-report': 'تقدّمي', settings: 'الإعدادات',
+    'important-note': 'عن البرنامج', sync: 'حفظ التقدم على كل أجهزتك' };
+  if (titles[viewName]) mainTitle.textContent = titles[viewName];
+
+  const tab = TAB_OF_VIEW[viewName];
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.dataset.tab === tab) btn.setAttribute('aria-current', 'page');
+    else btn.removeAttribute('aria-current');
+  });
 }
 
 // -------------------- Navigation (browser history) --------------------
@@ -257,7 +251,6 @@ function isActivityInProgress() {
 }
 
 function renderRoute(state) {
-  dropdownMenu.classList.add('hidden');
   messageModal.classList.add('hidden');
   leaveConfirmOpen = false;
   const view = state?.view;
@@ -271,12 +264,12 @@ function renderRoute(state) {
     // An activity that ended can't be reopened from history; show its lesson instead
     if (view === 'activity') history.replaceState({ view: 'lesson', chunkId: state.chunkId }, '');
     showLesson(state.chunkId);
-  } else if (view === 'achievements') {
-    renderAchievementsPage();
-  } else if (view === 'progress-report') {
+  } else if (view === 'progress-report' || view === 'achievements') {
     renderProgressReportPage();
   } else if (view === 'important-note') {
     renderImportantNotePage();
+  } else if (view === 'settings') {
+    showView('settings');
   } else if (view === 'onboarding' && onboarding) {
     showView('onboarding');
   } else if (view === 'sync' && isSyncConfigured()) {
@@ -576,7 +569,7 @@ function itemKind(item, chunk, activityType) {
   return 'word';
 }
 
-function renderAchievementsPage() {
+function renderAchievementsGrid() {
   const grid = document.getElementById('achievements-grid');
   grid.innerHTML = '';
   achievements.forEach(ach => {
@@ -589,7 +582,6 @@ function renderAchievementsPage() {
       <p class="text-sm text-gray-500">${ach.description}</p>`;
     grid.appendChild(card);
   });
-  showView('achievements');
 }
 
 function renderProgressReportPage() {
@@ -617,6 +609,7 @@ function renderProgressReportPage() {
       lettersGrid.appendChild(el);
     });
   }
+  renderAchievementsGrid();
   showView('progress-report');
 }
 
@@ -1148,12 +1141,16 @@ document.addEventListener('keydown', (event) => {
   else if (!checkButton.disabled) checkAnswer();
 });
 
-menuButton.addEventListener('click', (event) => { event.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
-window.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
 
-document.getElementById('progress-report-button').addEventListener('click', () => navigate({ view: 'progress-report' }));
-document.getElementById('achievements-button').addEventListener('click', () => navigate({ view: 'achievements' }));
 document.getElementById('important-note-button').addEventListener('click', () => navigate({ view: 'important-note' }));
+
+// Tabs: learning path, progress, settings
+const TAB_ROOTS = { learn: 'dashboard', progress: 'progress-report', settings: 'settings' };
+document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+  const view = TAB_ROOTS[btn.dataset.tab];
+  if (history.state?.view === view) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  navigate({ view });
+}));
 
 // Copy email functionality
 document.getElementById('copy-email-btn').addEventListener('click', async () => {
@@ -1168,7 +1165,6 @@ document.getElementById('copy-email-btn').addEventListener('click', async () => 
 });
 
 document.getElementById('reset-progress').addEventListener('click', () => {
-  dropdownMenu.classList.add('hidden');
   showConfirmationModal('هل أنت متأكد من رغبتك في إعادة تعيين كل تقدمك؟ لا يمكن التراجع عن هذا الإجراء.', () => {
     // A reset carries a higher epoch, so signed-in devices replace their progress too
     userProgress = resetProgress(userProgress);
@@ -1180,7 +1176,6 @@ document.getElementById('reset-progress').addEventListener('click', () => {
 });
 
 document.getElementById('unlock-all').addEventListener('click', () => {
-  dropdownMenu.classList.add('hidden');
   showConfirmationModal('هل أنت متأكد من رغبتك في فتح جميع الوحدات؟', () => {
     // unlock all by setting to the id of the last chunk
     const last = appData.chunks[appData.chunks.length - 1];
@@ -1199,7 +1194,6 @@ document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
   if (!achievementUnlockedModal.classList.contains('hidden')) document.getElementById('achievement-close-btn').click();
   else if (!messageModal.classList.contains('hidden')) document.getElementById('modal-cancel-btn')?.click();
-  else if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden');
 });
 
 document.getElementById('achievement-close-btn').addEventListener('click', () => {
@@ -1215,6 +1209,7 @@ function init() {
   initSpeech();
 
   renderDashboard();
+  showView('dashboard');
   startLearningTimer();
 
   document.addEventListener('visibilitychange', () => {
@@ -1427,7 +1422,6 @@ function applySyncedProgress(progress) {
   if (!dashboardView.classList.contains('hidden')) renderDashboard();
   else if (!lessonView.classList.contains('hidden') && history.state?.chunkId) renderActivities(history.state.chunkId);
   else if (!progressReportView.classList.contains('hidden')) renderProgressReportPage();
-  else if (!achievementsView.classList.contains('hidden')) renderAchievementsPage();
 }
 
 function handleSyncStatus() {
@@ -1549,7 +1543,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 // Handle install button click
 document.getElementById('install-app-button')?.addEventListener('click', async () => {
-  dropdownMenu.classList.add('hidden');
   
   if (!deferredPrompt) {
     alert('التطبيق مثبت بالفعل أو غير متاح للتثبيت');

@@ -37,61 +37,14 @@ function toggleTheme() {
   persistTheme(nextTheme);
 }
 
+// The settings switch reflects the current theme
 function updateThemeToggleLabels() {
-  const isDark = currentTheme === 'dark';
-  const menuToggle = document.getElementById('theme-toggle');
-  const headerToggle = document.getElementById('theme-toggle-header');
-
-  if (menuToggle) {
-    menuToggle.textContent = isDark ? '☀️ تفعيل الوضع الفاتح' : '🌙 تفعيل الوضع الداكن';
-    menuToggle.setAttribute('aria-pressed', String(isDark));
-  }
-
-  if (headerToggle) {
-    headerToggle.textContent = isDark ? '☀️' : '🌙';
-    headerToggle.setAttribute('aria-pressed', String(isDark));
-    headerToggle.setAttribute('aria-label', isDark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن');
-  }
-}
-
-function ensureThemeControls() {
-  const backButton = document.getElementById('back-button');
-  const headerActions = backButton?.parentElement;
-
-  if (headerActions && !document.getElementById('theme-toggle-header')) {
-    const headerToggle = document.createElement('button');
-    headerToggle.id = 'theme-toggle-header';
-    headerToggle.type = 'button';
-    headerToggle.className = 'bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-3 rounded-lg';
-    headerToggle.textContent = '🌙';
-    headerToggle.setAttribute('aria-pressed', 'false');
-    headerToggle.setAttribute('aria-label', 'تبديل الوضع الداكن');
-    headerActions.classList.add('gap-2');
-    headerActions.insertBefore(headerToggle, backButton);
-  }
-
-  const menuActions = document.querySelector('#dropdown-menu .py-1');
-  if (menuActions && !document.getElementById('theme-toggle')) {
-    const menuToggle = document.createElement('button');
-    menuToggle.id = 'theme-toggle';
-    menuToggle.type = 'button';
-    menuToggle.className = 'block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100';
-    menuToggle.setAttribute('aria-pressed', 'false');
-    menuToggle.textContent = '🌙 تفعيل الوضع الداكن';
-
-    const unlockAllBtn = document.getElementById('unlock-all');
-    if (unlockAllBtn) menuActions.insertBefore(menuToggle, unlockAllBtn);
-    else menuActions.appendChild(menuToggle);
-  }
+  const toggle = document.getElementById('theme-toggle');
+  if (toggle) toggle.setAttribute('aria-checked', String(currentTheme === 'dark'));
 }
 
 function attachThemeEvents() {
-  document.getElementById('theme-toggle')?.addEventListener('click', () => {
-    document.getElementById('dropdown-menu')?.classList.add('hidden');
-    toggleTheme();
-  });
-
-  document.getElementById('theme-toggle-header')?.addEventListener('click', toggleTheme);
+  document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
 
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   mediaQuery.addEventListener('change', () => {
@@ -108,6 +61,5 @@ function attachThemeEvents() {
   });
 }
 
-ensureThemeControls();
 attachThemeEvents();
 applyTheme(currentTheme);

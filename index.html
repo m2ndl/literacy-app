@@ -125,34 +125,33 @@
         </div>
       </div>
 
-      <div class="flex items-center mr-auto sm:mr-0">
-        <button id="back-button" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg ml-4" aria-label="رجوع">
+      <div class="flex items-center gap-3 mr-auto">
+        <button id="back-button" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg" aria-label="رجوع">
           رجوع &rarr;
         </button>
-        <div class="relative">
-          <button id="menu-button" class="p-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" aria-label="القائمة">
-            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-          </button>
-          <div id="dropdown-menu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 border border-gray-200">
-            <a href="https://www.my2ndlang.blog" target="_blank" rel="noopener noreferrer" class="block px-4 py-3 text-sm text-gray-800 font-bold border-b">
-              لغتي الثانية.
-            </a>
-            <div class="py-1">
-              <button id="progress-report-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تقرير التقدم</button>
-              <button id="achievements-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإنجازات</button>
-              <button id="sync-button" class="hidden w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">☁️ حفظ التقدم على كل أجهزتك</button>
-              <button id="important-note-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📌 ملاحظة مهمة</button>
-              <button id="install-app-button" class="hidden w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
-              <button id="theme-toggle" type="button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" aria-pressed="false">🌙 تفعيل الوضع الداكن</button>
-              <button id="unlock-all" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">فتح الكل</button>
-              <button id="reset-progress" class="block w-full text-right px-4 py-2 text-sm text-red-700 hover:bg-red-50">إعادة تعيين التقدم</button>
-            </div>
-          </div>
-        </div>
+        <!-- On wider screens the tabs sit in the header; on phones they're at the bottom -->
+        <nav class="tab-bar-top items-center gap-1" aria-label="الأقسام">
+          <button type="button" class="tab-btn" data-tab="learn">تعلّم</button>
+          <button type="button" class="tab-btn" data-tab="progress">تقدّمي</button>
+          <button type="button" class="tab-btn" data-tab="settings">الإعدادات</button>
+        </nav>
       </div>
     </header>
+
+    <nav id="tab-bar" class="tab-bar" aria-label="الأقسام">
+      <button type="button" class="tab-btn" data-tab="learn">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.25v13m0-13C10.83 5.48 9.25 5 7.5 5S4.17 5.48 3 6.25v13C4.17 18.48 5.75 18 7.5 18s3.33.48 4.5 1.25m0-13C13.17 5.48 14.75 5 16.5 5c1.75 0 3.33.48 4.5 1.25v13C19.83 18.48 18.25 18 16.5 18c-1.75 0-3.33.48-4.5 1.25"/></svg>
+        <span>تعلّم</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="progress">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19h16M7 16v-5m5 5V7m5 9v-8"/></svg>
+        <span>تقدّمي</span>
+      </button>
+      <button type="button" class="tab-btn" data-tab="settings">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.3 4.3c.4-1.7 3-1.7 3.4 0a1.7 1.7 0 0 0 2.6 1.1c1.5-.9 3.3.8 2.4 2.3a1.7 1.7 0 0 0 1 2.6c1.8.4 1.8 3 0 3.4a1.7 1.7 0 0 0-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 0 0-2.6 1c-.4 1.8-3 1.8-3.4 0a1.7 1.7 0 0 0-2.6-1c-1.5.9-3.3-.9-2.4-2.4a1.7 1.7 0 0 0-1-2.6c-1.8-.4-1.8-3 0-3.4a1.7 1.7 0 0 0 1-2.6c-.9-1.5.9-3.2 2.4-2.3a1.7 1.7 0 0 0 2.6-1.1Z"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+        <span>الإعدادات</span>
+      </button>
+    </nav>
 
     <main id="main-content">
       <h1 id="main-title" class="text-3xl font-bold text-gray-900 mb-8 focus:outline-none" tabindex="-1">مسار التعلم</h1>
@@ -243,11 +242,6 @@
         </div>
       </div>
 
-      <!-- Achievements View -->
-      <div id="achievements-view" class="hidden">
-        <div id="achievements-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      </div>
-
       <!-- Progress Report View -->
       <div id="progress-report-view" class="hidden">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
@@ -272,6 +266,44 @@
           <h3 class="text-lg font-bold mb-4">الحروف التي أتقنتها</h3>
           <div id="report-letters-grid" class="flex flex-wrap gap-2 justify-center english-content" lang="en"></div>
         </div>
+        <h3 class="text-xl font-bold mt-8 mb-4 text-gray-800">الإنجازات</h3>
+        <div id="achievements-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      </div>
+
+      <!-- Settings View -->
+      <div id="settings-view" class="hidden space-y-5">
+        <section class="settings-group" aria-label="التطبيق">
+          <button id="theme-toggle" type="button" class="settings-row" role="switch" aria-checked="false">
+            <span class="flex items-center gap-3"><span aria-hidden="true">🌙</span><span>الوضع الداكن</span></span>
+            <span class="switch" aria-hidden="true"></span>
+          </button>
+          <button id="sync-button" type="button" class="settings-row hidden">
+            <span class="flex items-center gap-3"><span aria-hidden="true">☁️</span><span>حفظ التقدم على كل أجهزتك</span></span>
+            <span class="text-gray-400" aria-hidden="true">‹</span>
+          </button>
+          <button id="install-app-button" type="button" class="settings-row hidden">
+            <span class="flex items-center gap-3"><span aria-hidden="true">📱</span><span>تثبيت التطبيق على جهازك</span></span>
+            <span class="text-gray-400" aria-hidden="true">‹</span>
+          </button>
+        </section>
+        <section class="settings-group" aria-label="عن البرنامج">
+          <button id="important-note-button" type="button" class="settings-row">
+            <span class="flex items-center gap-3"><span aria-hidden="true">ℹ️</span><span>عن البرنامج والتواصل</span></span>
+            <span class="text-gray-400" aria-hidden="true">‹</span>
+          </button>
+          <a href="https://www.my2ndlang.blog" target="_blank" rel="noopener noreferrer" class="settings-row">
+            <span class="flex items-center gap-3"><span aria-hidden="true">🌐</span><span>موقع لغتي الثانية</span></span>
+            <span class="text-gray-400" aria-hidden="true">↗</span>
+          </a>
+        </section>
+        <section class="settings-group" aria-label="التقدم">
+          <button id="unlock-all" type="button" class="settings-row">
+            <span class="flex items-center gap-3"><span aria-hidden="true">🔓</span><span>فتح كل المجموعات</span></span>
+          </button>
+          <button id="reset-progress" type="button" class="settings-row settings-row-danger">
+            <span class="flex items-center gap-3"><span aria-hidden="true">🗑️</span><span>إعادة تعيين التقدم</span></span>
+          </button>
+        </section>
       </div>
 
       <!-- Important Note View -->
@@ -284,10 +316,10 @@
             عليك استخدام نفس المتصفح.
           </p>
           <p>
-            ويمكنك أيضاً اختيار <b>"فتح الكل"</b> من القائمة الجانبية للانتقال مباشرةً لأي درس في حال بدأت من جهاز جديد.
+            ويمكنك أيضاً اختيار <b>"فتح كل المجموعات"</b> من الإعدادات للانتقال مباشرةً لأي درس في حال بدأت من جهاز جديد.
           </p>
           <p id="note-sync" class="hidden">
-            وإذا أردت أن تكمل من أي جهاز، اختر <b>"حفظ التقدم على كل أجهزتك"</b> من القائمة وسجّل الدخول بحساب Google.
+            وإذا أردت أن تكمل من أي جهاز، اختر <b>"حفظ التقدم على كل أجهزتك"</b> من الإعدادات وسجّل الدخول بحساب Google.
           </p>
           <p>
             إذا لاحظت أخطاء أو كان لديك أي ملاحظات أرحب بتواصلك معي عبر الإيميل
