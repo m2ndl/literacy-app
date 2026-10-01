@@ -1,7 +1,8 @@
 // app.js (ES module)
 import { appData, getAchievements } from './data.js';
-import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete, buildQuestionSet, activityAccuracy, PASS_ACCURACY } from './logic.js';
+import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete, buildQuestionSet, activityAccuracy, PASS_ACCURACY, resetProgress } from './logic.js';
 import { playItem, initSpeech, loadClipManifest, onAudioProblem } from './audio.js';
+import { initSync, isSyncConfigured, getSyncState, hasAuthReturn, notifyProgressChanged, startSignIn, syncNow, signOut, deleteServerData } from './sync.js';
 
 // -------------------- Optional UI Layers (conflict-safe) --------------------
 function ensureOptionalStyles() {
@@ -63,6 +64,7 @@ function initAudio() {
 }
 function playSuccessSound() {
   if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
   try {
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
@@ -79,6 +81,7 @@ function playSuccessSound() {
 }
 function playFailureSound() {
   if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
   try {
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
@@ -101,7 +104,10 @@ function debouncedSave() {
     catch (e) { console.warn('Cannot save progress (private browsing?):', e); }
   }, 1000);
 }
-function saveProgress() { debouncedSave(); }
+function saveProgress() {
+  debouncedSave();
+  notifyProgressChanged();
+}
 
 function loadProgress() {
   try {
@@ -174,6 +180,7 @@ const activityView = document.getElementById('activity-view');
 const achievementsView = document.getElementById('achievements-view');
 const progressReportView = document.getElementById('progress-report-view');
 const importantNoteView = document.getElementById('important-note-view');
+const syncView = document.getElementById('sync-view');
 const chunkGrid = document.getElementById('chunk-grid');
 const messageModal = document.getElementById('message-modal');
 const modalMessage = document.getElementById('modal-message');
@@ -228,7 +235,7 @@ function toggleTheme() {
 
 // -------------------- View Switching --------------------
 function showView(viewName) {
-  [dashboardView, lessonView, activityView, achievementsView, progressReportView, importantNoteView].forEach(v => v.classList.add('hidden'));
+  [dashboardView, lessonView, activityView, achievementsView, progressReportView, importantNoteView, syncView].forEach(v => v.classList.add('hidden'));
   backButton.classList.add('hidden');
 
   if (viewName === 'dashboard') {
@@ -249,6 +256,10 @@ function showView(viewName) {
     importantNoteView.classList.remove('hidden');
     backButton.classList.remove('hidden');
     mainTitle.textContent = 'ملاحظة مهمة';
+  } else if (viewName === 'sync') {
+    syncView.classList.remove('hidden');
+    backButton.classList.remove('hidden');
+    mainTitle.textContent = 'حفظ التقدم على كل أجهزتك';
   }
 }
 
@@ -298,6 +309,9 @@ function renderRoute(state) {
     renderProgressReportPage();
   } else if (view === 'important-note') {
     renderImportantNotePage();
+  } else if (view === 'sync' && isSyncConfigured()) {
+    renderSyncPage();
+    showView('sync');
   } else {
     renderDashboard();
     showView('dashboard');
@@ -340,6 +354,7 @@ window.addEventListener('popstate', (event) => {
 
 // -------------------- Rendering --------------------
 function renderDashboard() {
+  updateSyncPrompt();
   chunkGrid.innerHTML = '';
   appData.chunks.forEach(chunk => {
     const isLocked = chunk.id > userProgress.unlockedChunk;
@@ -1145,8 +1160,10 @@ document.getElementById('copy-email-btn').addEventListener('click', async () => 
 document.getElementById('reset-progress').addEventListener('click', () => {
   dropdownMenu.classList.add('hidden');
   showConfirmationModal('هل أنت متأكد من رغبتك في إعادة تعيين كل تقدمك؟ لا يمكن التراجع عن هذا الإجراء.', () => {
-    try { localStorage.removeItem('literacyAppProgress'); } catch (e) { console.warn('Cannot clear localStorage (private browsing?):', e); }
-    userProgress = getDefaultProgress();
+    // A reset carries a higher epoch, so signed-in devices replace their progress too
+    userProgress = resetProgress(userProgress);
+    try { localStorage.setItem('literacyAppProgress', JSON.stringify(userProgress)); } catch (e) { console.warn('Cannot save progress (private browsing?):', e); }
+    notifyProgressChanged();
     updateHeaderStats();
     showDashboardAfterChange();
   });
@@ -1176,6 +1193,7 @@ document.getElementById('achievement-close-btn').addEventListener('click', () =>
 function init() {
   applyTheme(getInitialTheme());
   loadProgress();
+  initSync({ getProgress: () => userProgress, applyProgress: applySyncedProgress, onStatus: handleSyncStatus });
   handleStreak();
   updateHeaderStats();
 
@@ -1210,15 +1228,104 @@ function init() {
 applyTheme(getInitialTheme());
 document.getElementById('landing-year').textContent = new Date().getFullYear();
 
-startLearningBtn.addEventListener('click', () => {
-  document.getElementById('landing-year').textContent = new Date().getFullYear();
+function startApp() {
   landingPage.classList.add('hidden');
   appContainer.classList.remove('hidden');
   appContainer.classList.add('fade-in');
   history.replaceState({ view: 'dashboard' }, '');
   init();
   initAudio();
+}
+
+startLearningBtn.addEventListener('click', startApp);
+
+// -------------------- Sync across devices --------------------
+// Progress from the server (merged with this device's) replaces the local copy
+function applySyncedProgress(progress) {
+  userProgress = validateProgress(progress);
+  try { localStorage.setItem('literacyAppProgress', JSON.stringify(userProgress)); }
+  catch (e) { console.warn('Cannot save progress (private browsing?):', e); }
+  updateHeaderStats();
+  // Redraw what's on screen, but never interrupt an activity
+  if (!dashboardView.classList.contains('hidden')) renderDashboard();
+  else if (!lessonView.classList.contains('hidden') && history.state?.chunkId) renderActivities(history.state.chunkId);
+  else if (!progressReportView.classList.contains('hidden')) renderProgressReportPage();
+  else if (!achievementsView.classList.contains('hidden')) renderAchievementsPage();
+}
+
+function handleSyncStatus() {
+  if (!syncView.classList.contains('hidden')) renderSyncPage();
+  updateSyncPrompt();
+}
+
+function syncStatusText({ status, lastSyncedAt }) {
+  if (status === 'syncing') return { text: 'جارٍ المزامنة…', tone: 'text-gray-500' };
+  if (status === 'offline') return { text: 'لا يوجد اتصال بالإنترنت. تقدمك محفوظ على هذا الجهاز وسيُرفع عند عودة الاتصال.', tone: 'text-amber-700' };
+  if (status === 'error') return { text: 'تعذّرت المزامنة الآن. تقدمك محفوظ على هذا الجهاز وسنحاول مرة أخرى.', tone: 'text-amber-700' };
+  let when = '';
+  if (lastSyncedAt) {
+    const minutes = Math.round((Date.now() - lastSyncedAt) / 60000);
+    when = minutes < 1 ? ' · آخر مزامنة الآن'
+      : ` · آخر مزامنة ${new Intl.RelativeTimeFormat('ar', { numeric: 'auto' }).format(-minutes, 'minute')}`;
+  }
+  return { text: `✓ تقدمك محفوظ في حسابك${when}`, tone: 'text-green-700' };
+}
+
+function renderSyncPage() {
+  const sync = getSyncState();
+  document.getElementById('sync-signed-out').classList.toggle('hidden', sync.signedIn);
+  document.getElementById('sync-signed-in').classList.toggle('hidden', !sync.signedIn);
+  const message = document.getElementById('sync-message');
+  message.textContent = sync.message;
+  message.classList.toggle('hidden', !sync.message);
+  if (sync.signedIn && sync.user) {
+    const name = sync.user.name || sync.user.email || '';
+    document.getElementById('sync-name').textContent = name;
+    document.getElementById('sync-email').textContent = sync.user.email || '';
+    document.getElementById('sync-avatar').textContent = name.trim().charAt(0).toUpperCase();
+    const { text, tone } = syncStatusText(sync);
+    const statusEl = document.getElementById('sync-status');
+    statusEl.textContent = text;
+    statusEl.className = `text-sm font-medium ${tone}`;
+    document.getElementById('sync-now-btn').disabled = sync.status === 'syncing';
+  }
+}
+
+function updateSyncPrompt() {
+  const sync = getSyncState();
+  let dismissed = false;
+  try { dismissed = localStorage.getItem('literacySyncPromptDismissed') === '1'; } catch (e) { /* ignore */ }
+  const hasProgress = Object.values(userProgress.completedActivities).some(list => Array.isArray(list) && list.length > 0);
+  document.getElementById('sync-prompt').classList.toggle('hidden', !(sync.configured && !sync.signedIn && hasProgress && !dismissed));
+}
+
+if (isSyncConfigured()) {
+  document.getElementById('sync-button').classList.remove('hidden');
+  document.getElementById('note-sync').classList.remove('hidden');
+}
+document.getElementById('sync-button').addEventListener('click', () => navigate({ view: 'sync' }));
+document.getElementById('sync-prompt-open').addEventListener('click', () => navigate({ view: 'sync' }));
+document.getElementById('sync-prompt-dismiss').addEventListener('click', () => {
+  try { localStorage.setItem('literacySyncPromptDismissed', '1'); } catch (e) { /* ignore */ }
+  updateSyncPrompt();
 });
+document.getElementById('sync-signin-btn').addEventListener('click', startSignIn);
+document.getElementById('sync-now-btn').addEventListener('click', () => syncNow());
+document.getElementById('sync-signout-btn').addEventListener('click', () => signOut());
+document.getElementById('sync-signout-clear-btn').addEventListener('click', () => {
+  showConfirmationModal('سيتم تسجيل الخروج وحذف التقدم من هذا الجهاز فقط. يبقى تقدمك محفوظاً في حسابك.', () => signOut({ clearDevice: true }),
+    { confirmText: 'خروج وحذف', cancelText: 'إلغاء' });
+});
+document.getElementById('sync-delete-btn').addEventListener('click', () => {
+  showConfirmationModal('سيتم حذف تقدمك المحفوظ في حسابك من كل الأجهزة. يبقى التقدم على هذا الجهاز فقط. لا يمكن التراجع.', () => deleteServerData(),
+    { confirmText: 'حذف بياناتي', cancelText: 'إلغاء' });
+});
+
+// Back from Google's sign-in page: open the app straight on the sync screen
+if (hasAuthReturn()) {
+  startApp();
+  navigate({ view: 'sync' });
+}
 
 // -------------------- Audio clips & missing-voice help --------------------
 loadClipManifest();

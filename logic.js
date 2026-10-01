@@ -5,8 +5,26 @@ export function getDefaultProgress() {
   return {
     unlockedChunk: 1, completedChunks: [], completedActivities: {},
     points: 0, streak: 0, lastLoginDate: null, earnedAchievements: [],
-    timeSpent: 0, version: 2
+    timeSpent: 0, version: 2,
+    // For syncing across devices: epoch goes up on every reset, and counters hold how many
+    // points and seconds each device contributed (see mergeProgress)
+    epoch: 0, counters: { points: {}, timeSpent: {} }
   };
+}
+
+const COUNTED = ['points', 'timeSpent'];
+
+function validateCounters(c) {
+  const out = { points: {}, timeSpent: {} };
+  if (typeof c !== 'object' || c === null) return out;
+  COUNTED.forEach(name => {
+    const src = c[name];
+    if (typeof src !== 'object' || src === null) return;
+    Object.entries(src).forEach(([device, n]) => {
+      if (Number.isFinite(n) && n >= 0) out[name][device] = n;
+    });
+  });
+  return out;
 }
 
 export function validateProgress(parsed) {
@@ -30,7 +48,9 @@ export function validateProgress(parsed) {
       ? parsed.earnedAchievements.filter(id => typeof id === 'string') : defaults.earnedAchievements,
     timeSpent: Number.isFinite(parsed.timeSpent) && parsed.timeSpent >= 0
       ? parsed.timeSpent : defaults.timeSpent,
-    version: 2
+    version: 2,
+    epoch: Number.isInteger(parsed.epoch) && parsed.epoch >= 0 ? parsed.epoch : defaults.epoch,
+    counters: validateCounters(parsed.counters)
   };
 }
 
@@ -215,4 +235,89 @@ export function findDecodingProblems(word, taughtLetters) {
     if (m) problems.push(`${name} "${m[0]}"`);
   });
   return problems;
+}
+
+// -------------------- Sync across devices --------------------
+// Progress from two devices is merged without conflicts: completed work is combined, points and
+// learning time are added up per device, and a reset (higher epoch) replaces older progress.
+// The merge gives the same result in either order, and merging a progress with itself changes nothing.
+
+// Starting over: a fresh progress that also wins over the old one on other devices
+export function resetProgress(progress) {
+  return { ...getDefaultProgress(), epoch: validateProgress(progress).epoch + 1 };
+}
+
+// Records this device's share of the point and time totals, so another device can add them up
+export function withOwnCounters(progress, deviceId) {
+  const p = validateProgress(progress);
+  COUNTED.forEach(name => {
+    const others = Object.entries(p.counters[name])
+      .filter(([device]) => device !== deviceId)
+      .reduce((sum, [, n]) => sum + n, 0);
+    const own = Math.max(0, p[name] - others);
+    if (own > 0 || deviceId in p.counters[name]) p.counters[name][deviceId] = own;
+  });
+  return p;
+}
+
+function dayNumber(date) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  return Math.round(Date.UTC(+date.slice(0, 4), +date.slice(5, 7) - 1, +date.slice(8, 10)) / 864e5);
+}
+
+// A streak is a run of consecutive days ending on lastLoginDate; two runs that touch become one
+export function mergeStreak(a, b) {
+  const da = dayNumber(a.lastLoginDate);
+  const db = dayNumber(b.lastLoginDate);
+  if (da === null) return { streak: b.streak, lastLoginDate: b.lastLoginDate };
+  if (db === null) return { streak: a.streak, lastLoginDate: a.lastLoginDate };
+  if (da === db) return { streak: Math.max(a.streak, b.streak), lastLoginDate: a.lastLoginDate };
+  const [early, late, dEarly, dLate] = da < db ? [a, b, da, db] : [b, a, db, da];
+  const lateStart = dLate - late.streak + 1;
+  const earlyStart = dEarly - early.streak + 1;
+  const streak = lateStart <= dEarly + 1 ? dLate - Math.min(earlyStart, lateStart) + 1 : late.streak;
+  return { streak, lastLoginDate: late.lastLoginDate };
+}
+
+const sortedUnion = (x, y, compare) => [...new Set([...x, ...y])].sort(compare);
+const byNumber = (x, y) => x - y;
+
+export function mergeProgress(local, remote) {
+  const a = validateProgress(local);
+  const b = validateProgress(remote);
+  if (a.epoch !== b.epoch) return mergeProgress(...(a.epoch > b.epoch ? [a, a] : [b, b]));
+
+  const completedActivities = {};
+  const chunkKeys = [...new Set([...Object.keys(a.completedActivities), ...Object.keys(b.completedActivities)])];
+  chunkKeys.sort((x, y) => Number(x) - Number(y)).forEach(key => {
+    const x = Array.isArray(a.completedActivities[key]) ? a.completedActivities[key] : [];
+    const y = Array.isArray(b.completedActivities[key]) ? b.completedActivities[key] : [];
+    completedActivities[key] = sortedUnion(x, y);
+  });
+
+  const counters = {};
+  const totals = {};
+  COUNTED.forEach(name => {
+    const merged = {};
+    [...new Set([...Object.keys(a.counters[name]), ...Object.keys(b.counters[name])])].sort().forEach(device => {
+      merged[device] = Math.max(a.counters[name][device] || 0, b.counters[name][device] || 0);
+    });
+    counters[name] = merged;
+    const sum = Object.values(merged).reduce((s, n) => s + n, 0);
+    // Never report less than either side had, even if one side has no counters yet
+    totals[name] = Math.max(sum, a[name], b[name]);
+  });
+
+  return {
+    unlockedChunk: Math.max(a.unlockedChunk, b.unlockedChunk),
+    completedChunks: sortedUnion(a.completedChunks, b.completedChunks, byNumber),
+    completedActivities,
+    points: totals.points,
+    ...mergeStreak(a, b),
+    earnedAchievements: sortedUnion(a.earnedAchievements, b.earnedAchievements),
+    timeSpent: totals.timeSpent,
+    version: 2,
+    epoch: a.epoch,
+    counters
+  };
 }

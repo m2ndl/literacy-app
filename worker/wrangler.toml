@@ -1,0 +1,14 @@
+# Only needed if you deploy from the command line with Wrangler (see README.md, option B).
+# The dashboard setup (option A) doesn't use this file.
+name = "literacy-sync"
+main = "index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "literacy-sync"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+[vars]
+GOOGLE_CLIENT_ID = "REPLACE_WITH_YOUR_CLIENT_ID.apps.googleusercontent.com"
+ALLOWED_ORIGINS = "https://REPLACE-WITH-YOUR-SITE"

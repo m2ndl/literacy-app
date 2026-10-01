@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>لغتي الثانية. | برنامج تعليم الحروف الإنجليزية</title>
+  <script>
+    // Back from Google sign-in: hand the result to sync.js and remove it from the address bar
+    // before any other script (including analytics) can read it.
+    (function () {
+      var hash = location.hash;
+      if (hash.indexOf('id_token=') === -1 && hash.indexOf('error=') === -1) return;
+      try { sessionStorage.setItem('literacyAuthResult', hash.slice(1)); } catch (e) {}
+      history.replaceState(null, '', location.pathname + location.search);
+    })();
+  </script>
 
   <!-- Tailwind (compiled) and Fonts -->
   <link rel="stylesheet" href="./tailwind.css">
@@ -112,6 +122,7 @@
             <div class="py-1">
               <button id="progress-report-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تقرير التقدم</button>
               <button id="achievements-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإنجازات</button>
+              <button id="sync-button" class="hidden w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">☁️ حفظ التقدم على كل أجهزتك</button>
               <button id="important-note-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📌 ملاحظة مهمة</button>
               <button id="install-app-button" class="hidden w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
               <button id="theme-toggle" type="button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" aria-pressed="false">🌙 تفعيل الوضع الداكن</button>
@@ -129,6 +140,16 @@
       <!-- Dashboard View -->
       <div id="dashboard-view">
         <p class="text-lg text-gray-600 mb-6">اختر مجموعة دروس للبدء. أكمل كل مجموعة لفتح التالية.</p>
+        <div id="sync-prompt" class="hidden mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-wrap items-center gap-3 justify-between">
+          <div>
+            <p class="font-bold text-gray-800">☁️ احفظ تقدمك على كل أجهزتك</p>
+            <p class="text-sm text-gray-600">سجّل الدخول بحساب Google وأكمل من هاتفك أو من كمبيوتر الجامعة.</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="sync-prompt-open" type="button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">تسجيل الدخول</button>
+            <button id="sync-prompt-dismiss" type="button" class="text-gray-600 hover:text-gray-800 font-medium py-2 px-3 rounded-lg">ليس الآن</button>
+          </div>
+        </div>
         <div id="chunk-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       </div>
 
@@ -210,6 +231,9 @@
           <p>
             ويمكنك أيضاً اختيار <b>"فتح الكل"</b> من القائمة الجانبية للانتقال مباشرةً لأي درس في حال بدأت من جهاز جديد.
           </p>
+          <p id="note-sync" class="hidden">
+            وإذا أردت أن تكمل من أي جهاز، اختر <b>"حفظ التقدم على كل أجهزتك"</b> من القائمة وسجّل الدخول بحساب Google.
+          </p>
           <p>
             إذا لاحظت أخطاء أو كان لديك أي ملاحظات أرحب بتواصلك معي عبر الإيميل
             <span class="text-gray-500">—</span>
@@ -220,6 +244,47 @@
             <button id="copy-email-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">نسخ الإيميل</button>
           </div>
           <div id="copy-toast" class="text-green-600 text-sm hidden">✅ تم نسخ البريد إلى الحافظة</div>
+        </div>
+      </div>
+
+      <!-- Sync View: save progress across devices with a Google account -->
+      <div id="sync-view" class="hidden">
+        <div class="bg-white p-6 rounded-lg shadow-sm space-y-4 leading-8 text-gray-700">
+          <p id="sync-message" class="hidden bg-blue-50 text-blue-900 border border-blue-200 rounded-lg px-4 py-2 text-sm leading-6" role="status"></p>
+
+          <div id="sync-signed-out" class="space-y-4">
+            <p class="text-lg font-bold text-gray-800">أكمل من حيث توقفت، على أي جهاز</p>
+            <p>سجّل الدخول بحساب Google ليُحفظ تقدمك تلقائياً. بعدها افتح البرنامج على هاتفك أو على كمبيوتر الجامعة وسجّل الدخول بالحساب نفسه.</p>
+            <button id="sync-signin-btn" type="button" class="inline-flex items-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 font-bold py-2 px-5 rounded-full shadow-sm">
+              <svg class="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+              <span>تسجيل الدخول بحساب Google</span>
+            </button>
+            <p class="text-sm text-gray-500 leading-6">نحفظ تقدمك وبريدك الإلكتروني فقط، ولا ننشر أي شيء في حسابك. يبقى البرنامج مجانياً ويعمل بدون تسجيل دخول أيضاً.</p>
+          </div>
+
+          <div id="sync-signed-in" class="hidden space-y-4">
+            <div class="flex items-center gap-3">
+              <div id="sync-avatar" class="w-11 h-11 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-lg" aria-hidden="true"></div>
+              <div class="min-w-0">
+                <p id="sync-name" class="font-bold text-gray-800 leading-6"></p>
+                <p id="sync-email" class="text-sm text-gray-500 leading-6 break-all" dir="ltr"></p>
+              </div>
+            </div>
+            <p id="sync-status" class="text-sm font-medium"></p>
+            <div class="flex flex-wrap gap-3">
+              <button id="sync-now-btn" type="button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">مزامنة الآن</button>
+              <button id="sync-signout-btn" type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">تسجيل الخروج</button>
+            </div>
+            <details class="text-sm border-t border-gray-200 pt-3">
+              <summary class="cursor-pointer text-gray-600 font-medium">جهاز مشترك، أو تريد حذف بياناتك؟</summary>
+              <div class="mt-3 space-y-3 leading-6">
+                <p class="text-gray-600">على كمبيوتر مشترك (مثل معمل الجامعة)، احذف التقدم من الجهاز عند الخروج حتى لا يراه غيرك. يبقى محفوظاً في حسابك.</p>
+                <button id="sync-signout-clear-btn" type="button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">تسجيل الخروج وحذف التقدم من هذا الجهاز</button>
+                <p class="text-gray-600">حذف بياناتك من الخادم يزيل تقدمك المحفوظ في حسابك من كل الأجهزة.</p>
+                <button id="sync-delete-btn" type="button" class="bg-red-50 hover:bg-red-100 text-red-700 font-bold py-2 px-4 rounded-lg border border-red-200">حذف بياناتي من الخادم</button>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
     </main>

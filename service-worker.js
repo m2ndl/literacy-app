@@ -1,6 +1,6 @@
 // service-worker.js - Minimal PWA service worker for offline functionality
 // Bump CACHE_NAME whenever this file changes so old caches get cleaned up.
-const CACHE_NAME = 'lughatii-v4';
+const CACHE_NAME = 'lughatii-v5';
 // Paths are relative to this file so they work when the app is served from a sub-folder
 // (e.g. GitHub Pages: /literacy-app/).
 const urlsToCache = [
@@ -8,6 +8,8 @@ const urlsToCache = [
   './index.html',
   './app.js',
   './audio.js',
+  './sync.js',
+  './sync-config.js',
   './logic.js',
   './data.js',
   './theme.js',
@@ -122,6 +124,8 @@ self.addEventListener('fetch', event => {
   const isOwnFile = url.origin === self.location.origin;
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (!isOwnFile && !isFont) return;
+  // Sync requests (if the server shares this site's address) must never come from the cache
+  if (isOwnFile && url.pathname.includes('/api/')) return;
 
   if (isOwnFile && url.pathname.includes('/audio/') && !url.pathname.endsWith('.json')) {
     event.respondWith(audioResponse(request));
