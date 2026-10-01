@@ -2,7 +2,7 @@
   "name": "لغتي الثانية - تعليم القراءة الإنجليزية",
   "short_name": "لغتي الثانية",
   "description": "برنامج تفاعلي لتعلم الأبجدية الإنجليزية خطوة بخطوة",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f9fafb",
   "theme_color": "#3b82f6",
