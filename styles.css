@@ -37,7 +37,7 @@ body { font-family: 'Tajawal', 'Inter', sans-serif; }
   100% { transform: scale(1); opacity: 1; }
 }
 
-.fade-in { animation: fadeIn 1s ease-in-out; }
+.fade-in { animation: fadeIn 0.3s ease-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .letter-slot { cursor: pointer; user-select: none; }
@@ -115,4 +115,29 @@ body.dark-mode #email-field {
 
 body.dark-mode .letter-slot.filled:hover {
   background-color: #b91c1c;
+}
+
+/* Slow-audio button: a full-size tap target (44px), not a tiny link */
+.slow-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem;
+  min-height: 2.75rem; padding: 0 0.75rem; border-radius: 9999px;
+  font-size: 0.875rem; font-weight: 600; color: #4b5563;
+}
+.slow-btn:hover { color: #2563eb; background-color: #eff6ff; }
+.slow-btn:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+body.dark-mode .slow-btn { color: #cbd5e1; }
+body.dark-mode .slow-btn:hover { color: #93c5fd; background-color: #1e293b; }
+
+.chunk-card:disabled { cursor: not-allowed; }
+
+/* Returning learners: the landing page stays hidden while the app starts */
+html.returning #landing-page { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .chunk-card:not(.locked):hover, .activity-btn.enhanced:hover { transform: none; }
 }

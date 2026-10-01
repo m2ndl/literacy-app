@@ -1,6 +1,6 @@
 // service-worker.js - Minimal PWA service worker for offline functionality
 // Bump CACHE_NAME whenever this file changes so old caches get cleaned up.
-const CACHE_NAME = 'lughatii-v5';
+const CACHE_NAME = 'lughatii-v6';
 // Paths are relative to this file so they work when the app is served from a sub-folder
 // (e.g. GitHub Pages: /literacy-app/).
 const urlsToCache = [

@@ -61,7 +61,7 @@ export const appData = {
         { text: "do not quit", missing: "quit", translation: "لا تستسلم" }
       ]
     },
-    { id: 11, title: "المجموعة ١١: مراجعة", letters: [], words: ['jump','vest','next','help','milk','lamp','tent','gift'], letterPairs: [],
+    { id: 10, title: "المجموعة ١٠: مراجعة", letters: [], words: ['jump','vest','next','help','milk','lamp','tent','gift'], letterPairs: [],
       sentences: [
         { text: "Ali can jump", missing: "jump", translation: "علي يستطيع القفز" },
         { text: "the next bus", missing: "next", translation: "الحافلة التالية" },
@@ -76,6 +76,13 @@ export const appData = {
 export function getAchievements(totalChunks) {
   return [
     {
+      id: 'first-activity',
+      name: 'البداية',
+      description: 'أكملت أول نشاط',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-full h-full text-teal-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v3m0 12v3m9-9h-3M6 12H3m14.36-6.36-2.12 2.12M8.76 15.24l-2.12 2.12m0-11.72 2.12 2.12m6.48 6.48 2.12 2.12"/><circle cx="12" cy="12" r="2.5" stroke-width="2"/></svg>',
+      condition: (p) => Object.values(p.completedActivities).some(list => Array.isArray(list) && list.length > 0)
+    },
+    {
       id: 'chunk1',
       name: 'خطوة أولى',
       description: 'أكملت المجموعة الأولى',
@@ -85,7 +92,7 @@ export function getAchievements(totalChunks) {
     {
       id: 'chunk5',
       name: 'في منتصف الطريق',
-      description: 'أكملت 5 مجموعات',
+      description: 'أكملت ٥ مجموعات',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-full h-full text-blue-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>',
       condition: (p) => p.completedChunks.length >= Math.min(5, totalChunks)
     },
@@ -99,22 +106,22 @@ export function getAchievements(totalChunks) {
     {
       id: 'points100',
       name: 'جامع النقاط',
-      description: 'كسبت 100 نقطة',
+      description: 'كسبت ١٠٠ نقطة',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-full h-full text-yellow-500"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>',
       condition: (p) => p.points >= 100
     },
     {
       id: 'streak3',
       name: 'مثابر',
-      description: 'حافظت على سلسلة لـ 3 أيام',
+      description: 'تعلّمت ٣ أيام متتالية',
       icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-full h-full text-orange-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>',
       condition: (p) => p.streak >= 3
     },
     {
       id: 'streak7',
       name: 'ملتزم',
-      description: 'حافظت على سلسلة لـ 7 أيام',
-      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-full h-full text-red-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c2.5 2.3 4 4.7 4 7a4 4 0 11-8 0c0-2.3 1.5-4.7 4-7z"/></svg>',
+      description: 'تعلّمت ٧ أيام متتالية',
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-full h-full text-red-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2.5c.6 3 3.2 4.6 4.6 7.2a6 6 0 1 1-10.9 1.1c.5 1.3 1.4 2.2 2.6 2.6-.4-3.4 1.4-6.8 3.7-10.9Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20.5a2.6 2.6 0 0 1-2.6-2.6c0-1.6 1.3-2.6 2.6-4.4 1.3 1.8 2.6 2.8 2.6 4.4a2.6 2.6 0 0 1-2.6 2.6Z"/></svg>',
       condition: (p) => p.streak >= 7
     }
   ];

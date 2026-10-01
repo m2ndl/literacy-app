@@ -9,7 +9,7 @@
   "orientation": "any",
   "dir": "rtl",
   "lang": "ar",
-  "categories": ["education", "kids", "learning"],
+  "categories": ["education", "learning"],
   "icons": [
     {
       "src": "icon-192.png",

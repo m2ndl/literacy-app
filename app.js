@@ -1,6 +1,6 @@
 // app.js (ES module)
 import { appData, getAchievements } from './data.js';
-import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete, buildQuestionSet, activityAccuracy, PASS_ACCURACY, resetProgress } from './logic.js';
+import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete, buildQuestionSet, activityAccuracy, PASS_ACCURACY, resetProgress, liveStreak, courseProgress, nextStep } from './logic.js';
 import { playItem, initSpeech, loadClipManifest, onAudioProblem } from './audio.js';
 import { initSync, isSyncConfigured, getSyncState, hasAuthReturn, notifyProgressChanged, startSignIn, syncNow, signOut, deleteServerData } from './sync.js';
 
@@ -26,6 +26,18 @@ const PLAY_SVG = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
         d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
         clip-rule="evenodd"></path>
 </svg>`;
+
+// Every activity type, in the order a lesson goes through them
+const ACTIVITIES = {
+  'sound-match': { name: 'مطابقة صوت الحروف', icon: '🔊', desc: 'استمع واختر الحرف المطابق.' },
+  'capital-match': { name: 'مطابقة الحروف الكبيرة والصغيرة', icon: '🔠', desc: 'طابق بين الحروف الكبيرة والصغيرة.' },
+  'combined-sound-match': { name: 'مطابقة أصوات الكلمات والمقاطع', icon: '🎧', desc: 'ميّز أصوات الكلمات والمقاطع.' },
+  'word-build': { name: 'بناء الكلمات', icon: '🧩', desc: 'كوّن الكلمة بالترتيب الصحيح.' },
+  'fill-in-the-blank': { name: 'إكمال الكلمة', icon: '✍️', desc: 'أكمل الحرف الناقص في الكلمة.' },
+  'word-match': { name: 'مطابقة الكلمات', icon: '🔗', desc: 'استمع واختر الكلمة الصحيحة.' },
+  'initial-sound': { name: 'أوجد الصوت الأول', icon: '🎯', desc: 'حدّد الصوت الأول في الكلمة.' },
+  'sentence-build': { name: 'بناء الجمل', icon: '📝', desc: 'أكمل الجملة بالكلمة المناسبة.' }
+};
 
 // -------------------- Global State --------------------
 let achievements = getAchievements(appData.chunks.length);
@@ -123,17 +135,15 @@ function loadProgress() {
 }
 
 function updateHeaderStats() {
-  pointsDisplay.textContent = userProgress.points;
-  streakDisplay.textContent = userProgress.streak;
+  pointsDisplay.textContent = toArabicDigits(userProgress.points);
+  streakDisplay.textContent = toArabicDigits(liveStreak(userProgress));
 }
 
-function handleStreak() {
+// The streak counts days on which the learner finished an activity, not days the app was opened
+function recordLearningDay() {
   const updated = computeStreak(userProgress);
-  if (updated.lastLoginDate === userProgress.lastLoginDate && updated.streak === userProgress.streak) return;
   userProgress.streak = updated.streak;
   userProgress.lastLoginDate = updated.lastLoginDate;
-  checkAchievements();
-  saveProgress();
 }
 
 function startLearningTimer() {
@@ -272,6 +282,7 @@ function navigate(state) {
   history.pushState(state, '');
   renderRoute(state);
   window.scrollTo(0, 0);
+  mainTitle.focus({ preventScroll: true });
 }
 
 function isChunkOpen(chunkId) {
@@ -355,46 +366,85 @@ window.addEventListener('popstate', (event) => {
 // -------------------- Rendering --------------------
 function renderDashboard() {
   updateSyncPrompt();
+  renderContinueCard();
   chunkGrid.innerHTML = '';
   appData.chunks.forEach(chunk => {
     const isLocked = chunk.id > userProgress.unlockedChunk;
     const isCompleted = userProgress.completedChunks.includes(chunk.id);
-    const card = document.createElement('div');
-    card.className = `chunk-card p-6 border-2 rounded-xl shadow-sm cursor-pointer text-right ${isLocked ? 'locked' : ''} ${isCompleted ? 'completed' : 'bg-white'}`;
-    if (!isLocked) card.addEventListener('click', () => navigate({ view: 'lesson', chunkId: chunk.id }));
+    const possible = getPossibleActivities(chunk);
+    const completed = userProgress.completedActivities[chunk.id] || [];
+    const done = possible.filter(a => completed.includes(a)).length;
+    const percent = possible.length ? Math.round((done / possible.length) * 100) : 0;
+    const sightWords = chunk.sightWords || [];
+    const sample = (chunk.words || []).filter(w => !sightWords.includes(w)).slice(0, 3);
+
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = `chunk-card w-full p-6 border-2 rounded-xl shadow-sm text-right ${isLocked ? 'locked' : 'cursor-pointer'} ${isCompleted ? 'completed' : 'bg-white'}`;
+    if (isLocked) card.disabled = true;
+    else card.addEventListener('click', () => navigate({ view: 'lesson', chunkId: chunk.id }));
 
     const statusIcon = isLocked
       ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
       : isCompleted
       ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
       : 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z';
-
     const iconColor = isLocked ? 'text-gray-400' : isCompleted ? 'text-green-600' : 'text-blue-500';
-    const lettersDisplay = (chunk.letters && chunk.letters.length > 0) ? chunk.letters.join(', ') : 'مراجعة';
+    const hasLetters = chunk.letters && chunk.letters.length > 0;
+    const status = isLocked ? 'أكمل المجموعة السابقة لفتحها' : `${toArabicDigits(done)} من ${toArabicDigits(possible.length)} أنشطة`;
 
     card.innerHTML = `
       <div class="flex justify-between items-start">
         <span class="text-sm font-semibold text-gray-500">${chunk.title}</span>
-        <svg class="w-6 h-6 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-6 h-6 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${statusIcon}"></path>
         </svg>
       </div>
-      <h3 class="text-xl font-bold mt-2 text-gray-800 english-content">${lettersDisplay}</h3>
-      ${chunk.letters && chunk.letters.length > 0 ? `
-        <div class="mt-4 flex flex-wrap gap-1 justify-end">
-          ${chunk.letters.map(l => `<span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full english-content">${l}</span>`).join('')}
-        </div>` : ''}`;
+      ${hasLetters
+        ? `<p class="text-3xl font-bold mt-2 text-gray-800 english-content tracking-wider" lang="en">${chunk.letters.join(' ')}</p>`
+        : `<p class="text-2xl font-bold mt-2 text-gray-800">مراجعة</p>`}
+      ${sample.length ? `<p class="mt-2 text-sm text-gray-600">ستقرأ: <span dir="ltr" lang="en" class="font-semibold">${sample.join(', ')}</span></p>` : ''}
+      <div class="mt-4 flex items-center gap-3">
+        <div class="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden" aria-hidden="true"><div class="h-full rounded-full bg-green-500" style="width:${percent}%"></div></div>
+        <span class="text-xs text-gray-500">${status}</span>
+      </div>`;
 
     chunkGrid.appendChild(card);
   });
+}
+
+// One clear next step at the top of the home screen
+function renderContinueCard() {
+  const { done, total } = courseProgress(userProgress.completedActivities);
+  document.getElementById('course-progress-bar').style.width = `${total ? Math.round((done / total) * 100) : 0}%`;
+  document.getElementById('course-progress-label').textContent = `أنجزت ${toArabicDigits(done)} من ${toArabicDigits(total)} نشاطاً`;
+
+  const step = nextStep(userProgress);
+  const button = document.getElementById('continue-btn');
+  if (step) {
+    const chunk = appData.chunks.find(c => c.id === step.chunkId);
+    document.getElementById('continue-eyebrow').textContent = done === 0 ? 'ابدأ من هنا' : 'تابع التعلّم';
+    document.getElementById('continue-title').textContent = ACTIVITIES[step.activityId].name;
+    document.getElementById('continue-subtitle').textContent = chunk.title;
+    button.textContent = done === 0 ? 'ابدأ' : 'تابع';
+    button.classList.remove('hidden');
+    button.onclick = () => {
+      navigate({ view: 'lesson', chunkId: step.chunkId });
+      startActivity(step.chunkId, step.activityId);
+    };
+  } else {
+    document.getElementById('continue-eyebrow').textContent = 'أحسنت!';
+    document.getElementById('continue-title').textContent = 'أكملت كل المجموعات 🎉';
+    document.getElementById('continue-subtitle').textContent = 'راجع أي مجموعة متى شئت لتثبيت ما تعلّمته.';
+    button.classList.add('hidden');
+  }
 }
 
 function showLesson(chunkId) {
   const chunk = appData.chunks.find(c => c.id === chunkId);
   if (!chunk) return;
 
-  document.getElementById('lesson-title').textContent = chunk.title;
-  mainTitle.textContent = `درس: ${chunk.title}`;
+  mainTitle.textContent = chunk.title;
 
   const createSoundButton = (text, pronunciation, kind) => {
     const container = document.createElement('div');
@@ -404,7 +454,7 @@ function showLesson(chunkId) {
     // min-w + padding lets long words ("Hamad") grow instead of spilling out of the tile
     mainBtn.className = 'text-2xl font-bold bg-blue-100 text-blue-800 min-w-16 h-16 px-3 rounded-lg flex items-center justify-center hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500';
     mainBtn.textContent = text;
-    mainBtn.setAttribute('aria-label', `Listen to ${text}`);
+    mainBtn.lang = 'en';
     let isPlaying = false;
     mainBtn.onclick = () => {
       if (!isPlaying) {
@@ -415,9 +465,9 @@ function showLesson(chunkId) {
     };
 
     const slowBtn = document.createElement('button');
-    slowBtn.className = 'text-xs text-gray-500 hover:text-blue-600 font-medium mt-1';
-    slowBtn.textContent = 'صوت بطيء';
-    slowBtn.setAttribute('aria-label', `Listen to ${text} slowly`);
+    slowBtn.className = 'slow-btn mt-1';
+    slowBtn.innerHTML = '<span aria-hidden="true">🐢</span> بطيء';
+    slowBtn.setAttribute('aria-label', 'استمع ببطء');
     let isPlayingSlow = false;
     slowBtn.onclick = (e) => {
       e.stopPropagation();
@@ -461,24 +511,7 @@ function renderActivities(chunkId) {
   const container = document.getElementById('activities-container');
   container.innerHTML = '';
   const chunk = appData.chunks.find(c => c.id === chunkId);
-  const activities = [];
-
-  if (chunk.letters && chunk.letters.length > 0) {
-    activities.push({ id: 'sound-match', name: 'مطابقة صوت الحروف' });
-    activities.push({ id: 'capital-match', name: 'مطابقة الحروف الكبيرة والصغيرة' });
-  }
-  if ((chunk.words && chunk.words.length > 0) || (chunk.letterPairs && chunk.letterPairs.length > 0)) {
-    activities.push({ id: 'combined-sound-match', name: 'مطابقة أصوات الكلمات والمقاطع' });
-  }
-  if (chunk.words && chunk.words.length > 0) {
-    activities.push({ id: 'word-build', name: 'بناء الكلمات' });
-    activities.push({ id: 'fill-in-the-blank', name: 'إكمال الكلمة' });
-    activities.push({ id: 'word-match', name: 'مطابقة الكلمات' });
-    activities.push({ id: 'initial-sound', name: 'أوجد الصوت الأول' });
-  }
-  if (chunk.sentences && chunk.sentences.length > 0) {
-    activities.push({ id: 'sentence-build', name: 'بناء الجمل' });
-  }
+  const activities = getPossibleActivities(chunk).map(id => ({ id, name: ACTIVITIES[id].name }));
 
   container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
   const completed = userProgress.completedActivities[chunkId] || [];
@@ -601,9 +634,9 @@ function renderAchievementsPage() {
 }
 
 function renderProgressReportPage() {
-  document.getElementById('report-points').textContent = userProgress.points;
-  document.getElementById('report-streak').textContent = userProgress.streak;
-  document.getElementById('report-time').textContent = formatTime(userProgress.timeSpent);
+  document.getElementById('report-points').textContent = toArabicDigits(userProgress.points);
+  document.getElementById('report-streak').textContent = toArabicDigits(liveStreak(userProgress));
+  document.getElementById('report-time').textContent = toArabicDigits(formatTime(userProgress.timeSpent));
 
   const masteredLetters = new Set();
   userProgress.completedChunks.forEach(chunkId => {
@@ -612,7 +645,7 @@ function renderProgressReportPage() {
   });
 
   const arr = Array.from(masteredLetters).sort();
-  document.getElementById('report-letters-count').textContent = arr.length;
+  document.getElementById('report-letters-count').textContent = toArabicDigits(arr.length);
   const lettersGrid = document.getElementById('report-letters-grid');
   lettersGrid.innerHTML = '';
   if (arr.length === 0) {
@@ -643,27 +676,16 @@ function showAchievementUnlockedModal(achievement) {
 // replace: true restarts in place (the "try again" button) instead of adding a history entry
 function startActivity(chunkId, activityType, { replace = false } = {}) {
   const chunk = appData.chunks.find(c => c.id === chunkId);
+  const title = ACTIVITIES[activityType].name;
   let questions = [];
-  let title = '';
-
-  if (activityType === 'sound-match') {
+  if (activityType === 'sound-match' || activityType === 'capital-match') {
     questions = chunk.letters || [];
-    title = 'مطابقة صوت الحروف';
   } else if (activityType === 'combined-sound-match') {
     questions = [...(chunk.words || []), ...(chunk.letterPairs || [])];
-    title = 'مطابقة أصوات الكلمات والمقاطع';
-  } else if (['word-build','fill-in-the-blank','word-match','initial-sound'].includes(activityType)) {
-    questions = chunk.words || [];
-    if (activityType === 'word-build') title = 'بناء الكلمات';
-    if (activityType === 'fill-in-the-blank') title = 'إكمال الكلمة';
-    if (activityType === 'word-match') title = 'مطابقة الكلمات';
-    if (activityType === 'initial-sound') title = 'أوجد الصوت الأول';
   } else if (activityType === 'sentence-build') {
     questions = chunk.sentences || [];
-    title = 'بناء الجمل';
-  } else if (activityType === 'capital-match') {
-    questions = chunk.letters || [];
-    title = 'مطابقة الحروف الكبيرة والصغيرة';
+  } else {
+    questions = chunk.words || [];
   }
 
   if (!questions || questions.length === 0) {
@@ -727,6 +749,8 @@ function handleCorrectAnswer() {
       return;
     }
 
+    recordLearningDay();
+    updateHeaderStats();
     if (!userProgress.completedActivities[chunkId]) userProgress.completedActivities[chunkId] = [];
     if (!userProgress.completedActivities[chunkId].includes(activityType)) {
       userProgress.completedActivities[chunkId].push(activityType);
@@ -1185,6 +1209,13 @@ function showDashboardAfterChange() {
   else renderDashboard();
 }
 
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  if (!achievementUnlockedModal.classList.contains('hidden')) document.getElementById('achievement-close-btn').click();
+  else if (!messageModal.classList.contains('hidden')) document.getElementById('modal-cancel-btn')?.click();
+  else if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden');
+});
+
 document.getElementById('achievement-close-btn').addEventListener('click', () => {
   achievementUnlockedModal.classList.add('hidden');
   showNextAchievement();
@@ -1194,7 +1225,6 @@ function init() {
   applyTheme(getInitialTheme());
   loadProgress();
   initSync({ getProgress: () => userProgress, applyProgress: applySyncedProgress, onStatus: handleSyncStatus });
-  handleStreak();
   updateHeaderStats();
 
   initSpeech();
@@ -1321,10 +1351,22 @@ document.getElementById('sync-delete-btn').addEventListener('click', () => {
     { confirmText: 'حذف بياناتي', cancelText: 'إلغاء' });
 });
 
+function hasSavedProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('literacyAppProgress'));
+    return Boolean(saved) && (saved.points > 0 || Object.keys(saved.completedActivities || {}).length > 0);
+  } catch (e) {
+    return false;
+  }
+}
+
 // Back from Google's sign-in page: open the app straight on the sync screen
 if (hasAuthReturn()) {
   startApp();
   navigate({ view: 'sync' });
+} else if (hasSavedProgress()) {
+  // Returning learners go straight to their learning path; the landing page is for first visits
+  startApp();
 }
 
 // -------------------- Audio clips & missing-voice help --------------------

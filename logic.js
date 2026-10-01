@@ -27,17 +27,30 @@ function validateCounters(c) {
   return out;
 }
 
+// The review group used to be number 11 (there was no 10); saved progress is moved to 10
+const RENUMBERED_CHUNKS = { 11: 10 };
+const chunkIdNow = id => RENUMBERED_CHUNKS[id] || id;
+
+function migrateCompletedActivities(activities) {
+  const out = {};
+  Object.entries(activities).forEach(([key, list]) => {
+    const id = String(chunkIdNow(Number(key)));
+    out[id] = Array.isArray(list) ? [...new Set([...(out[id] || []), ...list])] : (out[id] || list);
+  });
+  return out;
+}
+
 export function validateProgress(parsed) {
   const defaults = getDefaultProgress();
   if (typeof parsed !== 'object' || parsed === null) return defaults;
 
   return {
     unlockedChunk: Number.isFinite(parsed.unlockedChunk) && parsed.unlockedChunk >= 1
-      ? parsed.unlockedChunk : defaults.unlockedChunk,
+      ? chunkIdNow(parsed.unlockedChunk) : defaults.unlockedChunk,
     completedChunks: Array.isArray(parsed.completedChunks)
-      ? parsed.completedChunks.filter(id => Number.isFinite(id)) : defaults.completedChunks,
+      ? [...new Set(parsed.completedChunks.filter(id => Number.isFinite(id)).map(chunkIdNow))] : defaults.completedChunks,
     completedActivities: typeof parsed.completedActivities === 'object' && parsed.completedActivities !== null
-      ? parsed.completedActivities : defaults.completedActivities,
+      ? migrateCompletedActivities(parsed.completedActivities) : defaults.completedActivities,
     points: Number.isFinite(parsed.points) && parsed.points >= 0
       ? parsed.points : defaults.points,
     streak: Number.isFinite(parsed.streak) && parsed.streak >= 0
@@ -83,17 +96,22 @@ export function getLearnedContent(chunkId, contentType) {
   return Array.from(content);
 }
 
-export function computeStreak(userProgress) {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayStr = today.toISOString().slice(0,10);
+// Day keys as the app has always stored them (local midnight written as a UTC date). Keep this
+// format so streaks saved by earlier versions keep counting.
+function dayKey(now, daysBack = 0) {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  d.setDate(d.getDate() - daysBack);
+  return d.toISOString().slice(0, 10);
+}
+
+// Records a day of learning: the streak grows on consecutive days and restarts after a gap
+export function computeStreak(userProgress, now = new Date()) {
+  const todayStr = dayKey(now);
 
   const last = userProgress.lastLoginDate;
   if (last === todayStr) return { ...userProgress };
 
-  const y = new Date(today);
-  y.setDate(y.getDate() - 1);
-  const yStr = y.toISOString().slice(0,10);
+  const yStr = dayKey(now, 1);
 
   const newStreak = (last === yStr) ? userProgress.streak + 1 : 1;
 
@@ -320,4 +338,35 @@ export function mergeProgress(local, remote) {
     epoch: a.epoch,
     counters
   };
+}
+
+// The streak to show: still alive if the learner learned today or yesterday, otherwise 0
+export function liveStreak(progress, now = new Date()) {
+  const last = progress.lastLoginDate;
+  return last === dayKey(now) || last === dayKey(now, 1) ? progress.streak : 0;
+}
+
+// -------------------- Course progress --------------------
+export function courseProgress(completedActivities) {
+  let done = 0;
+  let total = 0;
+  appData.chunks.forEach(chunk => {
+    const possible = getPossibleActivities(chunk);
+    const completed = completedActivities[chunk.id] || [];
+    total += possible.length;
+    done += possible.filter(a => completed.includes(a)).length;
+  });
+  return { done, total };
+}
+
+// The next activity to do: the first unfinished one in the first open group that isn't complete.
+// null when everything open is done.
+export function nextStep(progress) {
+  for (const chunk of appData.chunks) {
+    if (chunk.id > progress.unlockedChunk) break;
+    const completed = progress.completedActivities[chunk.id] || [];
+    const activityId = getPossibleActivities(chunk).find(a => !completed.includes(a));
+    if (activityId) return { chunkId: chunk.id, activityId };
+  }
+  return null;
 }
