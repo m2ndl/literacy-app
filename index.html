@@ -145,6 +145,11 @@
             <h3 class="font-semibold text-lg mb-3 text-gray-700">كلمات للممارسة</h3>
             <div id="lesson-words" class="flex flex-wrap gap-4 english-content"></div>
           </div>
+          <div id="lesson-sight-section" class="hidden mt-6">
+            <h3 class="font-semibold text-lg mb-1 text-gray-700">كلمات بالقلب ♥</h3>
+            <p class="text-sm text-gray-500 mb-3">كلمات شائعة لا تُقرأ حرفاً حرفاً. احفظ شكلها وصوتها كما هي.</p>
+            <div id="lesson-sight-words" class="flex flex-wrap gap-4 english-content"></div>
+          </div>
         </div>
         <div class="mt-8">
           <h3 class="font-semibold text-xl mb-4 text-center text-gray-800">أنشطة تدريبية</h3>
@@ -158,7 +163,7 @@
           <h2 id="activity-title" class="text-2xl font-bold"></h2>
           <div id="activity-progress" class="text-lg font-medium text-gray-600"></div>
         </div>
-        <div id="activity-content" class="bg-white p-8 rounded-lg shadow-lg min-h-[350px] flex flex-col justify-center items-center"></div>
+        <div id="activity-content" class="bg-white p-4 sm:p-8 rounded-lg shadow-lg min-h-[350px] flex flex-col justify-center items-center"></div>
       </div>
 
       <!-- Achievements View -->
@@ -220,7 +225,7 @@
     </main>
 
     <!-- Message Modal -->
-    <div id="message-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div id="message-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="modal-message">
       <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto">
         <p id="modal-message" class="text-xl font-medium mb-6"></p>
         <div id="modal-buttons"></div>
@@ -228,7 +233,7 @@
     </div>
 
     <!-- Achievement Unlocked Modal -->
-    <div id="achievement-unlocked-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+    <div id="achievement-unlocked-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="achievement-name">
       <div id="achievement-card" class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto achievement-unlocked-anim">
         <h3 class="text-2xl font-bold text-yellow-500 mb-2">إنجاز جديد!</h3>
         <div id="achievement-icon" class="w-24 h-24 mx-auto my-4"></div>
@@ -238,8 +243,15 @@
       </div>
     </div>
 
+    <!-- Shown when the device can't speak English (no recorded clip and no English voice) -->
+    <div id="audio-help" class="hidden fixed bottom-4 inset-x-4 sm:inset-x-auto sm:left-4 sm:max-w-sm z-40 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl shadow-lg p-4" role="alert">
+      <p class="font-bold mb-1">🔇 لا يصدر صوت؟</p>
+      <p class="text-sm leading-6 mb-3">يبدو أن جهازك لا يحتوي على صوت إنجليزي للنطق. افتح إعدادات الجهاز وابحث عن «تحويل النص إلى كلام»، ثم ثبّت اللغة الإنجليزية. أو جرّب متصفح Chrome أو Safari، وتأكد أن صوت الجهاز مرتفع.</p>
+      <button id="audio-help-close" type="button" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg">حسناً</button>
+    </div>
+
     <!-- Loading Indicator -->
-    <div id="loading-indicator" class="hidden fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div id="loading-indicator" class="hidden fixed inset-0 bg-black/30 flex items-center justify-center z-50">
       <div class="bg-white p-4 rounded-lg">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
       </div>

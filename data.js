@@ -1,19 +1,24 @@
 // data.js
 export const appData = {
+  // Every word only uses letters taught so far. Words that can't be sounded out letter by
+  // letter are listed in sightWords and taught as "heart words" in the same group.
+  // tests/content.test.js enforces both rules.
   chunks: [
     { id: 1,  title: "المجموعة ١",  letters: ['b','t','a'], words: ['at','bat','tab'], letterPairs: ['ba','ta','ab','at'] },
-    { id: 2,  title: "المجموعة ٢",  letters: ['p','i','n'], words: ['pin','tin','sit','pat','pan','tip','nap'], letterPairs: ['pi','ni','si','ti','pa','na'] },
+    { id: 2,  title: "المجموعة ٢",  letters: ['p','i','n'], words: ['pin','tin','bit','pat','pan','tip','nap'], letterPairs: ['pi','ni','bi','ti','pa','na'] },
     { id: 3,  title: "المجموعة ٣",  letters: ['c','h','o'], words: ['cot','hot','hop','pot','cat','can','cop'], letterPairs: ['co','ho','oc','oh','ca','ha'] },
-    { id: 4,  title: "المجموعة ٤",  letters: ['r','d','m'], words: ['dot','rot','rod','mat','map','mad','sad','rid','dim','mama','Sara'], letterPairs: ['ra','ri','ro','da','di','do','ma','mi','mo'],
+    { id: 4,  title: "المجموعة ٤",  letters: ['r','d','m'], words: ['dot','rot','rod','mat','map','mad','dad','mop','rid','dim','mama','Hamad'], letterPairs: ['ra','ri','ro','da','di','do','ma','mi','mo'],
+      sightWords: ['a','mama'],
       sentences: [
-        { text: "a sad mama", missing: "sad", translation: "أم حزينة" },
-        { text: "a red dot", missing: "dot", translation: "نقطة حمراء" },
+        { text: "a mad dad", missing: "dad", translation: "أب غاضب" },
         { text: "a mad cat", missing: "mad", translation: "قطة غاضبة" },
         { text: "a hot pot", missing: "hot", translation: "قدر ساخن" },
-        { text: "a red mat", missing: "mat", translation: "سجادة حمراء" }
+        { text: "mama can mop", missing: "mop", translation: "أمي تستطيع أن تمسح" },
+        { text: "Hamad can hop", missing: "Hamad", translation: "حمد يستطيع القفز" }
       ]
     },
     { id: 5,  title: "المجموعة ٥",  letters: ['s','f','e'], words: ['set','bed','fed','sis','fan','fat','ten','sad','pet','baba'], letterPairs: ['be','fe','es','ef','sa','so'],
+      sightWords: ['is','baba'],
       sentences: [
         { text: "a fat cat", missing: "fat", translation: "قطة سمينة" },
         { text: "a red bed", missing: "bed", translation: "سرير أحمر" },
@@ -22,6 +27,7 @@ export const appData = {
       ]
     },
     { id: 6,  title: "المجموعة ٦",  letters: ['l','g','u'], words: ['leg','log','lug','dug','gut','sun','fun','run','but','bug','film','Ali'], letterPairs: ['la','le','li','lo','lu','ga','ge','gi','go','gu'],
+      sightWords: ['the','Ali'],
       sentences: [
         { text: "a fun bug", missing: "fun", translation: "حشرة ممتعة" },
         { text: "the sun is hot", missing: "sun", translation: "الشمس حارة" },
@@ -38,14 +44,16 @@ export const appData = {
       ]
     },
     { id: 8,  title: "المجموعة ٨",  letters: ['v','y','z'], words: ['van','vet','yet','yes','zap','zip','zig','zag','zero'], letterPairs: ['va','ve','vi','vo','vu','ya','ye','yo','yu','za','ze','zi','zo','zu'],
+      sightWords: ['zero'],
       sentences: [
         { text: "a big van", missing: "van", translation: "شاحنة كبيرة" },
         { text: "yes it is", missing: "yes", translation: "نعم هي كذلك" },
-        { text: "the number is zero", missing: "zero", translation: "الرقم هو صفر" },
+        { text: "a zip on a bag", missing: "zip", translation: "سحّاب على حقيبة" },
         { text: "a fun vet", missing: "vet", translation: "طبيب بيطري ممتع" }
       ]
     },
     { id: 9,  title: "المجموعة ٩",  letters: ['q','x'], words: ['quiz','quit','box','fox','fix','six','tax','wax','taxi'], letterPairs: ['qu','ax','ex','ix','ox','ux'],
+      sightWords: ['do','taxi'],
       sentences: [
         { text: "a red fox", missing: "fox", translation: "ثعلب أحمر" },
         { text: "fix the box", missing: "fix", translation: "أصلح الصندوق" },
@@ -53,12 +61,12 @@ export const appData = {
         { text: "do not quit", missing: "quit", translation: "لا تستسلم" }
       ]
     },
-    { id: 11, title: "المجموعة ١١: مراجعة", letters: [], words: ['jump','vest','next','yell','zero','prize','queen','brave'], letterPairs: [],
+    { id: 11, title: "المجموعة ١١: مراجعة", letters: [], words: ['jump','vest','next','help','milk','lamp','tent','gift'], letterPairs: [],
       sentences: [
-        { text: "the queen can jump", missing: "jump", translation: "الملكة تستطيع القفز" },
-        { text: "the next prize", missing: "next", translation: "الجائزة التالية" },
-        { text: "do not yell", missing: "yell", translation: "لا تصرخ" },
-        { text: "a brave man", missing: "brave", translation: "رجل شجاع" }
+        { text: "Ali can jump", missing: "jump", translation: "علي يستطيع القفز" },
+        { text: "the next bus", missing: "next", translation: "الحافلة التالية" },
+        { text: "help a kid", missing: "help", translation: "ساعد طفلاً" },
+        { text: "a red vest", missing: "vest", translation: "سترة حمراء" }
       ]
     }
   ]

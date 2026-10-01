@@ -1,6 +1,7 @@
 // app.js (ES module)
 import { appData, getAchievements } from './data.js';
-import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete } from './logic.js';
+import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete, buildQuestionSet, activityAccuracy, PASS_ACCURACY } from './logic.js';
+import { playItem, initSpeech, loadClipManifest, onAudioProblem } from './audio.js';
 
 // -------------------- Optional UI Layers (conflict-safe) --------------------
 function ensureOptionalStyles() {
@@ -40,14 +41,12 @@ let userProgress = {
   version: 2
 };
 
-let femaleVoice = null;
 let currentActivity = {};
 let audioCtx = null;
 let learningTimer = null;
 let saveTimeout = null;
 let achievementQueue = [];
 let isShowingAchievement = false;
-let speechTimeout = null;
 
 const THEME_STORAGE_KEY = 'literacyAppTheme';
 let currentTheme = 'light';
@@ -144,37 +143,6 @@ function stopLearningTimer() {
     learningTimer = null;
   }
   saveProgress();
-}
-
-// -------------------- Speech --------------------
-function loadAndSetVoice() {
-  if (!('speechSynthesis' in window)) { console.warn('Speech synthesis not supported'); return; }
-  const voices = window.speechSynthesis.getVoices();
-
-  femaleVoice = voices.find(v => v.name === 'Google UK English Female') ||
-                voices.find(v => v.name === 'Google US English') ||
-                voices.find(v => v.name?.includes('Samantha')) ||
-                voices.find(v => v.name?.includes('Microsoft Hazel')) ||
-                voices.find(v => v.name?.includes('Microsoft Zira')) ||
-                voices.find(v => v.lang === 'en-GB' && v.name?.includes('Female')) ||
-                voices.find(v => v.lang === 'en-US' && v.name?.includes('Female')) ||
-                voices.find(v => v.lang === 'en-GB') ||
-                voices.find(v => v.lang?.startsWith('en'));
-
-  if (!femaleVoice && voices.length > 0) femaleVoice = voices[0];
-}
-function speak(text, rate = 0.8) {
-  if (!('speechSynthesis' in window)) return;
-  try {
-    if (speechTimeout) { clearTimeout(speechTimeout); speechTimeout = null; }
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-GB';
-    u.rate = rate;
-    if (femaleVoice) u.voice = femaleVoice;
-    u.onerror = (e) => console.error('Speech error:', e?.error);
-    window.speechSynthesis.speak(u);
-  } catch (e) { console.error('Speech synthesis failed:', e); }
 }
 
 // -------------------- Achievements --------------------
@@ -284,6 +252,92 @@ function showView(viewName) {
   }
 }
 
+// -------------------- Navigation (browser history) --------------------
+// Every screen gets a history entry, so the phone's back button and the header back button
+// both go up one level (activity → lesson → home) instead of leaving the app.
+let leaveConfirmOpen = false;
+
+function navigate(state) {
+  history.pushState(state, '');
+  renderRoute(state);
+  window.scrollTo(0, 0);
+}
+
+function isChunkOpen(chunkId) {
+  return appData.chunks.some(c => c.id === chunkId) && chunkId <= userProgress.unlockedChunk;
+}
+
+function isActivityLive(chunkId) {
+  return Boolean(currentActivity.questions) && !currentActivity.finished && currentActivity.chunkId === chunkId;
+}
+
+// True once the learner has answered something, so leaving would throw work away
+function isActivityInProgress() {
+  return Boolean(currentActivity.questions) && !currentActivity.finished &&
+    (currentActivity.currentIndex > 0 || currentActivity.questionsWithErrors.size > 0);
+}
+
+function renderRoute(state) {
+  dropdownMenu.classList.add('hidden');
+  messageModal.classList.add('hidden');
+  leaveConfirmOpen = false;
+  const view = state?.view;
+
+  if ((view === 'lesson' || view === 'activity') && isChunkOpen(state.chunkId)) {
+    if (view === 'activity' && isActivityLive(state.chunkId)) {
+      mainTitle.textContent = 'نشاط';
+      showView('activity');
+      return;
+    }
+    // An activity that ended can't be reopened from history; show its lesson instead
+    if (view === 'activity') history.replaceState({ view: 'lesson', chunkId: state.chunkId }, '');
+    showLesson(state.chunkId);
+  } else if (view === 'achievements') {
+    renderAchievementsPage();
+  } else if (view === 'progress-report') {
+    renderProgressReportPage();
+  } else if (view === 'important-note') {
+    renderImportantNotePage();
+  } else {
+    renderDashboard();
+    showView('dashboard');
+  }
+}
+
+function confirmLeaveActivity() {
+  leaveConfirmOpen = true;
+  showConfirmationModal('هل تريد الخروج من النشاط؟ لن يُحفظ تقدّمك فيه.', () => {
+    leaveConfirmOpen = false;
+    currentActivity.finished = true;
+    history.back();
+  }, { confirmText: 'خروج', cancelText: 'متابعة النشاط', onCancel: () => { leaveConfirmOpen = false; } });
+}
+
+function goBack() {
+  if (!activityView.classList.contains('hidden') && isActivityInProgress()) {
+    confirmLeaveActivity();
+    return;
+  }
+  history.back();
+}
+
+window.addEventListener('popstate', (event) => {
+  if (appContainer.classList.contains('hidden')) return; // still on the landing page
+  const leavingActivity = !activityView.classList.contains('hidden') && event.state?.view !== 'activity';
+  if (leavingActivity && isActivityInProgress()) {
+    if (leaveConfirmOpen) {
+      // Back pressed again while we're asking: treat it as "leave"
+      currentActivity.finished = true;
+    } else {
+      // Undo the browser's step back and ask first
+      history.pushState({ view: 'activity', chunkId: currentActivity.chunkId }, '');
+      confirmLeaveActivity();
+      return;
+    }
+  }
+  renderRoute(event.state);
+});
+
 // -------------------- Rendering --------------------
 function renderDashboard() {
   chunkGrid.innerHTML = '';
@@ -292,7 +346,7 @@ function renderDashboard() {
     const isCompleted = userProgress.completedChunks.includes(chunk.id);
     const card = document.createElement('div');
     card.className = `chunk-card p-6 border-2 rounded-xl shadow-sm cursor-pointer text-right ${isLocked ? 'locked' : ''} ${isCompleted ? 'completed' : 'bg-white'}`;
-    if (!isLocked) card.addEventListener('click', () => showLesson(chunk.id));
+    if (!isLocked) card.addEventListener('click', () => navigate({ view: 'lesson', chunkId: chunk.id }));
 
     const statusIcon = isLocked
       ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
@@ -327,19 +381,20 @@ function showLesson(chunkId) {
   document.getElementById('lesson-title').textContent = chunk.title;
   mainTitle.textContent = `درس: ${chunk.title}`;
 
-  const createSoundButton = (text, pronunciation) => {
+  const createSoundButton = (text, pronunciation, kind) => {
     const container = document.createElement('div');
     container.className = 'flex flex-col items-center';
 
     const mainBtn = document.createElement('button');
-    mainBtn.className = 'text-2xl font-bold bg-blue-100 text-blue-800 w-16 h-16 rounded-lg flex items-center justify-center hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500';
+    // min-w + padding lets long words ("Hamad") grow instead of spilling out of the tile
+    mainBtn.className = 'text-2xl font-bold bg-blue-100 text-blue-800 min-w-16 h-16 px-3 rounded-lg flex items-center justify-center hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500';
     mainBtn.textContent = text;
     mainBtn.setAttribute('aria-label', `Listen to ${text}`);
     let isPlaying = false;
     mainBtn.onclick = () => {
       if (!isPlaying) {
         isPlaying = true;
-        speak(pronunciation || text);
+        playItem(pronunciation || text, { kind });
         setTimeout(() => { isPlaying = false; }, 300);
       }
     };
@@ -353,7 +408,7 @@ function showLesson(chunkId) {
       e.stopPropagation();
       if (!isPlayingSlow) {
         isPlayingSlow = true;
-        speak(pronunciation || text, 0.5);
+        playItem(pronunciation || text, { slow: true, kind });
         setTimeout(() => { isPlayingSlow = false; }, 500);
       }
     };
@@ -367,14 +422,21 @@ function showLesson(chunkId) {
   lettersContainer.innerHTML = '';
 
   if (chunk.letters && chunk.letters.length > 0) {
-    chunk.letters.forEach(l => lettersContainer.appendChild(createSoundButton(l.toUpperCase() + l, l)));
+    chunk.letters.forEach(l => lettersContainer.appendChild(createSoundButton(l.toUpperCase() + l, l, 'letter')));
   } else {
     lettersContainer.innerHTML = '<p class="text-gray-500">مراجعة - لا توجد حروف جديدة</p>';
   }
 
+  const sightWords = chunk.sightWords || [];
   const wordsContainer = document.getElementById('lesson-words');
   wordsContainer.innerHTML = '';
-  (chunk.words || []).forEach(w => wordsContainer.appendChild(createSoundButton(w)));
+  (chunk.words || []).filter(w => !sightWords.includes(w)).forEach(w => wordsContainer.appendChild(createSoundButton(w)));
+
+  // Heart words can't be sounded out letter by letter, so they're taught as whole words
+  const sightContainer = document.getElementById('lesson-sight-words');
+  sightContainer.innerHTML = '';
+  sightWords.forEach(w => sightContainer.appendChild(createSoundButton(w, w, 'word')));
+  document.getElementById('lesson-sight-section').classList.toggle('hidden', sightWords.length === 0);
 
   renderActivities(chunkId);
   showView('lesson');
@@ -417,26 +479,94 @@ function renderActivities(chunkId) {
 }
 
 // -------------------- Modals & Pages --------------------
-function showModal(message) {
+const BUTTON_STYLES = {
+  primary: 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg',
+  secondary: 'bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg',
+  danger: 'bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg'
+};
+
+// buttons: [{ label, variant, id?, focus?, onClick? }]; every button closes the modal first
+function openModal(message, buttons, details = null) {
   modalMessage.textContent = message;
-  modalButtons.innerHTML = `<button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">متابعة</button>`;
-  modalButtons.firstElementChild.onclick = () => {
-    messageModal.classList.add('hidden');
-    showLesson(currentActivity.chunkId);
-  };
+  modalButtons.innerHTML = '';
+  if (details) modalButtons.appendChild(details);
+  const row = document.createElement('div');
+  row.className = 'flex flex-wrap justify-center gap-3';
+  let focusTarget = null;
+  buttons.forEach(({ label, variant = 'primary', id, focus, onClick }) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    if (id) btn.id = id;
+    btn.className = BUTTON_STYLES[variant];
+    btn.textContent = label;
+    btn.onclick = () => { messageModal.classList.add('hidden'); if (onClick) onClick(); };
+    row.appendChild(btn);
+    if (focus) focusTarget = btn;
+  });
+  modalButtons.appendChild(row);
   messageModal.classList.remove('hidden');
+  (focusTarget || row.firstElementChild)?.focus();
 }
 
-function showConfirmationModal(message, onConfirm) {
-  modalMessage.textContent = message;
-  modalButtons.innerHTML = `
-    <div class="flex justify-center gap-4">
-      <button id="modal-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
-      <button id="modal-confirm-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg">تأكيد</button>
-    </div>`;
-  document.getElementById('modal-cancel-btn').onclick = () => messageModal.classList.add('hidden');
-  document.getElementById('modal-confirm-btn').onclick = () => { messageModal.classList.add('hidden'); onConfirm(); };
-  messageModal.classList.remove('hidden');
+function showConfirmationModal(message, onConfirm, { confirmText = 'تأكيد', cancelText = 'إلغاء', onCancel } = {}) {
+  openModal(message, [
+    { label: cancelText, variant: 'secondary', id: 'modal-cancel-btn', onClick: onCancel },
+    { label: confirmText, variant: 'danger', id: 'modal-confirm-btn', onClick: onConfirm }
+  ]);
+}
+
+function toArabicDigits(n) {
+  return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+}
+
+// Which clip to play for an activity item: letter pairs ("do") are not the same as words ("do")
+function itemKind(item, chunk, activityType) {
+  if (typeof item !== 'string') return 'sentence';
+  if (activityType === 'sound-match' || activityType === 'capital-match') return 'letter';
+  if (activityType === 'combined-sound-match' && !(chunk.words || []).includes(item)) {
+    return item.length === 1 ? 'letter' : 'pair';
+  }
+  return 'word';
+}
+
+function showActivityPassed(message) {
+  openModal(message, [{ label: 'متابعة', onClick: () => history.back() }]);
+}
+
+function showActivityFailed(accuracy, missedItems) {
+  const { chunkId, activityType } = currentActivity;
+  const chunk = appData.chunks.find(c => c.id === chunkId);
+
+  // The items the learner got wrong, as buttons they can tap to hear again
+  const details = document.createElement('div');
+  details.className = 'mb-6';
+  const label = document.createElement('p');
+  label.className = 'text-sm text-gray-600 mb-2';
+  label.textContent = 'راجع هذه ثم حاول مرة أخرى:';
+  const list = document.createElement('div');
+  list.className = 'flex flex-wrap justify-center gap-2';
+  list.dir = 'ltr';
+  const shown = new Set();
+  missedItems.forEach(item => {
+    const text = typeof item === 'string' ? item : item.text;
+    const kind = itemKind(item, chunk, activityType);
+    const display = kind === 'letter' ? text.toUpperCase() + text.toLowerCase() : text;
+    if (shown.has(display)) return;
+    shown.add(display);
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.lang = 'en';
+    chip.className = 'bg-blue-100 text-blue-800 font-bold text-xl px-3 py-1 rounded-lg hover:bg-blue-200';
+    chip.textContent = display;
+    chip.onclick = () => playItem(text, { kind });
+    list.appendChild(chip);
+  });
+  details.append(label, list);
+
+  openModal(`حصلت على ${toArabicDigits(accuracy)}٪، وتحتاج ${toArabicDigits(PASS_ACCURACY)}٪ للنجاح.`, [
+    { label: 'أعد المحاولة', focus: true, onClick: () => startActivity(chunkId, activityType, { replace: true }) },
+    { label: 'العودة للدرس', variant: 'secondary', onClick: () => history.back() }
+  ], details);
 }
 
 function renderAchievementsPage() {
@@ -495,7 +625,8 @@ function showAchievementUnlockedModal(achievement) {
 }
 
 // -------------------- Activity Engine --------------------
-function startActivity(chunkId, activityType) {
+// replace: true restarts in place (the "try again" button) instead of adding a history entry
+function startActivity(chunkId, activityType, { replace = false } = {}) {
   const chunk = appData.chunks.find(c => c.id === chunkId);
   let questions = [];
   let title = '';
@@ -521,24 +652,28 @@ function startActivity(chunkId, activityType) {
   }
 
   if (!questions || questions.length === 0) {
-    showModal("لا توجد أسئلة لهذا النشاط.");
+    openModal('لا توجد أسئلة لهذا النشاط.', [{ label: 'حسناً' }]);
     return;
   }
 
   currentActivity = {
     chunkId,
     activityType,
-    questions: shuffleArray(questions).slice(0, Math.min(5, questions.length)),
+    questions: buildQuestionSet(questions),
     currentIndex: 0,
     originalQuestionCount: 0,
     questionsWithErrors: new Set(),
-    requeuedFromIndex: new Set()
+    requeuedFromIndex: new Set(),
+    finished: false
   };
   currentActivity.originalQuestionCount = currentActivity.questions.length;
 
+  const state = { view: 'activity', chunkId };
+  if (replace) history.replaceState(state, ''); else history.pushState(state, '');
   document.getElementById('activity-title').textContent = title;
   mainTitle.textContent = 'نشاط';
   showView('activity');
+  window.scrollTo(0, 0);
   displayCurrentQuestion();
 }
 
@@ -567,11 +702,12 @@ function handleCorrectAnswer() {
   setTimeout(() => appBody.classList.remove('correct-flash'), 700);
 
   if (currentActivity.currentIndex >= currentActivity.questions.length - 1) {
-    const { chunkId, activityType, originalQuestionCount, questionsWithErrors } = currentActivity;
-    const accuracy = Math.round(((originalQuestionCount - questionsWithErrors.size) / originalQuestionCount) * 100);
+    currentActivity.finished = true;
+    const { chunkId, activityType, originalQuestionCount, questionsWithErrors, questions } = currentActivity;
+    const accuracy = activityAccuracy(originalQuestionCount, questionsWithErrors.size);
 
-    if (accuracy < 70) {
-      showModal(`تحتاج إلى دقة ٧٠٪ على الأقل. حصلت على ${accuracy}٪. حاول مرة أخرى!`);
+    if (accuracy < PASS_ACCURACY) {
+      showActivityFailed(accuracy, [...questionsWithErrors].map(i => questions[i]));
       saveProgress();
       return;
     }
@@ -591,15 +727,15 @@ function handleCorrectAnswer() {
 
         if (userProgress.unlockedChunk === chunkId && nextChunk) {
           userProgress.unlockedChunk = nextChunk.id;
-          showModal(`عمل رائع! لقد فتحت ${nextChunk.title}.`);
+          showActivityPassed(`عمل رائع! لقد فتحت ${nextChunk.title}.`);
         } else {
-          showModal("اكتملت المجموعة! أحسنت صنعًا.");
+          showActivityPassed("اكتملت المجموعة! أحسنت صنعًا.");
         }
       } else {
-        showModal("اكتمل النشاط! عمل جيد.");
+        showActivityPassed("اكتمل النشاط! عمل جيد.");
       }
     } else {
-      showModal("اكتمل النشاط! استمر في التقدم.");
+      showActivityPassed("اكتمل النشاط! استمر في التقدم.");
     }
     checkAchievements();
     saveProgress();
@@ -657,8 +793,8 @@ function renderInitialSoundUI(word, container) {
     </div>
     <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
 
-  document.getElementById('play-word-sound-btn').onclick = () => speak(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => speak(word, 0.5);
+  document.getElementById('play-word-sound-btn').onclick = () => playItem(word);
+  document.getElementById('play-word-slow-sound-btn').onclick = () => playItem(word, { slow: true });
 
   const optionsContainer = document.getElementById('options-container');
   shuffleArray(options).forEach(letter => {
@@ -714,8 +850,9 @@ function renderSoundMatchUI(correctItem, container) {
     </div>
     <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
 
-  document.getElementById('play-sound-btn').onclick = () => speak(correctItem);
-  document.getElementById('play-slow-sound-btn').onclick = () => speak(correctItem, 0.5);
+  const kind = itemKind(correctItem, chunk, currentActivity.activityType);
+  document.getElementById('play-sound-btn').onclick = () => playItem(correctItem, { kind });
+  document.getElementById('play-slow-sound-btn').onclick = () => playItem(correctItem, { slow: true, kind });
 
   const optionsContainer = document.getElementById('options-container');
   shuffleArray(options).forEach(item => {
@@ -756,8 +893,8 @@ function renderWordMatchUI(correctWord, container) {
     </div>
     <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
 
-  document.getElementById('play-sound-btn').onclick = () => speak(correctWord);
-  document.getElementById('play-slow-sound-btn').onclick = () => speak(correctWord, 0.5);
+  document.getElementById('play-sound-btn').onclick = () => playItem(correctWord);
+  document.getElementById('play-slow-sound-btn').onclick = () => playItem(correctWord, { slow: true });
 
   const optionsContainer = document.getElementById('options-container');
   shuffleArray(options).forEach(word => {
@@ -802,8 +939,8 @@ function renderFillInTheBlankUI(word, container) {
     </div>
     <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
 
-  document.getElementById('play-word-sound-btn').onclick = () => speak(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => speak(word, 0.5);
+  document.getElementById('play-word-sound-btn').onclick = () => playItem(word);
+  document.getElementById('play-word-slow-sound-btn').onclick = () => playItem(word, { slow: true });
 
   const optionsContainer = document.getElementById('options-container');
   shuffleArray(options).forEach(letter => {
@@ -820,6 +957,8 @@ function renderFillInTheBlankUI(word, container) {
 
 function renderWordBuildUI(word, container) {
   const letters = shuffleArray(word.split(''));
+  // Tiles shrink to fit the card: up to 4rem each, never wider than the screen allows
+  const columns = `grid-template-columns: repeat(${word.length}, minmax(0, 4rem))`;
   container.innerHTML = `
     <p class="text-xl mb-4">استمع للكلمة ثم كوّنها باستخدام هذه الحروف.</p>
     <div class="flex flex-col items-center gap-1 mb-8">
@@ -828,16 +967,16 @@ function renderWordBuildUI(word, container) {
       </button>
       <button id="play-word-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
     </div>
-    <div id="answer-slots" class="flex justify-center gap-2 mb-8 english-content">
-      ${word.split('').map((_, i) => `<div class="letter-slot w-16 h-16 bg-gray-200 rounded-lg" data-index="${i}"></div>`).join('')}
+    <div id="answer-slots" class="grid justify-center gap-2 w-full mb-8 english-content" style="${columns}">
+      ${word.split('').map((_, i) => `<div class="letter-slot aspect-square w-full bg-gray-200 rounded-lg" data-index="${i}"></div>`).join('')}
     </div>
-    <div id="letter-choices" class="flex justify-center gap-2 english-content">
-      ${letters.map((l, i) => `<button class="draggable-letter w-16 h-16 bg-blue-100 text-blue-800 text-3xl font-bold rounded-lg hover:bg-blue-200" data-letter="${l}" data-original-index="${i}">${l}</button>`).join('')}
+    <div id="letter-choices" class="grid justify-center gap-2 w-full english-content" style="${columns}">
+      ${letters.map((l, i) => `<button class="draggable-letter aspect-square w-full bg-blue-100 text-blue-800 text-3xl font-bold rounded-lg hover:bg-blue-200" data-letter="${l}" data-original-index="${i}">${l}</button>`).join('')}
     </div>
     <div id="retry-container" class="h-12 mt-4"></div>`;
 
-  document.getElementById('play-word-sound-btn').onclick = () => speak(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => speak(word, 0.5);
+  document.getElementById('play-word-sound-btn').onclick = () => playItem(word);
+  document.getElementById('play-word-slow-sound-btn').onclick = () => playItem(word, { slow: true });
 
   const letterChoices = container.querySelectorAll('.draggable-letter');
   const answerSlots = container.querySelectorAll('.letter-slot');
@@ -923,8 +1062,8 @@ function renderSentenceBuildUI(sentence, container) {
     </div>
     <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
 
-  document.getElementById('play-sentence-sound-btn').onclick = () => speak(sentence.text);
-  document.getElementById('play-sentence-slow-sound-btn').onclick = () => speak(sentence.text, 0.5);
+  document.getElementById('play-sentence-sound-btn').onclick = () => playItem(sentence.text);
+  document.getElementById('play-sentence-slow-sound-btn').onclick = () => playItem(sentence.text, { slow: true });
 
   const optionsContainer = document.getElementById('options-container');
   shuffleArray(options).forEach(word => {
@@ -975,14 +1114,14 @@ function renderCapitalMatchUI(letter, container) {
 }
 
 // -------------------- Event Listeners & Init --------------------
-backButton.addEventListener('click', () => { showView('dashboard'); renderDashboard(); });
+backButton.addEventListener('click', goBack);
 
 menuButton.addEventListener('click', (event) => { event.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
 window.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
 
-document.getElementById('progress-report-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderProgressReportPage(); });
-document.getElementById('achievements-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderAchievementsPage(); });
-document.getElementById('important-note-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderImportantNotePage(); });
+document.getElementById('progress-report-button').addEventListener('click', () => navigate({ view: 'progress-report' }));
+document.getElementById('achievements-button').addEventListener('click', () => navigate({ view: 'achievements' }));
+document.getElementById('important-note-button').addEventListener('click', () => navigate({ view: 'important-note' }));
 
 if (themeToggleButton) {
   themeToggleButton.addEventListener('click', () => {
@@ -1009,7 +1148,7 @@ document.getElementById('reset-progress').addEventListener('click', () => {
     try { localStorage.removeItem('literacyAppProgress'); } catch (e) { console.warn('Cannot clear localStorage (private browsing?):', e); }
     userProgress = getDefaultProgress();
     updateHeaderStats();
-    renderDashboard();
+    showDashboardAfterChange();
   });
 });
 
@@ -1020,9 +1159,14 @@ document.getElementById('unlock-all').addEventListener('click', () => {
     const last = appData.chunks[appData.chunks.length - 1];
     userProgress.unlockedChunk = last ? last.id : userProgress.unlockedChunk;
     saveProgress();
-    renderDashboard();
+    showDashboardAfterChange();
   });
 });
+
+function showDashboardAfterChange() {
+  if (dashboardView.classList.contains('hidden')) navigate({ view: 'dashboard' });
+  else renderDashboard();
+}
 
 document.getElementById('achievement-close-btn').addEventListener('click', () => {
   achievementUnlockedModal.classList.add('hidden');
@@ -1035,10 +1179,7 @@ function init() {
   handleStreak();
   updateHeaderStats();
 
-  loadAndSetVoice();
-  if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
-    window.speechSynthesis.onvoiceschanged = loadAndSetVoice;
-  }
+  initSpeech();
 
   renderDashboard();
   startLearningTimer();
@@ -1074,8 +1215,16 @@ startLearningBtn.addEventListener('click', () => {
   landingPage.classList.add('hidden');
   appContainer.classList.remove('hidden');
   appContainer.classList.add('fade-in');
+  history.replaceState({ view: 'dashboard' }, '');
   init();
   initAudio();
+});
+
+// -------------------- Audio clips & missing-voice help --------------------
+loadClipManifest();
+onAudioProblem(() => document.getElementById('audio-help')?.classList.remove('hidden'));
+document.getElementById('audio-help-close')?.addEventListener('click', () => {
+  document.getElementById('audio-help').classList.add('hidden');
 });
 
 // -------------------- PWA Installation --------------------

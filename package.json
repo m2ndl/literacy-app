@@ -6,6 +6,7 @@
   "main": "app.js",
   "scripts": {
     "build:css": "tailwindcss -i tailwind-input.css -o tailwind.css --minify",
+    "audio": "node scripts/audio.mjs",
     "test": "node --test tests/*.test.js"
   },
   "repository": {
