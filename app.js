@@ -184,6 +184,7 @@ const achievementsView = document.getElementById('achievements-view');
 const progressReportView = document.getElementById('progress-report-view');
 const importantNoteView = document.getElementById('important-note-view');
 const syncView = document.getElementById('sync-view');
+const onboardingView = document.getElementById('onboarding-view');
 const chunkGrid = document.getElementById('chunk-grid');
 const messageModal = document.getElementById('message-modal');
 const modalMessage = document.getElementById('modal-message');
@@ -198,8 +199,8 @@ const loadingIndicator = document.getElementById('loading-indicator');
 
 // -------------------- View Switching --------------------
 function showView(viewName) {
-  document.body.classList.toggle('in-activity', viewName === 'activity');
-  [dashboardView, lessonView, activityView, achievementsView, progressReportView, importantNoteView, syncView].forEach(v => v.classList.add('hidden'));
+  document.body.classList.toggle('in-activity', viewName === 'activity' || viewName === 'onboarding');
+  [dashboardView, lessonView, activityView, achievementsView, progressReportView, importantNoteView, syncView, onboardingView].forEach(v => v.classList.add('hidden'));
   backButton.classList.add('hidden');
 
   if (viewName === 'dashboard') {
@@ -220,6 +221,8 @@ function showView(viewName) {
     importantNoteView.classList.remove('hidden');
     backButton.classList.remove('hidden');
     mainTitle.textContent = 'ملاحظة مهمة';
+  } else if (viewName === 'onboarding') {
+    onboardingView.classList.remove('hidden');
   } else if (viewName === 'sync') {
     syncView.classList.remove('hidden');
     backButton.classList.remove('hidden');
@@ -274,6 +277,8 @@ function renderRoute(state) {
     renderProgressReportPage();
   } else if (view === 'important-note') {
     renderImportantNotePage();
+  } else if (view === 'onboarding' && onboarding) {
+    showView('onboarding');
   } else if (view === 'sync' && isSyncConfigured()) {
     renderSyncPage();
     showView('sync');
@@ -302,6 +307,21 @@ function goBack() {
 
 window.addEventListener('popstate', (event) => {
   if (appContainer.classList.contains('hidden')) return; // still on the landing page
+  if (finishingOnboarding) {
+    // The first-run entry is gone; open the home screen in its place
+    const then = finishingOnboarding;
+    finishingOnboarding = null;
+    history.replaceState({ view: 'dashboard' }, '');
+    renderRoute({ view: 'dashboard' });
+    then();
+    return;
+  }
+  if (!onboardingView.classList.contains('hidden')) {
+    // Back steps through the first-run screens; on the first one it leaves as usual
+    if (onboardingBack()) history.pushState({ view: 'onboarding' }, '');
+    else history.back();
+    return;
+  }
   const leavingActivity = !activityView.classList.contains('hidden') && event.state?.view !== 'activity';
   if (leavingActivity && isActivityInProgress()) {
     if (leaveConfirmOpen) {
@@ -1221,7 +1241,180 @@ function startApp() {
   initAudio();
 }
 
-startLearningBtn.addEventListener('click', startApp);
+startLearningBtn.addEventListener('click', () => {
+  startApp();
+  if (!isOnboarded() && !hasSavedProgress()) startOnboarding();
+});
+
+// -------------------- First run --------------------
+// A short first visit: welcome, a sound check, the learner's level (with a quick reading check that
+// unlocks the right starting group), and where progress is saved. Shown once per device.
+const ONBOARDED_KEY = 'literacyOnboarded';
+const ONBOARDING_STEPS = ['welcome', 'sound', 'level', 'placement', 'done'];
+const onboardingContent = document.getElementById('onboarding-content');
+let onboarding = null;          // { step, past: [], startChunk, placementIndex }
+let finishingOnboarding = null; // what to open once the first-run history entry is gone
+
+function isOnboarded() {
+  try { return localStorage.getItem(ONBOARDED_KEY) === '1'; } catch (e) { return false; }
+}
+
+function startOnboarding() {
+  onboarding = { step: 'welcome', past: [], startChunk: 1, placementIndex: 0 };
+  history.replaceState({ view: 'onboarding-base' }, '');
+  history.pushState({ view: 'onboarding' }, '');
+  showView('onboarding');
+  renderOnboardingStep();
+}
+
+function goToOnboardingStep(step) {
+  onboarding.past.push({ step: onboarding.step, placementIndex: onboarding.placementIndex });
+  onboarding.step = step;
+  renderOnboardingStep();
+}
+
+function onboardingBack() {
+  if (!onboarding || onboarding.past.length === 0) return false;
+  Object.assign(onboarding, onboarding.past.pop());
+  renderOnboardingStep();
+  return true;
+}
+
+function finishOnboarding({ signIn = false } = {}) {
+  try { localStorage.setItem(ONBOARDED_KEY, '1'); } catch (e) { /* private mode: shown again next time */ }
+  const startChunk = onboarding.startChunk;
+  if (startChunk > userProgress.unlockedChunk) userProgress.unlockedChunk = startChunk;
+  userProgress.placedAt = Math.max(userProgress.placedAt || 1, startChunk);
+  try { localStorage.setItem('literacyAppProgress', JSON.stringify(userProgress)); } catch (e) { /* ignore */ }
+  notifyProgressChanged();
+  onboarding = null;
+  finishingOnboarding = signIn ? () => startSignIn() : () => navigate({ view: 'lesson', chunkId: startChunk });
+  history.back(); // drop the first-run entry; the popstate handler opens what comes next
+}
+
+// Groups the reading check can place a learner in, with three regular words from each
+function placementGroups() {
+  return appData.chunks
+    .filter(c => c.letters.length > 0)
+    .map(c => ({ chunk: c, words: c.words.filter(w => !(c.sightWords || []).includes(w)).slice(0, 3) }));
+}
+
+function renderOnboardingStep() {
+  const { step } = onboarding;
+  document.getElementById('onboarding-progress').style.width =
+    `${Math.round((ONBOARDING_STEPS.indexOf(step) / (ONBOARDING_STEPS.length - 1)) * 100)}%`;
+  const bigButton = (id, label, variant = 'primary') =>
+    `<button id="${id}" type="button" class="big-btn ${variant === 'primary' ? 'big-btn-primary' : 'big-btn-secondary'}">${label}</button>`;
+  const on = (id, handler) => document.getElementById(id).addEventListener('click', handler);
+
+  if (step === 'welcome') {
+    onboardingContent.innerHTML = `
+      <h2 class="text-2xl font-bold text-gray-900 focus:outline-none" tabindex="-1">أهلاً بك 👋</h2>
+      <p class="text-lg text-gray-700 leading-8">هنا تتعلّم قراءة الإنجليزية خطوة بخطوة، من الحروف إلى الكلمات ثم الجمل.</p>
+      <ul class="space-y-3 text-gray-700">
+        <li class="flex gap-3"><span aria-hidden="true">🎧</span><span>تسمع صوت كل حرف وكلمة، وتعيده متى شئت.</span></li>
+        <li class="flex gap-3"><span aria-hidden="true">⏱️</span><span>دروس قصيرة، حوالي ٥ دقائق للنشاط.</span></li>
+        <li class="flex gap-3"><span aria-hidden="true">🔁</span><span>ما تخطئ فيه يعود إليك لتراجعه.</span></li>
+        <li class="flex gap-3"><span aria-hidden="true">🤝</span><span>كثير من البالغين يتعلّمون القراءة بلغة جديدة، وأنت تستطيع ذلك أيضاً.</span></li>
+      </ul>
+      ${bigButton('ob-next', 'التالي')}`;
+    on('ob-next', () => goToOnboardingStep('sound'));
+  } else if (step === 'sound') {
+    onboardingContent.innerHTML = `
+      <h2 class="text-2xl font-bold text-gray-900 focus:outline-none" tabindex="-1">لنتأكد من الصوت</h2>
+      <p class="text-lg text-gray-700">اضغط الزر واستمع. ستسمع كلمة إنجليزية.</p>
+      <div class="flex flex-col items-center gap-1 py-2">
+        <button id="ob-play" type="button" class="bg-blue-500 hover:bg-blue-600 text-white p-5 rounded-full" aria-label="استمع">${PLAY_SVG}</button>
+        <button id="ob-play-slow" type="button" class="slow-btn" aria-label="استمع ببطء"><span aria-hidden="true">🐢</span> بطيء</button>
+      </div>
+      <div id="ob-sound-help" class="hidden bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-4 space-y-2 text-sm leading-6">
+        <p class="font-bold">جرّب هذه الخطوات:</p>
+        <p>• ارفع صوت الجهاز. وعلى الآيفون تأكد أن زر الوضع الصامت مغلق.</p>
+        <p>• جرّب سماعات الأذن.</p>
+        <p>• إذا لم يصدر صوت أبداً: افتح إعدادات الجهاز وابحث عن «تحويل النص إلى كلام»، ثم ثبّت اللغة الإنجليزية.</p>
+      </div>
+      <div class="flex flex-col gap-3">
+        ${bigButton('ob-heard', 'نعم، أسمعها ✓')}
+        ${bigButton('ob-not-heard', 'لا أسمع شيئاً', 'secondary')}
+      </div>`;
+    on('ob-play', () => playItem('bat', { kind: 'word' }));
+    on('ob-play-slow', () => playItem('bat', { slow: true, kind: 'word' }));
+    on('ob-heard', () => goToOnboardingStep('level'));
+    on('ob-not-heard', () => {
+      document.getElementById('ob-sound-help').classList.remove('hidden');
+      const btn = document.getElementById('ob-not-heard');
+      btn.textContent = 'أكمل الآن وسأصلح الصوت لاحقاً';
+      btn.onclick = () => goToOnboardingStep('level');
+    });
+  } else if (step === 'level') {
+    const option = (id, title, desc) => `
+      <button id="${id}" type="button" class="w-full text-right rounded-xl border-2 border-gray-200 hover:border-blue-400 bg-white p-4">
+        <span class="block text-lg font-bold text-gray-900">${title}</span>
+        <span class="block text-sm text-gray-500 mt-1">${desc}</span>
+      </button>`;
+    onboardingContent.innerHTML = `
+      <h2 class="text-2xl font-bold text-gray-900 focus:outline-none" tabindex="-1">ما مستواك الآن؟</h2>
+      <div class="flex flex-col gap-3">
+        ${option('ob-level-zero', 'لا أعرف الحروف الإنجليزية', 'سنبدأ معك من أول حرف.')}
+        ${option('ob-level-some', 'أعرف بعض الحروف', 'سنعرض عليك كلمات قصيرة لنعرف من أين تبدأ.')}
+        ${option('ob-level-letters', 'أعرف الحروف لكن القراءة صعبة', 'سنعرض عليك كلمات قصيرة لنعرف من أين تبدأ.')}
+      </div>`;
+    on('ob-level-zero', () => { onboarding.startChunk = 1; goToOnboardingStep('done'); });
+    const toPlacement = () => { onboarding.placementIndex = 0; goToOnboardingStep('placement'); };
+    on('ob-level-some', toPlacement);
+    on('ob-level-letters', toPlacement);
+  } else if (step === 'placement') {
+    const groups = placementGroups();
+    const { chunk, words } = groups[onboarding.placementIndex];
+    onboardingContent.innerHTML = `
+      <p class="text-sm text-gray-500">${chunk.title} من ${toArabicDigits(groups.length)}</p>
+      <h2 class="text-2xl font-bold text-gray-900 focus:outline-none" tabindex="-1">هل تستطيع قراءة هذه الكلمات؟</h2>
+      <p class="text-gray-600">اقرأها في نفسك أولاً، ثم اضغط على كل كلمة لتسمعها وتتأكد.</p>
+      <div class="flex flex-wrap justify-center gap-3 py-2 english-content" lang="en">
+        ${words.map(w => `<button type="button" class="ob-word bg-blue-100 text-blue-800 text-3xl font-bold rounded-xl px-5 py-3 hover:bg-blue-200" data-word="${w}">${vowelHtml(w)}</button>`).join('')}
+      </div>
+      <div class="flex flex-col gap-3">
+        ${bigButton('ob-can-read', 'نعم، قرأتها كلها')}
+        ${bigButton('ob-cannot-read', 'ليس بعد', 'secondary')}
+      </div>`;
+    onboardingContent.querySelectorAll('.ob-word').forEach(b => b.addEventListener('click', () => playItem(b.dataset.word, { kind: 'word' })));
+    on('ob-can-read', () => {
+      if (onboarding.placementIndex + 1 < groups.length) {
+        onboarding.past.push({ step: 'placement', placementIndex: onboarding.placementIndex });
+        onboarding.placementIndex++;
+        renderOnboardingStep();
+      } else {
+        // Read every group: start with the review group
+        onboarding.startChunk = appData.chunks[appData.chunks.length - 1].id;
+        goToOnboardingStep('done');
+      }
+    });
+    on('ob-cannot-read', () => { onboarding.startChunk = chunk.id; goToOnboardingStep('done'); });
+  } else if (step === 'done') {
+    const start = appData.chunks.find(c => c.id === onboarding.startChunk);
+    const where = onboarding.startChunk === appData.chunks[0].id
+      ? 'ستبدأ من المجموعة الأولى.'
+      : `ستبدأ من ${start.title}. المجموعات السابقة مفتوحة لك إن أردت مراجعتها.`;
+    const sync = isSyncConfigured();
+    onboardingContent.innerHTML = `
+      <h2 class="text-2xl font-bold text-gray-900 focus:outline-none" tabindex="-1">جاهز! 🎉</h2>
+      <p class="text-lg text-gray-700">${where}</p>
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900 leading-6">
+        ${sync
+          ? 'يُحفظ تقدمك تلقائياً على هذا الجهاز. ولتكمل من هاتفك أو من كمبيوتر الجامعة، سجّل الدخول بحساب Google.'
+          : 'يُحفظ تقدمك تلقائياً على هذا الجهاز وفي هذا المتصفح. إذا غيّرت الجهاز أو المتصفح ستبدأ من جديد.'}
+      </div>
+      <div class="flex flex-col gap-3">
+        ${bigButton('ob-start', 'ابدأ التعلّم')}
+        ${sync ? bigButton('ob-signin', 'تسجيل الدخول بحساب Google', 'secondary') : ''}
+      </div>`;
+    on('ob-start', () => finishOnboarding());
+    if (sync) on('ob-signin', () => finishOnboarding({ signIn: true }));
+  }
+  onboardingContent.querySelector('h2')?.focus({ preventScroll: true });
+  window.scrollTo(0, 0);
+}
+
 
 // -------------------- Sync across devices --------------------
 // Progress from the server (merged with this device's) replaces the local copy
@@ -1307,6 +1500,7 @@ document.getElementById('sync-delete-btn').addEventListener('click', () => {
 
 function hasSavedProgress() {
   try {
+    if (localStorage.getItem('literacyOnboarded') === '1') return true;
     const saved = JSON.parse(localStorage.getItem('literacyAppProgress'));
     return Boolean(saved) && (saved.points > 0 || Object.keys(saved.completedActivities || {}).length > 0);
   } catch (e) {

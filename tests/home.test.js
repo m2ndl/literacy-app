@@ -84,3 +84,22 @@ describe('nextStep after finishing a group', () => {
     assert.equal(nextStep(p).chunkId, 1);
   });
 });
+
+describe('placement from the first-run reading check', () => {
+  it('suggests the group the learner was placed in, not group 1', () => {
+    const p = { ...getDefaultProgress(), unlockedChunk: 3, placedAt: 3 };
+    assert.deepEqual(nextStep(p), { chunkId: 3, activityId: 'sound-match' });
+  });
+
+  it('comes back to the skipped groups once the placed ones are done', () => {
+    const all3 = getPossibleActivities(appData.chunks[2]);
+    const p = { ...getDefaultProgress(), unlockedChunk: 3, placedAt: 3, completedChunks: [3], completedActivities: { 3: all3 } };
+    assert.equal(nextStep(p).chunkId, 1);
+  });
+
+  it('is kept when progress is validated and merged', () => {
+    assert.equal(validateProgress({ placedAt: 4 }).placedAt, 4);
+    assert.equal(validateProgress({ placedAt: 0 }).placedAt, 1);
+    assert.equal(validateProgress({}).placedAt, 1);
+  });
+});

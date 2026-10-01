@@ -128,3 +128,12 @@ describe('validateProgress with sync fields', () => {
     assert.equal(validateProgress({ epoch: 1.5 }).epoch, 0);
   });
 });
+
+describe('mergeProgress with placement', () => {
+  it('keeps the furthest placement from either device', () => {
+    const a = { ...getDefaultProgress(), placedAt: 3 };
+    const b = { ...getDefaultProgress(), placedAt: 1 };
+    assert.equal(mergeProgress(a, b).placedAt, 3);
+    assert.equal(mergeProgress(b, a).placedAt, 3);
+  });
+});

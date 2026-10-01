@@ -12,6 +12,7 @@
       try {
         var saved = JSON.parse(localStorage.getItem('literacyAppProgress'));
         if ((saved && (saved.points > 0 || Object.keys(saved.completedActivities || {}).length > 0)) ||
+            localStorage.getItem('literacyOnboarded') === '1' ||
             location.hash.indexOf('id_token=') !== -1 || location.hash.indexOf('error=') !== -1) {
           document.documentElement.classList.add('returning');
         }
@@ -299,6 +300,14 @@
           </div>
           <div id="copy-toast" class="text-green-600 text-sm hidden">✅ تم نسخ البريد إلى الحافظة</div>
         </div>
+      </div>
+
+      <!-- Onboarding: first run only (welcome, sound check, level, where progress is saved) -->
+      <div id="onboarding-view" class="hidden">
+        <div class="flex items-center gap-3 mb-6" aria-hidden="true">
+          <div class="progress-track flex-1"><div id="onboarding-progress" class="progress-fill" style="width:0%"></div></div>
+        </div>
+        <div id="onboarding-content" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg space-y-5"></div>
       </div>
 
       <!-- Sync View: save progress across devices with a Google account -->

@@ -8,7 +8,9 @@ export function getDefaultProgress() {
     timeSpent: 0, version: 2,
     // For syncing across devices: epoch goes up on every reset, and counters hold how many
     // points and seconds each device contributed (see mergeProgress)
-    epoch: 0, counters: { points: {}, timeSpent: {} }
+    epoch: 0, counters: { points: {}, timeSpent: {} },
+    // The group the first-run reading check placed the learner in; suggestions start here
+    placedAt: 1
   };
 }
 
@@ -63,7 +65,8 @@ export function validateProgress(parsed) {
       ? parsed.timeSpent : defaults.timeSpent,
     version: 2,
     epoch: Number.isInteger(parsed.epoch) && parsed.epoch >= 0 ? parsed.epoch : defaults.epoch,
-    counters: validateCounters(parsed.counters)
+    counters: validateCounters(parsed.counters),
+    placedAt: Number.isInteger(parsed.placedAt) && parsed.placedAt >= 1 ? chunkIdNow(parsed.placedAt) : defaults.placedAt
   };
 }
 
@@ -336,7 +339,8 @@ export function mergeProgress(local, remote) {
     timeSpent: totals.timeSpent,
     version: 2,
     epoch: a.epoch,
-    counters
+    counters,
+    placedAt: Math.max(a.placedAt, b.placedAt)
   };
 }
 
@@ -363,8 +367,11 @@ export function courseProgress(completedActivities) {
 // null when everything open is done.
 export function nextStep(progress, afterChunkId = null) {
   const completedChunks = progress.completedChunks || [];
-  // Look forward from afterChunkId first (the group just finished), then from the start
-  const start = afterChunkId === null ? 0 : appData.chunks.findIndex(c => c.id === afterChunkId) + 1;
+  // Look forward from afterChunkId (the group just finished) or from where the learner was placed,
+  // then wrap around to the earlier groups
+  const start = afterChunkId !== null
+    ? appData.chunks.findIndex(c => c.id === afterChunkId) + 1
+    : Math.max(0, appData.chunks.findIndex(c => c.id >= (progress.placedAt || 1)));
   const ordered = [...appData.chunks.slice(start), ...appData.chunks.slice(0, start)];
   for (const chunk of ordered) {
     if (chunk.id > progress.unlockedChunk || completedChunks.includes(chunk.id)) continue;
