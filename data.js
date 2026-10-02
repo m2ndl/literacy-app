@@ -117,7 +117,7 @@ export const units = [
     graphemes: ['s', 'a', 't', 'i', 'n', 'p'],
     words: [
       { w: 'at', ar: 'عند / في', group: 'prep' },
-      { w: 'it', ar: 'هو / هي (لغير العاقل)' },
+      { w: 'it', ar: 'هو / هي (لغير العاقل)', group: 'pron' },
       { w: 'in', ar: 'في / داخل', group: 'prep' },
       { w: 'sit', ar: 'يجلس', group: 'sit' },
       { w: 'sat', ar: 'جلسَ', group: 'sit' },
@@ -265,7 +265,7 @@ export const units = [
     graphemes: ['u', 'r', 'h', 'b'],
     words: [
       { w: 'up', ar: 'فوق', emoji: '⬆️' },
-      { w: 'us', ar: 'ـنا (ضمير: لنا / إيانا)' },
+      { w: 'us', ar: 'ـنا (ضمير: لنا / إيانا)', group: 'pron' },
       { w: 'but', ar: 'لكن' },
       { w: 'cut', ar: 'يقطع', emoji: '✂️', group: 'cut' },
       { w: 'cup', ar: 'كوب', emoji: '☕' },
@@ -276,7 +276,7 @@ export const units = [
       { w: 'hot', ar: 'ساخن / حار', emoji: '🔥' },
       { w: 'hat', ar: 'قبّعة', emoji: '🎩', group: 'hat' },
       { w: 'hit', ar: 'يضرب' },
-      { w: 'him', ar: 'ـه (هو - مفعول به)' },
+      { w: 'him', ar: 'ـه (هو - مفعول به)', group: 'pron' },
       { w: 'had', ar: 'كان لديه' },
       { w: 'red', ar: 'أحمر', emoji: '🔴' },
       { w: 'bad', ar: 'سيئ', emoji: '👎' },
@@ -465,7 +465,7 @@ export const units = [
       { w: 'with', ar: 'مع' },
       { w: 'this', ar: 'هذا / هذه' },
       { w: 'that', ar: 'ذلك / تلك' },
-      { w: 'them', ar: 'هم (مفعول به)' },
+      { w: 'them', ar: 'هم (مفعول به)', group: 'pron' },
       { w: 'then', ar: 'ثم / بعد ذلك' }
     ],
     heart: [
@@ -562,7 +562,7 @@ export const units = [
       { w: 'limit', split: 'lim|it', ar: 'حدّ' },
       { w: 'public', split: 'pub|lic', ar: 'عام / عمومي' },
       { w: 'panic', split: 'pan|ic', ar: 'ذُعر' },
-      { w: 'within', split: 'with|in', ar: 'خلال / داخل' },
+      { w: 'within', split: 'with|in', ar: 'خلال / داخل', group: 'prep' },
       { w: 'comic', split: 'com|ic', ar: 'قصة مصوّرة' },
       { w: 'admin', split: 'ad|min', ar: 'الإدارة' },
       { w: 'index', split: 'in|dex', ar: 'فهرس' },
