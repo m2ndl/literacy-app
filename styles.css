@@ -130,6 +130,7 @@ body.dark-mode .letter-slot.filled:hover {
   --c-ok-bg: #dcfce7;  --c-ok-text: #166534;
   --c-try-bg: #fef3c7; --c-try-text: #92400e;
   --c-wrong: #fca5a5;
+  --c-guide: #cbd5e1;          /* dotted letter model in tracing */
 }
 body.dark-mode {
   --c-text: #e5e7eb;
@@ -143,6 +144,7 @@ body.dark-mode {
   --c-ok-bg: #064e3b;  --c-ok-text: #d1fae5;
   --c-try-bg: #451a03; --c-try-text: #fde68a;
   --c-wrong: #7f1d1d;
+  --c-guide: #4b5563;
 }
 
 /* English text: a typeface designed for beginning readers */
@@ -260,6 +262,79 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--c-accent); outl
 .accuracy-chip.is-ok { background: #fef3c7; color: #92400e; }
 .accuracy-chip.is-weak { background: #fee2e2; color: #991b1b; }
 .diagnostics { background: var(--c-soft); padding: 1rem; border-radius: .6rem; font-size: .85rem; overflow-x: auto; text-align: left; }
+
+/* ===================== Phase 2: learner model ===================== */
+/* Today panel */
+.today-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+.today-card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 1rem; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: .5rem; }
+.today-card.is-muted { opacity: .75; }
+.today-head { display: flex; align-items: center; gap: .5rem; }
+.today-icon { font-size: 1.5rem; }
+.today-title { font-size: 1.1rem; font-weight: 700; }
+.today-text { color: var(--c-muted); font-size: .95rem; flex: 1; }
+.today-btn { align-self: flex-start; background: var(--c-accent); color: #fff; font-weight: 700; padding: .5rem 1.2rem; border-radius: .6rem; }
+.optional-chip { background: var(--c-soft); color: var(--c-muted); border-radius: 999px; padding: .1rem .6rem; font-size: .8rem; }
+
+/* Ear training */
+.perception-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: .8rem; }
+.perception-card { display: flex; flex-direction: column; align-items: center; gap: .3rem; background: var(--c-surface); border: 2px solid var(--c-border); border-radius: 1rem; padding: 1rem .6rem; }
+.perception-card.locked { opacity: .5; cursor: not-allowed; }
+.perception-letters { font-size: 1.9rem; font-weight: 700; }
+.perception-example { font-size: 1.15rem; direction: ltr; }
+.perception-stats { font-size: .85rem; color: var(--c-muted); }
+
+/* Report: mastery */
+.mastery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .6rem; }
+.mastery-box { background: var(--c-soft); border-radius: .8rem; padding: .7rem; text-align: center; font-size: .9rem; }
+.mastery-num { font-size: 1.8rem; font-weight: 700; color: var(--c-accent); }
+
+/* Dictation: on-screen keyboard and spelling feedback */
+.spell { display: flex; flex-direction: column; align-items: center; gap: .9rem; width: 100%; }
+.typed { min-height: 3.6rem; min-width: 10rem; font-size: 2.4rem; font-weight: 700; border-bottom: 3px solid var(--c-border); padding: 0 .6rem; letter-spacing: .05em; }
+.caret { display: inline-block; width: 2px; height: 2rem; background: var(--c-accent); margin-inline-start: 2px; animation: blink 1s steps(1) infinite; vertical-align: middle; }
+@keyframes blink { 50% { opacity: 0; } }
+.keyboard { display: flex; flex-direction: column; gap: .35rem; width: 100%; max-width: 32rem; }
+.kb-row { display: flex; justify-content: center; gap: .3rem; }
+.kb-key { flex: 1 1 0; max-width: 2.9rem; height: 3rem; background: var(--c-soft); border: 1px solid var(--c-border); border-radius: .5rem; font-size: 1.35rem; font-weight: 700; color: var(--c-text); }
+.kb-key:disabled { opacity: .3; }
+.kb-key:active:not(:disabled) { background: var(--c-accent); color: #fff; }
+.kb-wide { max-width: 5rem; flex-grow: 2; }
+.kb-enter { max-width: 9rem; flex-grow: 3; background: var(--c-accent); color: #fff; font-size: 1.05rem; }
+.spell-diff { display: inline-flex; gap: .15rem; font-size: 2rem; font-weight: 700; margin: .3rem 0; direction: ltr; }
+.spell-diff s { opacity: .55; font-size: .65em; margin-inline-end: .1rem; }
+.sd-ok { color: #16a34a; }
+.sd-wrong b, .sd-miss { color: #dc2626; text-decoration: underline; }
+.sd-extra { color: #dc2626; }
+
+/* Sentence order */
+.build-words .slot, .build-words .tile { font-size: 1.35rem; min-width: 3rem; height: 3rem; padding: 0 .7rem; }
+.build-words.build-slots .slot { min-width: 3.5rem; }
+.prompt-meaning { font-size: 1.15rem; color: var(--c-muted); }
+
+/* Placement: made-up words */
+.brand-card { display: flex; flex-direction: column; align-items: center; gap: .3rem; border: 2px dashed var(--c-border); border-radius: 1rem; padding: 1rem 2rem; }
+.brand-label { font-size: .85rem; color: var(--c-muted); }
+.brand-name { font-size: 3rem; font-weight: 700; }
+.audio-choice { display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+.options-audio .option-btn { padding: .8rem 1.4rem; font-size: 1.3rem; }
+.option-btn.is-selected, .option-btn.is-chosen { border-color: var(--c-accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, .3); }
+
+/* Tracing */
+.trace { display: flex; flex-direction: column; align-items: center; gap: .6rem; width: 100%; }
+.trace-canvas { background: var(--c-surface); border: 2px solid var(--c-border); border-radius: 1rem; touch-action: none; max-width: 100%; }
+.trace-step { font-weight: 700; }
+.trace-note { min-height: 1.5rem; color: var(--c-try-text); }
+.trace-tools { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+
+/* Backup */
+.code-box { width: 100%; font-size: .85rem; background: var(--c-soft); border: 1px solid var(--c-border); border-radius: .6rem; padding: .6rem; color: var(--c-text); word-break: break-all; }
+
+/* Install guide and in-app browser banner */
+.guide-steps { display: flex; flex-direction: column; gap: .7rem; }
+.guide-step { display: flex; align-items: flex-start; gap: .6rem; }
+.guide-num { flex: none; width: 1.8rem; height: 1.8rem; border-radius: 999px; background: var(--c-accent); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+.guide-icon { display: inline-block; width: 1.6rem; height: 1.6rem; vertical-align: middle; color: var(--c-accent); }
+.inapp-banner { background: #fef3c7; color: #78350f; border-bottom: 2px solid #f59e0b; padding: 1rem; line-height: 1.9; text-align: right; }
 
 @media (max-width: 480px) {
   .options-grapheme .option-btn { width: 4.6rem; height: 4.6rem; font-size: 2rem; }

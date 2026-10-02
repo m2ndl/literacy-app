@@ -15,6 +15,7 @@ const MAX_DECODED_SECONDS = 150;   // memory cap for decoded clips (low-end Andr
 const PRELOAD_CONCURRENCY = 4;
 
 let manifest = { clips: {} };
+let avoid = new Set();             // ear-training tokens the speech check did not pass ('w:pin@m2')
 let manifestReady = null;
 let ctx = null;
 let current = [];                  // playing sources
@@ -51,7 +52,10 @@ async function loadManifest() {
     // Network first via the service worker, which falls back to its cached copy offline.
     const res = await fetch(`${BASE}manifest.json`);
     const m = res.ok ? await res.json() : null;
-    if (m && m.clips) manifest = m;
+    if (m && m.clips) {
+      manifest = m;
+      avoid = new Set(m.avoid || []);
+    }
   } catch (e) {
     console.warn('Audio manifest not available:', e);
   }
@@ -121,6 +125,11 @@ export function voicesFor(key) {
 
 export function hasClip(key, voice = 'f') {
   return !!(manifest.clips[key] && manifest.clips[key][voice]);
+}
+
+/** A clip that exists and passed the automatic speech check (used for ear training). */
+export function usable(key, voice = 'f') {
+  return hasClip(key, voice) && !avoid.has(`${key}@${voice}`);
 }
 
 export function clipUrl(key, voice = 'f') {
@@ -216,7 +225,7 @@ export function stop() {
 
 /**
  * Play a clip by key ('ph:ae', 'ln:b', 'w:pin', 's:it-is-a-pin').
- * options: voice ('f' | 'm'), slow (prefer the slow recording), text (for the device-voice fallback)
+ * options: voice ('f' | 'm' | 'f2' | 'm2'), slow (prefer the slow recording), text (for the device-voice fallback)
  * Resolves to 'clip', 'tts' or 'none' when playback ends.
  */
 export async function play(key, { voice = 'f', slow = false, text = '' } = {}) {

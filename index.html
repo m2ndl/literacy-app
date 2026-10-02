@@ -113,9 +113,10 @@
               <button id="achievements-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإنجازات</button>
               <button id="audio-test-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🔊 اختبار الصوت</button>
               <button id="important-note-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📌 ملاحظة مهمة</button>
-              <button id="install-app-button" class="hidden w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
+              <button id="placement-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🧭 اختبار تحديد المستوى</button>
+              <button id="backup-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">💾 نسخة احتياطية</button>
+              <button id="install-app-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
               <button id="theme-toggle" type="button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" aria-pressed="false">🌙 تفعيل الوضع الداكن</button>
-              <button id="unlock-all" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">فتح كل الوحدات</button>
               <button id="reset-progress" class="block w-full text-right px-4 py-2 text-sm text-red-700 hover:bg-red-50">إعادة تعيين التقدّم</button>
             </div>
           </div>
@@ -128,7 +129,8 @@
 
       <!-- Dashboard View -->
       <div id="dashboard-view">
-        <p class="text-lg text-gray-600 mb-6">ابدأ من الوحدة الأولى. أكمل أنشطة كل وحدة بنسبة ٨٠٪ على الأقل لتفتح الوحدة التالية.</p>
+        <div id="today-panel" class="mb-8"></div>
+        <p class="text-lg text-gray-600 mb-6">أكمل أنشطة كل وحدة بنسبة ٨٠٪ على الأقل لتفتح الوحدة التالية.</p>
         <div id="unit-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       </div>
 
@@ -155,6 +157,11 @@
       <!-- Audio Test View (rendered by app.js) -->
       <div id="audio-test-view" class="hidden"></div>
 
+      <!-- Ear training, backup and install guide (rendered by app.js) -->
+      <div id="perception-view" class="hidden"></div>
+      <div id="backup-view" class="hidden"></div>
+      <div id="install-view" class="hidden"></div>
+
       <!-- Important Note View -->
       <div id="important-note-view" class="hidden">
         <div class="bg-white p-6 rounded-lg shadow-sm space-y-4 leading-8 text-gray-700">
@@ -167,7 +174,10 @@
             لأن Safari قد يحذف بيانات المواقع التي لا تُفتح لمدة أسبوع.
           </p>
           <p>
-            يمكنك أيضًا اختيار <b>«فتح كل الوحدات»</b> من القائمة إذا كنت تعرف أصوات الحروف وتريد البدء من وحدة متقدمة.
+            احفظ <b>«نسخة احتياطية»</b> من القائمة من وقت لآخر: رمز قصير تسترجع به تقدّمك على أي جهاز.
+          </p>
+          <p>
+            إذا كنت تعرف بعض الإنجليزية فجرّب <b>«اختبار تحديد المستوى»</b> من القائمة ليحدّد لك الوحدة المناسبة.
           </p>
           <p>
             الأصوات مولَّدة آليًا بنموذج النطق المفتوح Kokoro (بلهجة أمريكية)، وتُفحص كل كلمة وجملة آليًا قبل نشرها.

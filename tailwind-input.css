@@ -4,3 +4,8 @@
 @source "./app.js";
 @source "./theme.js";
 @source "./data.js";
+@source "./dom.js";
+@source "./widgets.js";
+@source "./tracing.js";
+@source "./backup-ui.js";
+@source "./platform.js";

@@ -2,7 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, statSync } from 'node:fs';
-import { units, gpc, ALPHABET } from '../data.js';
+import { units, gpc, ALPHABET, PERCEPTION } from '../data.js';
 import { requiredClips } from '../phonics.js';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
@@ -35,11 +35,11 @@ describe('CSS classes', () => {
   const css = ['tailwind.css', 'styles.css', 'ui-overrides.css', 'semantic-tokens.css'].map(read).join('\n');
   const escape = (c) => c.replace(/([:[\]/.%])/g, '\\$1');
   // Classes used only as JavaScript hooks or for headings that need no styling.
-  const HOOKS = new Set(['activity-card', 'word', 'reader-compact']);
+  const HOOKS = new Set(['activity-card', 'word', 'reader-compact', 'audio-option']);
 
-  it('every static class used in index.html and app.js has a style', () => {
+  it('every static class used in index.html and the interface modules has a style', () => {
     const html = read('index.html');
-    const js = read('app.js');
+    const js = ['app.js', 'dom.js', 'widgets.js', 'tracing.js', 'backup-ui.js', 'platform.js'].map(read).join('\n');
     const fromHtml = [...html.matchAll(/class="([^"]+)"/g)].flatMap(m => m[1].split(/\s+/));
     const fromJs = [...js.matchAll(/class: ['`]([^'`]+)['`]/g)].flatMap(m => m[1].replace(/\$\{[^}]*\}/g, ' ').split(/\s+/));
     const missing = [...new Set([...fromHtml, ...fromJs])]
@@ -55,7 +55,7 @@ describe('generated audio', () => {
 
   it('covers every word, sentence and letter name (skips if audio is not generated)', { skip: !hasAudio }, () => {
     const manifest = JSON.parse(readFileSync(manifestUrl, 'utf8'));
-    for (const c of requiredClips(units, gpc, ALPHABET)) {
+    for (const c of requiredClips(units, gpc, ALPHABET, PERCEPTION)) {
       if (c.kind === 'ph') continue; // a sound without a clean recording is taught through its keyword
       const entry = manifest.clips[c.key];
       assert.ok(entry, `missing clip ${c.key}`);
@@ -74,6 +74,18 @@ describe('generated audio', () => {
     const present = sounds.filter(ph => manifest.clips[`ph:${ph}`]);
     assert.ok(present.length / sounds.length >= 0.85, `only ${present.length}/${sounds.length} sounds recorded`);
     for (const v of ['ae', 'ih', 'eh', 'uh', 'aa']) assert.ok(manifest.clips[`ph:${v}`], `vowel ${v} missing`);
+  });
+
+  it('keeps enough clean ear-training tokens for every set', { skip: !hasAudio }, () => {
+    const manifest = JSON.parse(readFileSync(manifestUrl, 'utf8'));
+    const avoid = new Set(manifest.avoid || []);
+    for (const a of avoid) assert.ok(manifest.clips[a.split('@')[0]], `avoid list names an unknown clip ${a}`);
+    for (const set of PERCEPTION) {
+      for (const side of [0, 1]) {
+        const usable = set.pairs.flatMap(p => ['f', 'm', 'f2', 'm2'].filter(v => !avoid.has(`w:${p[side]}@${v}`)));
+        assert.ok(usable.length >= 16, `${set.id}: only ${usable.length} usable tokens for "${side ? set.b : set.a}"`);
+      }
+    }
   });
 
   it('stays within the size budget', { skip: !hasAudio }, () => {
