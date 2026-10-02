@@ -2,7 +2,7 @@
 // placement, reports. Pedagogical design: see PEDAGOGY_PLAN.md.
 import { units, gpc, ALPHABET, ACTIVITY_META, HINTS, PERCEPTION, STAGES, getAchievements } from './data.js';
 import {
-  STORAGE_KEY, V3_KEY, LEGACY_KEY, getDefaultProgress, loadProgressFrom, recordAttempt, topConfusions,
+  STORAGE_KEY, V4_KEY, V3_KEY, LEGACY_KEY, getDefaultProgress, loadProgressFrom, recordAttempt, topConfusions,
   graphemeAccuracy, hasPassed, isUnitComplete, requiredActivities, nextUnitId, formatTime, computeStreak, PASS_MARK
 } from './logic.js';
 import {
@@ -15,12 +15,21 @@ import { el, en, svgIcon, richArabic, wordNode, heartNode, section, toArabicDigi
 import { buildWidget, keyboardWidget, audioChoiceWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
 import { traceWidget } from './tracing.js';
 import { renderBackup, backupDue } from './backup-ui.js';
+import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES } from './data-assess.js';
+import { recordCheck, checkPassed, wordsPerMinute, recordTextReading } from './assess.js';
+import { todayCards, reportSections, renderSpeedMenu } from './assess-ui.js';
+import { recordWidget, stopRecorder } from './recorder.js';
 import { platformInfo, renderInstallGuide, inAppBanner } from './platform.js';
 
-const bank = createQuestionBank({ units, gpc, alphabet: ALPHABET, perception: PERCEPTION, hasClip: (k) => audio.hasClip(k) });
+const bank = createQuestionBank({
+  units, gpc, alphabet: ALPHABET, perception: PERCEPTION, hasClip: (k) => audio.hasClip(k),
+  sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES
+});
 configureWords(bank.wordInfo);
 const achievements = getAchievements(units.length);
-const POINTS = { unit: 5, review: 5, weak: 5, perception: 1, placement: 0 };
+const POINTS = { unit: 5, review: 5, weak: 5, perception: 1, placement: 0, check: 0, benchmark: 0, fix: 2 };
+const CHECK_BONUS = 20;                 // points for passing a unit check
+const ASSESSMENT_MODES = new Set(['placement', 'check', 'benchmark']);   // no feedback until the end
 const ITEMS_PER_ACTIVITY = 8;
 const REVIEW_SIZE = 12;
 // Activities whose prompt is heard (played automatically); "meaning" and texts are read first.
@@ -39,6 +48,7 @@ let readerToken = 0;
 let slowWords = false;
 const achievementQueue = [];
 let showingAchievement = false;
+let activeDrill = null;                 // a timed drill in progress (stopped when the view changes)
 
 const $ = (id) => document.getElementById(id);
 const unitById = (id) => units.find(u => u.id === id);
@@ -97,6 +107,9 @@ function showView(id, title, back = null) {
   readerToken++;
   audio.stop();
   cleanupWidgets();
+  stopRecorder();
+  activeDrill?.cancel();
+  activeDrill = null;
   if (id !== 'activity-view') session = null;
   VIEWS.forEach(v => $(v).classList.toggle('hidden', v !== id));
   $('main-title').textContent = title;
@@ -155,6 +168,7 @@ function renderToday() {
     const label = weak.map(t => (t.partner ? `${t.target} / ${t.partner}` : t.target)).join('، ');
     cards.push(todayCard({ id: 'weak', icon: '🎯', title: 'نقاط ضعفي', text: `تدريب قصير على: ${label}`, action: 'تدرّب', onClick: startWeak }));
   }
+  todayCards(assessContext()).forEach(c => cards.push(todayCard(c)));
   if (backupDue(progress, today())) {
     cards.push(todayCard({ id: 'backup', icon: '💾', title: 'احفظ نسخة من تقدّمك', text: 'التقدّم محفوظ على هذا الجهاز فقط. احفظ رمزًا احتياطيًا في مكان آمن.', action: 'نسخة احتياطية', onClick: () => renderBackup(backupContext()) }));
   }
@@ -237,7 +251,33 @@ function heartChip(h) {
     el('span', { class: 'chip-emoji', 'aria-hidden': 'true', text: '♥' }), heartNode(h.mark), el('span', { class: 'chip-ar', text: h.ar }));
 }
 
-function textReader(t) {
+/** Time a silent reading of a text (repeated reading): words a minute, compared with last time. */
+function readingTimer(t, unitId) {
+  const id = `${unitId}:${t.id}`;
+  const words = t.sentences.reduce((n, s) => n + s.text.split(/\s+/).length, 0);
+  const out = el('span', { class: 'text-sm', 'aria-live': 'polite' });
+  let startedAt = null;
+  const btn = el('button', { class: 'small-btn' }, '⏱ قِس سرعتك');
+  btn.addEventListener('click', () => {
+    if (startedAt === null) {
+      audio.stop();
+      startedAt = performance.now();
+      btn.textContent = '⏹ انتهيت';
+      out.textContent = 'اقرأ النص كله بعينيك، ثم اضغط «انتهيت».';
+      return;
+    }
+    const wpm = wordsPerMinute(words, (performance.now() - startedAt) / 1000);
+    startedAt = null;
+    btn.textContent = '⏱ قِس مرة أخرى';
+    if (wpm === null) { out.textContent = 'كان ذلك سريعًا جدًا: اقرأ النص كله ثم اضغط «انتهيت».'; return; }
+    const before = recordTextReading(progress, { day: today(), id, wpm });
+    save(true);
+    out.textContent = `${toArabicDigits(wpm)} كلمة في الدقيقة` + (before ? ` (المرة السابقة: ${toArabicDigits(before.wpm)})` : '');
+  });
+  return el('div', { class: 'reader-timer' }, btn, out);
+}
+
+function textReader(t, unitId = null) {
   const lines = t.sentences.map(s => el('button', {
     class: 'reader-line', onclick: () => audio.play(clipKey('s', s.text), { text: s.text })
   }, en(s.text), el('span', { class: 'reader-ar hidden', text: s.ar })));
@@ -257,7 +297,8 @@ function textReader(t) {
   return el('div', { class: 'reader' },
     el('div', { class: 'reader-head' }, en(t.title, 'reader-title'),
       el('div', { class: 'flex gap-2' }, el('button', { class: 'small-btn', onclick: playAll }, '🔊 استمع وتابع'), toggleAr)),
-    ...lines);
+    ...lines,
+    unitId ? readingTimer(t, unitId) : null);
 }
 
 function unitClipKeys(u) {
@@ -318,13 +359,15 @@ function showLesson(unitId) {
       formCard({ title: f.title, fields: f.fields.map(x => ({ label: x.label, value: '', ar: x.ar })) })));
   });
   if ((u.texts || []).length) {
-    root.append(section('نصوص قصيرة', el('p', { class: 'section-help', text: 'اقرأ بنفسك، ثم استمع وتابع، ثم اقرأ مرة أخرى.' }), ...u.texts.map(textReader)));
+    root.append(section('نصوص قصيرة', el('p', { class: 'section-help', text: 'اقرأ بنفسك، ثم استمع وتابع، ثم اقرأ مرة أخرى.' }), ...u.texts.map(t => textReader(t, u.id))));
   }
   const done = progress.completedActivities[u.id] || [];
   root.append(section('أنشطة تدريبية', el('div', { id: 'activities-container', class: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5' },
     ...u.activities.map(id => {
       const meta = ACTIVITY_META[id];
       const complete = done.includes(id);
+      const waiting = meta.check && !complete && !checkOpen(u);
+      const best = meta.check && progress.checks[u.id] ? progress.checks[u.id].best : null;
       return el('button', {
         class: `activity-btn enhanced ${complete ? 'activity-btn-complete' : 'activity-btn-default'}`,
         'data-activity': id, onclick: () => startUnitActivity(u.id, id)
@@ -334,8 +377,9 @@ function showLesson(unitId) {
           el('p', { class: 'mt-1 text-sm text-gray-500 font-medium' }, ...richArabic(meta.desc))),
         el('span', { class: 'activity-icon', 'aria-hidden': 'true', text: meta.icon })),
       el('div', { class: 'mt-4 flex items-center justify-between text-sm' },
-        el('span', { class: 'activity-chip', text: complete ? 'مكتمل ✓' : 'ابدأ' }),
-        meta.optional ? el('span', { class: 'optional-chip', text: 'اختياري' }) : null));
+        el('span', { class: 'activity-chip', text: complete ? 'مكتمل ✓' : waiting ? 'بعد الأنشطة' : 'ابدأ' }),
+        meta.optional ? el('span', { class: 'optional-chip', text: 'اختياري' }) : null,
+        best !== null ? el('span', { class: 'optional-chip', text: `أفضل نتيجة: ${toArabicDigits(Math.round(best * 100))}٪` }) : null));
     }))));
   showView('lesson-view', u.title, renderDashboard);
   audio.preload(unitClipKeys(u));
@@ -361,7 +405,7 @@ function startSession(questions, opts) {
     onFinish: opts.onFinish, onQueueEnd: opts.onQueueEnd || null, progressLabel: opts.progressLabel || null,
     queue: questions.map(q => ({ q, delayed: false })),
     index: 0, firstTry: 0, tries: 0, shownAt: 0, locked: false, confusions: {}, results: [], widget: null,
-    assessment: opts.mode === 'placement', singleTry: opts.mode === 'perception'
+    assessment: ASSESSMENT_MODES.has(opts.mode), singleTry: opts.mode === 'perception'
   };
   renderQuestion();
 }
@@ -423,6 +467,17 @@ function renderPrompt(q) {
     box.append(brandCard(wordNode(p.text, { split: p.split, cls: 'brand-name' })));
     return box;
   }
+  if (q.activity === 'read-aloud') {
+    box.append(el('p', { class: 'english-content prompt-sentence read-aloud-text', dir: 'ltr', lang: 'en' },
+      ...p.text.split(' ').flatMap((w, i) => [i ? ' ' : '', wordNode(w)])));
+    return box;
+  }
+  if (q.activity === 'bench-text') {
+    box.append(el('div', { class: 'reader reader-compact' }, en(p.title, 'reader-title'),
+      ...p.sentences.map(s => el('p', { class: 'reader-line is-static' }, en(s.text)))),
+    el('div', { class: 'statement' }, en(p.statement)));
+    return box;
+  }
   if (p.audio && !['meaning', 'read-text', 'signs', 'forms'].includes(q.activity)) box.append(promptAudioButtons(q));
   if (q.activity === 'capital-match' || q.activity === 'meaning') {
     box.append(q.activity === 'meaning' ? wordNode(p.text, { cls: 'prompt-big' }) : en(p.text, 'prompt-big'));
@@ -465,7 +520,7 @@ function renderPrompt(q) {
 
 function optionLabel(q, o) {
   if (o.lang !== 'en') return o.label;
-  if (['read-text', 'forms'].includes(q.activity) || /\s/.test(o.label)) return en(o.label);
+  if (['read-text', 'forms', 'bench-text'].includes(q.activity) || /\s/.test(o.label)) return en(o.label);
   if (GRAPHEME_OPTIONS.has(q.activity) || q.activity === 'heart-words') return en(o.label);
   return wordNode(o.label);
 }
@@ -488,12 +543,14 @@ function renderAnswer(q) {
   else if (q.type === 'spell') session.widget = keyboardWidget(q, { onSubmit, isLocked });
   else if (q.type === 'audio-choice') session.widget = audioChoiceWidget(q, { play: (key) => audio.play(key), onSubmit, isLocked });
   else if (q.type === 'trace') session.widget = traceWidget(q, { onSubmit, isLocked, playName: () => audio.play(q.prompt.audio) });
+  else if (q.type === 'record') session.widget = recordWidget(q, { audio, isLocked, onSubmit: (rating, times) => onRecorded(q, rating, times) });
   else return renderOptions(q);
   return session.widget.node;
 }
 
 function renderQuestion() {
   cleanupWidgets();
+  stopRecorder();
   const item = session.queue[session.index];
   const q = item.q;
   session.tries = 0;
@@ -578,7 +635,7 @@ function onChoice(q, value, node) {
     focus: q.focus, confusion
   });
   if (first) {
-    session.results.push({ q, ok: correct });
+    session.results.push({ q, ok: correct, rt: document.hidden ? null : rt });
     if (q.memory.length) learnItems(progress.items, q.memory, correct, { day: today(), rt: TIMED.has(q.type) && !document.hidden ? rt : null });
   }
   if (confusion) {
@@ -589,6 +646,21 @@ function onChoice(q, value, node) {
   else if (correct) handleCorrect(q, node);
   else handleWrong(q, value, node, spell);
   save();
+}
+
+/** Read aloud: the learner's own rating of their recording against the model (no right or wrong). */
+function onRecorded(q, rating, times) {
+  if (!session || session.locked) return;
+  session.locked = true;
+  const fmt1 = (v) => (Number.isFinite(v) ? v.toFixed(1) : '');
+  recordAttempt(progress, {
+    u: q.unit ?? session.unitId, a: q.activity, i: q.item, n: 0, ok: rating >= 1,
+    c: `${rating}|${fmt1(times?.learner)}|${fmt1(times?.model)}`, rt: null, focus: []
+  });
+  session.results.push({ q, ok: rating >= 1, rating, times });
+  if (rating >= 1) session.firstTry++;
+  save();
+  nextQuestion();
 }
 
 function handleAssessment(node) {
@@ -738,33 +810,131 @@ const confusionLine = (top) => (top.length ? el('p', { class: 'mt-3 text-base' }
 const scoreLine = (right, total) => el('p', { text: `صحيح من المحاولة الأولى: ${toArabicDigits(right)} من ${toArabicDigits(total)} (${toArabicDigits(Math.round((right / Math.max(1, total)) * 100))}٪)` });
 
 // ---------------- unit activities ----------------
+/** The unit check opens when every other required activity is done (or the unit is already complete). */
+function checkOpen(u) {
+  if (progress.completedUnits.includes(u.id)) return true;
+  const done = progress.completedActivities[u.id] || [];
+  return requiredActivities(u).filter(a => !ACTIVITY_META[a].check).every(a => done.includes(a));
+}
+
 function startUnitActivity(unitId, activityId) {
+  const u = unitById(unitId);
+  if (ACTIVITY_META[activityId].check) {
+    if (!checkOpen(u)) {
+      showMessage(el('p', { class: 'text-base', text: 'أكمل أنشطة الوحدة الأخرى أولًا، ثم خذ اختبار الوحدة.' }));
+      return;
+    }
+    startSession(bank.unitCheck(u), {
+      mode: 'check', unitId, activityId, title: u.title, heading: ACTIVITY_META[activityId].title,
+      back: () => { audio.stop(); showLesson(unitId); },
+      onFinish: finishUnitCheck
+    });
+    return;
+  }
   const questions = bank.build(unitId, activityId, { n: ITEMS_PER_ACTIVITY });
   startSession(questions, {
-    mode: 'unit', unitId, activityId, title: unitById(unitId).title, heading: ACTIVITY_META[activityId].title,
+    mode: 'unit', unitId, activityId, title: u.title, heading: ACTIVITY_META[activityId].title,
     back: () => { audio.stop(); showLesson(unitId); },
     onFinish: finishUnitActivity
   });
 }
 
+/** Mark an activity done; complete the unit (and open the next) when nothing required is left. */
+function markActivityDone(unitId, activityId) {
+  const list = progress.completedActivities[unitId] || (progress.completedActivities[unitId] = []);
+  if (!list.includes(activityId)) list.push(activityId);
+  const u = unitById(unitId);
+  if (isUnitComplete(u, progress.completedActivities) && !progress.completedUnits.includes(unitId)) {
+    progress.completedUnits.push(unitId);
+    const next = nextUnitId(units, unitId);
+    if (next && progress.unlockedUnit < next) {
+      progress.unlockedUnit = next;
+      return `فتحت ${unitById(next).title}!`;
+    }
+    return 'أكملت الوحدة. أحسنت!';
+  }
+  return '';
+}
+
+/** What the right answer was, for the list of missed items after a unit check. */
+function answerLine(q) {
+  const play = (key, text) => (key ? el('button', { class: 'small-btn', onclick: () => audio.play(key, { text }) }, '🔊') : null);
+  const word = (w, ar) => el('span', {}, wordNode(w), ar ? ` = ${ar}` : '');
+  let content;
+  if (q.activity === 'pseudo') content = [brandCard(q.item), play(q.feedback.audio), el('span', { text: ' هذه القراءة الصحيحة.' })];
+  else if (['read-text', 'complete-sentence', 'forms', 'bench-text'].includes(q.activity) && q.prompt.statement) {
+    content = [en(q.prompt.statement), ` — ${q.answer === true ? 'نعم' : q.answer === false ? 'لا' : q.answer}`, play(q.feedback.audio, q.prompt.statement)];
+  } else if (q.activity === 'complete-sentence') content = [en(q.feedback.text || q.item), play(q.feedback.audio, q.item)];
+  else if (q.activity === 'signs') content = [en(q.item), ` = ${q.feedback.ar}`];
+  else if (q.activity === 'forms') content = [en(q.answer), ` (${q.feedback.ar})`];
+  else if (q.activity === 'sound-match') content = [en(q.answer), play(q.prompt.audio)];
+  else {
+    const w = q.feedback.word || q.item;
+    content = [word(w, q.feedback.ar || bank.wordInfo(w)?.ar), play(q.feedback.audio, w)];
+  }
+  return el('li', { class: 'missed-item' }, el('span', { class: 'missed-type', text: ACTIVITY_META[q.activity]?.title || '' }), ...content);
+}
+
+function finishUnitCheck(s) {
+  const { unitId, activityId } = s;
+  const right = s.results.filter(r => r.ok).length;
+  const total = s.results.length;
+  const passed = checkPassed(right, total);
+  const firstPass = passed && !(progress.checks[unitId]?.passed);
+  recordCheck(progress, unitId, right, total, today());
+  let unlockedMsg = '';
+  if (passed) {
+    unlockedMsg = markActivityDone(unitId, activityId);
+    if (firstPass) { progress.points += CHECK_BONUS; updateHeader(); }
+  }
+  save(true);
+  const missed = s.results.filter(r => !r.ok).map(r => r.q);
+  const fix = () => startSession(missed.map(q => ({ ...q, key: q.key.replace(/^check:/, 'fix:') })), {
+    mode: 'fix', unitId, activityId: 'fix', title: unitById(unitId).title, heading: 'تدرّب على أخطائك',
+    back: () => showLesson(unitId),
+    onFinish: () => showMessage(el('p', { class: 'text-base', text: 'أحسنت. الآن أعد اختبار الوحدة بأسئلة جديدة.' }), [
+      { label: 'أعد الاختبار', onClick: () => startUnitActivity(unitId, activityId) },
+      { label: 'العودة إلى الوحدة', onClick: () => showLesson(unitId), secondary: true }])
+  });
+  $('activity-title').textContent = 'نتيجة اختبار الوحدة';
+  $('activity-progress').textContent = '';
+  showView('activity-view', unitById(unitId).title, () => showLesson(unitId));
+  $('activity-content').replaceChildren(el('div', { class: 'check-result' },
+    el('p', { class: 'text-2xl font-bold mb-2', text: passed ? 'نجحت في اختبار الوحدة ✓' : 'لم تصل إلى ٨٠٪ بعد' }),
+    el('p', { text: `صحيح: ${toArabicDigits(right)} من ${toArabicDigits(total)} (${toArabicDigits(Math.round((right / Math.max(1, total)) * 100))}٪)` }),
+    firstPass ? el('p', { class: 'text-base', text: `+${toArabicDigits(CHECK_BONUS)} نقطة` }) : null,
+    unlockedMsg ? el('p', { class: 'text-green-700 font-bold mt-2', text: unlockedMsg }) : null,
+    passed ? null : el('p', { class: 'text-gray-600 mt-2', text: 'هذا طبيعي: تدرّب على الأسئلة التي أخطأت فيها، ثم أعد الاختبار بأسئلة جديدة.' }),
+    missed.length ? el('div', { class: 'mt-4' }, el('h4', { class: 'font-bold mb-2', text: 'الأسئلة التي أخطأت فيها' }), el('ul', { class: 'missed-list' }, ...missed.map(answerLine))) : null,
+    el('div', { class: 'flex flex-wrap gap-2 mt-4' },
+      missed.length ? el('button', { class: passed ? 'small-btn' : 'today-btn', onclick: fix }, 'تدرّب على أخطائك') : null,
+      passed ? null : el('button', { class: 'small-btn', onclick: () => startUnitActivity(unitId, activityId) }, 'أعد الاختبار'),
+      el('button', { class: passed ? 'today-btn' : 'small-btn', onclick: () => { showLesson(unitId); checkAchievements(); } }, 'العودة إلى الوحدة'))));
+}
+
+function finishReadAloud(s) {
+  const { unitId, activityId } = s;
+  const unlockedMsg = markActivityDone(unitId, activityId);
+  save(true);
+  const counts = [0, 1, 2].map(v => s.results.filter(r => r.rating === v).length);
+  const ratios = s.results.map(r => (r.times?.learner && r.times?.model ? r.times.learner / r.times.model : null)).filter(Boolean);
+  const ratio = ratios.length ? ratios.reduce((a, b) => a + b, 0) / ratios.length : null;
+  showMessage(el('div', {},
+    el('p', { class: 'text-2xl font-bold mb-2', text: 'أحسنت! قرأت بصوت عالٍ ✓' }),
+    el('p', { text: `مثل النموذج: ${toArabicDigits(counts[2])} — قريبة: ${toArabicDigits(counts[1])} — أحتاج تدريبًا: ${toArabicDigits(counts[0])}` }),
+    ratio ? el('p', { class: 'text-base mt-2', text: `في المتوسط استغرقت قراءتك ${toArabicDigits(ratio.toFixed(1)).replace('.', '٫')} ضعف وقت النموذج. مع التدريب يقترب هذا الرقم من ١.` }) : null,
+    unlockedMsg ? el('p', { class: 'text-green-700 font-bold mt-2', text: unlockedMsg }) : null,
+    el('p', { class: 'text-base text-gray-600 mt-2', text: 'اقرأ بصوت عالٍ كل يوم: القراءة المتكررة مع نموذج تزيد سرعتك ودقّتك.' })),
+  [{ label: 'مرة أخرى', onClick: () => startUnitActivity(unitId, activityId), secondary: true },
+    { label: 'العودة إلى الوحدة', onClick: () => { showLesson(unitId); checkAchievements(); } }]);
+}
+
 function finishUnitActivity(s) {
+  if (s.activityId === 'read-aloud') { finishReadAloud(s); return; }
   const { unitId, activityId, firstTry } = s;
   const total = s.results.length;
   const passed = hasPassed(firstTry, total);
-  let unlockedMsg = '';
-  if (passed) {
-    const list = progress.completedActivities[unitId] || (progress.completedActivities[unitId] = []);
-    if (!list.includes(activityId)) list.push(activityId);
-    const u = unitById(unitId);
-    if (isUnitComplete(u, progress.completedActivities) && !progress.completedUnits.includes(unitId)) {
-      progress.completedUnits.push(unitId);
-      const next = nextUnitId(units, unitId);
-      if (next && progress.unlockedUnit < next) {
-        progress.unlockedUnit = next;
-        unlockedMsg = `فتحت ${unitById(next).title}!`;
-      } else unlockedMsg = 'أكملت الوحدة. أحسنت!';
-    }
-  }
+  const unlockedMsg = passed ? markActivityDone(unitId, activityId) : '';
   save(true);
   const msg = el('div', {},
     el('p', { class: 'text-2xl font-bold mb-2', text: passed ? 'اكتمل النشاط ✓' : 'تحتاج إلى تدريب إضافي' }),
@@ -1052,6 +1222,7 @@ function renderProgressReport() {
       el('h3', { class: 'text-lg font-bold mb-2', text: 'تدريب الأذن (آخر الجولات)' }),
       el('ul', { class: 'confusion-list' }, ...PERCEPTION.filter(s => progress.perception[s.id]).map(s => el('li', {},
         el('div', { class: 'confusion-pair' }, en(`${s.a} / ${s.b}`), el('span', { text: trend(progress.perception[s.id].blocks) })))))) : null);
+  root.append(...reportSections(assessContext(), units));
   showView('progress-report-view', 'تقرير التقدّم', renderDashboard);
 }
 
@@ -1075,6 +1246,26 @@ async function renderAudioTest() {
 // ---------------------------------------------------------------------------
 // Backup and install guide (see backup-ui.js and platform.js)
 // ---------------------------------------------------------------------------
+/** Shared state and helpers for the Phase 4 screens (assess-ui.js). */
+function assessContext() {
+  return {
+    getProgress: () => progress,
+    save, today, bank, stages: STAGES, canDo: CAN_DO_STAGES,
+    activityRoot: (title, heading, back) => {
+      showView('activity-view', title, back);
+      session = null;
+      $('activity-title').textContent = heading;
+      $('activity-progress').textContent = '';
+      return $('activity-content');
+    },
+    showMessage, renderDashboard, renderReport: renderProgressReport,
+    runQuestions: (questions, { title, heading, back, onDone }) => startSession(questions, { mode: 'benchmark', title, heading, back, onFinish: onDone }),
+    cue: (type) => audio.cue(type),
+    maxUnit: () => Math.max(0, ...progress.completedUnits),
+    track: (drill) => { activeDrill = drill; }
+  };
+}
+
 function backupContext() {
   return {
     getProgress: () => progress,
@@ -1126,7 +1317,7 @@ $('reset-progress').addEventListener('click', () => {
   closeMenu();
   confirmAction('هل أنت متأكد من رغبتك في إعادة تعيين كل تقدّمك؟ لا يمكن التراجع عن هذا الإجراء.', () => {
     try {
-      [STORAGE_KEY, V3_KEY, LEGACY_KEY].forEach(k => localStorage.removeItem(k));
+      [STORAGE_KEY, V4_KEY, V3_KEY, LEGACY_KEY].forEach(k => localStorage.removeItem(k));
     } catch (e) { console.warn('Cannot clear localStorage (private browsing?):', e); }
     progress = getDefaultProgress();
     progress.seenNotices.push('new-course', 'ios-install');

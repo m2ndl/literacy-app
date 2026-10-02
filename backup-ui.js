@@ -1,6 +1,6 @@
 // backup-ui.js - The "backup" screen: make a code, restore from a code, export the answer log.
 import { el, toArabicDigits } from './dom.js';
-import { encodeBackup, decodeBackup, attemptsCsv, backupDue } from './backup.js';
+import { encodeBackup, decodeBackup, attemptsCsv, benchmarksCsv, backupDue } from './backup.js';
 
 export { backupDue };
 
@@ -84,6 +84,8 @@ export function renderBackup(ctx) {
 
   const exportCsv = el('button', { class: 'small-btn' }, '⬇️ سجل الإجابات (CSV)');
   exportCsv.addEventListener('click', () => download(`my2ndlang-answers-${stamp()}.csv`, attemptsCsv(ctx.getProgress()), 'text/csv'));
+  const exportBench = el('button', { class: 'small-btn' }, '⬇️ نتائج اختبارات المراحل (CSV)');
+  exportBench.addEventListener('click', () => download(`my2ndlang-benchmarks-${stamp()}.csv`, benchmarksCsv(ctx.getProgress()), 'text/csv'));
 
   ctx.root.replaceChildren(
     el('div', { class: 'bg-white p-6 rounded-lg shadow-sm mb-6 space-y-3' },
@@ -97,6 +99,6 @@ export function renderBackup(ctx) {
     el('div', { class: 'bg-white p-6 rounded-lg shadow-sm space-y-3' },
       el('h3', { class: 'text-lg font-bold', text: 'للمعلّم أو للدراسة' }),
       el('p', { class: 'section-help', text: 'ملف بإجاباتك (الوقت، النشاط، الإجابة، سرعة الإجابة). لا يُرسل البرنامج أي شيء تلقائيًا: الملف يبقى معك، وأنت تقرّر إن كنت تشاركه.' }),
-      exportCsv));
+      el('div', { class: 'flex flex-wrap gap-2' }, exportCsv, ctx.getProgress().benchmarks.length ? exportBench : null)));
   ctx.showView();
 }

@@ -1,7 +1,8 @@
 // Curriculum linter: checks the content in data.js against the teaching sequence.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { units, gpc, ACTIVITY_META, PERCEPTION } from '../data.js';
+import { units, gpc, ACTIVITY_META, PERCEPTION, STAGES } from '../data.js';
+import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES } from '../data-assess.js';
 import { buildLexicon, decodeWord, analyzeToken, checkSentence, contrastOf, sameSound, tokenize, segment } from '../phonics.js';
 
 const lex = buildLexicon(units, gpc);
@@ -244,9 +245,13 @@ describe('ear-training sets', () => {
 });
 
 describe('activity metadata', () => {
-  it('marks tracing as optional and only tracing', () => {
+  it('marks tracing and reading aloud as optional, and only them', () => {
     const optional = Object.entries(ACTIVITY_META).filter(([, m]) => m.optional).map(([k]) => k);
-    assert.deepEqual(optional, ['tracing']);
+    assert.deepEqual(optional, ['tracing', 'read-aloud']);
+  });
+
+  it('ends every unit with reading aloud and the unit check', () => {
+    for (const u of units) assert.deepEqual(u.activities.slice(-2), ['read-aloud', 'unit-check'], `unit ${u.id}`);
   });
 });
 
@@ -302,5 +307,55 @@ describe('Stage 3-5 additions', () => {
     const heart = units.flatMap(u => u.heart || []);
     assert.equal(new Set(heart.map(h => h.w)).size, heart.length, 'a heart word is taught twice');
     assert.ok(heart.length >= 95, `only ${heart.length} heart words`);
+  });
+});
+
+describe('Phase 4 assessment content', () => {
+  it('true/false sentences are decodable at their unit, unique, and balanced in each stage', () => {
+    const seen = new Set();
+    for (const x of SENSE) {
+      assert.deepEqual(checkSentence(x.text, x.unit, lex), [], `"${x.text}" at unit ${x.unit}`);
+      assert.equal(typeof x.answer, 'boolean');
+      assert.match(x.ar, ARABIC);
+      assert.ok(!seen.has(x.text), `"${x.text}" twice`);
+      seen.add(x.text);
+    }
+    STAGES.forEach((st, i) => {
+      const pool = SENSE.filter(x => x.unit <= st.to);
+      const trues = pool.filter(x => x.answer).length;
+      assert.ok(pool.length >= 20 + 10 * i, `stage ${i + 1}: only ${pool.length} sentences`);
+      assert.ok(trues / pool.length >= 0.4 && trues / pool.length <= 0.6, `stage ${i + 1}: ${trues}/${pool.length} true`);
+    });
+  });
+
+  it('benchmark texts are unseen and decodable at the end of their stage', () => {
+    const taught = new Set(units.flatMap(u => [...(u.sentences || []).map(s => s.text), ...(u.texts || []).flatMap(t => t.sentences.map(s => s.text))]));
+    assert.equal(BENCHMARK_TEXTS.length, STAGES.length);
+    BENCHMARK_TEXTS.forEach((t, i) => {
+      assert.equal(t.stage, i);
+      const end = STAGES[i].to;
+      for (const text of [...t.sentences, ...t.questions.map(q => q.text), ...t.questions.flatMap(q => q.options || [])]) {
+        assert.deepEqual(checkSentence(text, end, lex), [], `${t.id}: "${text}"`);
+      }
+      t.sentences.forEach(x => assert.ok(!taught.has(x), `${t.id}: "${x}" is also a course sentence`));
+      assert.ok(t.questions.length >= 4);
+      t.questions.forEach(q => {
+        assert.match(q.ar, ARABIC);
+        if (q.options) assert.ok(q.options.includes(q.answer));
+        else assert.equal(typeof q.answer, 'boolean');
+      });
+      const yn = t.questions.filter(q => !q.options);
+      assert.ok(yn.some(q => q.answer) && yn.some(q => !q.answer));
+    });
+  });
+
+  it('can-do statements exist for every stage, in Arabic, with unique ids', () => {
+    assert.equal(CAN_DO_STAGES.length, STAGES.length);
+    const ids = CAN_DO_STAGES.flatMap(s => s.items.map(i => i.id));
+    assert.equal(new Set(ids).size, ids.length);
+    CAN_DO_STAGES.forEach(s => {
+      assert.ok(s.items.length >= 3);
+      s.items.forEach(i => { assert.match(i.ar, ARABIC); assert.ok(i.link); });
+    });
   });
 });

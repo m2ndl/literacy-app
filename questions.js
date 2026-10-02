@@ -40,11 +40,17 @@ export const INSTRUCTIONS = {
   perception: 'استمع: أيّ صوت تسمع؟',
   signs: 'اقرأ اللافتة: ماذا تعني؟',
   'read-text-choice': 'اقرأ النص، ثم اختر الإجابة الصحيحة.',
-  'forms-statement': 'اقرأ الاستمارة: هل هذه الجملة صحيحة؟'
+  'forms-statement': 'اقرأ الاستمارة: هل هذه الجملة صحيحة؟',
+  'read-aloud': 'اقرأ الجملة بصوت عالٍ وسجّل صوتك، ثم استمع وقارن بالنموذج.',
+  'word-flash': 'اقرأ الكلمة واختر معناها بسرعة.',
+  'sentence-sense': 'اقرأ الجملة: هل هي صحيحة؟',
+  'bench-text': 'اقرأ النص بنفسك، ثم أجب.'
 };
+/** Unit check: 12 mixed items (assess.js UNIT_CHECK_SIZE). */
+export const CHECK_SIZE = 12;
 const SUFFIX_TILES = ['ed', 'ing', 's', 'es', 'er', 'est', 'ly', 'ful'];
 
-export function createQuestionBank({ units, gpc, alphabet, perception = [], hasClip = () => true }) {
+export function createQuestionBank({ units, gpc, alphabet, perception = [], hasClip = () => true, sense = [], benchTexts = [], stages = [] }) {
   const lex = buildLexicon(units, gpc);
   const idx = (unitId) => units.findIndex(u => u.id === unitId);
   const unitOf = (unitId) => units[idx(unitId)];
@@ -615,8 +621,134 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
     'sentence-build': sentenceBuild,
     tracing,
     signs,
-    forms
+    forms,
+    'read-aloud': readAloud,
+    'unit-check': (u, n, rng) => unitCheck(u, rng)
   };
+
+  // ---------------- read aloud (record and compare) ----------------
+  function readAloud(u, n, rng) {
+    const own = [...(u.sentences || []).map(x => x.text), ...(u.texts || []).flatMap(t => t.sentences.map(x => x.text))];
+    return shuffle([...new Set(own)], rng).slice(0, Math.min(n, 5)).map(text => ({
+      key: `${u.id}:read-aloud:${slugify(text)}`,
+      unit: u.id,
+      activity: 'read-aloud',
+      item: text,
+      type: 'record',
+      instruction: INSTRUCTIONS['read-aloud'],
+      prompt: { text, audio: clipKey('s', text) },
+      answer: null,
+      focus: [],
+      memory: [],
+      feedback: { audio: clipKey('s', text), text, ar: '', word: '', emoji: '' }
+    }));
+  }
+
+  // ---------------- unit check ----------------
+  const pseudoUpTo = (unitId) => upTo(unitId).flatMap(x => (x.pseudo || []).map(pw => ({ unit: x, pw })));
+
+  /**
+   * Twelve mixed items covering the whole unit, given with no feedback until the end (assess.js):
+   * minimal pairs, meanings, dictation, a word-part item, a heart word, two made-up words, a sentence or
+   * text question, and the unit's signs, forms or new sounds.
+   */
+  function unitCheck(u, rng = Math.random) {
+    const items = [];
+    const keys = new Set();
+    const add = (q) => {
+      if (!q || keys.has(q.key) || items.length >= CHECK_SIZE) return false;
+      keys.add(q.key);
+      items.push(q);
+      return true;
+    };
+    const words = shuffle(unitWords(u), rng);
+    const nextWord = (() => { let i = 0; return () => words[i++ % Math.max(1, words.length)]; })();
+    whichWord(u, 2, rng).forEach(add);
+    for (let k = 0; k < 2; k++) add(meaningItem(u, nextWord(), rng));
+    for (let k = 0; k < 2; k++) add(dictationItem(u, nextWord(), rng));
+    add(rng() < 0.5 ? missingLetterItem(u, nextWord(), rng) : wordBuildItem(u, nextWord(), rng));
+    const heart = unitHeart(u).length ? unitHeart(u) : heartUpTo(u.id);
+    if (heart.length) add(heartItem(u, pick(heart, rng), rng));
+    // Made-up words: the unit's own, else the latest ones taught (review units).
+    const own = (u.pseudo || []).map(pw => ({ unit: u, pw }));
+    const pseudoPool = own.length ? own : pseudoUpTo(u.id).slice(-8);
+    shuffle(pseudoPool, rng).slice(0, 2).forEach(({ pw }) => add(pseudoItem(u, pw, rng)));
+    const extra = (u.signs || []).length ? signs(u, 1, rng)
+      : (u.forms || []).length ? forms(u, 1, rng)
+        : (u.graphemes || []).length ? soundMatch(u, 1, rng).slice(0, 1)
+          : sentenceBuild(u, 1, rng);
+    extra.slice(0, 1).forEach(add);
+    const texts = readText(u, 99, rng);
+    const last = texts.length ? pick(texts, rng) : completeSentence(u, 1, rng)[0];
+    // Fill any gap with more meanings and dictation, keeping the reading question last.
+    for (let k = 0; items.length < CHECK_SIZE - 1 && k < 20; k++) add(k % 2 ? dictationItem(u, nextWord(), rng) : meaningItem(u, nextWord(), rng));
+    const mixed = shuffle(items, rng);
+    if (last && !keys.has(last.key)) mixed.push(last);
+    return mixed.slice(0, CHECK_SIZE).map(q => ({ ...q, key: `check:${q.key}` }));
+  }
+
+  // ---------------- timed drills and stage benchmarks ----------------
+  const flashMeaning = (w) => `${w.emoji ? `${w.emoji} ` : ''}${w.ar}`;
+
+  /** Word flash: read a word, pick its meaning from two. */
+  function wordFlash(maxUnit, rng = Math.random, { n = 60, from = 1 } = {}) {
+    const pool = wordsUpTo(maxUnit).filter(w => w.ar);
+    const focus = shuffle(pool.filter(w => (itemUnit(`w:${w.w}`) || 1) >= from), rng);
+    const rest = shuffle(pool.filter(w => !focus.includes(w)), rng);
+    return [...focus, ...rest].slice(0, n).map((w, k) => {
+      const other = pick(pool.filter(x => x.ar !== w.ar), rng);
+      return {
+        key: `flash:${w.w}`, unit: maxUnit, activity: 'word-flash', item: w.w, type: 'choice', n: k,
+        instruction: INSTRUCTIONS['word-flash'],
+        prompt: { text: w.w, split: w.split || null },
+        options: shuffle([w, other], rng).map(x => opt(x.w, flashMeaning(x), 'ar')),
+        answer: w.w, focus: [], memory: [], feedback: wordFeedback(w.w)
+      };
+    });
+  }
+
+  /** Sentence verification: read a sentence, say whether it is true. */
+  function sentenceSense(maxUnit, rng = Math.random, { from = 1 } = {}) {
+    const pool = sense.filter(x => x.unit <= maxUnit);
+    const focus = shuffle(pool.filter(x => x.unit >= from), rng);
+    const rest = shuffle(pool.filter(x => x.unit < from), rng);
+    return [...focus, ...rest].map(x => ({
+      key: `sense:${slugify(x.text)}`, unit: maxUnit, activity: 'sentence-sense', item: x.text, type: 'yesno',
+      instruction: INSTRUCTIONS['sentence-sense'],
+      prompt: { statement: x.text },
+      options: [opt(true, 'نعم', 'ar'), opt(false, 'لا', 'ar')],
+      answer: x.answer, focus: [], memory: [], feedback: { audio: '', text: x.text, ar: x.ar, word: '', emoji: '' }
+    }));
+  }
+
+  /** The parts of one stage benchmark. Timed parts are pools; the others are fixed lists. */
+  function benchmark(stageIndex, rng = Math.random) {
+    const st = stages[stageIndex];
+    if (!st) return null;
+    const stageUnits = units.filter(x => x.id >= st.from && x.id <= st.to);
+    const ctx = unitOf(st.to);
+    const pseudo = shuffle(stageUnits.flatMap(x => (x.pseudo || []).map(pw => ({ x, pw }))), rng).slice(0, 6)
+      .map(({ x, pw }) => ({ ...pseudoItem(x, pw, rng), key: `bench:pseudo:${pw.w}` }));
+    const spell = shuffle(stageUnits.flatMap(x => x.words || []), rng).slice(0, 6)
+      .map(w => ({ ...dictationItem(ctx, w, rng), key: `bench:dictation:${w.w}` }));
+    const t = benchTexts.find(x => x.stage === stageIndex);
+    const reading = t ? t.questions.map((q, k) => ({
+      key: `bench:${t.id}:${k}`, unit: st.to, activity: 'bench-text', item: `${t.id}:${k}`,
+      type: q.options ? 'choice' : 'yesno',
+      instruction: INSTRUCTIONS[q.options ? 'read-text-choice' : 'read-text'],
+      prompt: { title: t.title, textId: t.id, sentences: t.sentences.map(x => ({ text: x, audio: '' })), statement: q.text, audio: '' },
+      options: q.options ? shuffle(q.options, rng).map(o => opt(o)) : [opt(true, 'نعم', 'ar'), opt(false, 'لا', 'ar')],
+      answer: q.answer, focus: [], memory: [], feedback: { audio: '', text: q.text, ar: q.ar, word: '', emoji: '' }
+    })) : [];
+    return {
+      stage: stageIndex,
+      words: wordFlash(st.to, rng, { from: st.from }),
+      sentences: sentenceSense(st.to, rng, { from: st.from }),
+      decoding: pseudo,
+      spelling: spell,
+      reading
+    };
+  }
 
   /** Build the questions for one activity of one unit. */
   function build(unitId, activity, { rng = Math.random, n = DEFAULT_ITEMS } = {}) {
@@ -765,6 +897,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
 
   /** Correct/incorrect for any question type. */
   function isCorrect(q, value) {
+    if (q.type === 'record') return true;
     if (q.type === 'build') return Array.isArray(value) && value.join('|') === q.answerTiles.join('|');
     if (q.type === 'spell') return String(value).trim().toLowerCase() === q.answer;
     return value === q.answer;
@@ -772,6 +905,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
 
   return {
     build, buildItem, isCorrect, weakPractice, perceptionSets, perceptionBlock, placementItems, placementUnits, itemUnit,
+    unitCheck, wordFlash, sentenceSense, benchmark,
     lex, taughtGraphemes, keyboardLetters, wordsUpTo, unitWords, wordInfo, heartInfo
   };
 }

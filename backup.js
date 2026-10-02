@@ -85,15 +85,36 @@ export function backupDue(progress, today) {
 
 const CSV_COLUMNS = ['time', 'unit', 'activity', 'item', 'try', 'retest', 'correct', 'chosen', 'rt_ms', 'mode', 'graphemes', 'confusion'];
 
+const cell = (v) => {
+  const s = v === null || v === undefined ? '' : String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+
 /** The answer log as CSV, for a teacher or a study (the learner decides whether to share it). */
 export function attemptsCsv(progress) {
-  const cell = (v) => {
-    const s = v === null || v === undefined ? '' : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
   const rows = progress.attempts.map(a => [
     Number.isFinite(a.t) ? new Date(a.t).toISOString() : '', a.u, a.a, a.i, a.n, a.d ? 1 : 0, a.ok ? 1 : 0, a.c, a.rt,
     a.m || 'unit', Array.isArray(a.f) ? a.f.join(' ') : '', a.x || ''
   ].map(cell).join(','));
   return [CSV_COLUMNS.join(','), ...rows].join('\n') + '\n';
+}
+
+const BENCH_COLUMNS = ['sitting', 'stage', 'date', 'after_stage', 'part', 'item', 'correct', 'rt_ms', 'right', 'wrong', 'seconds', 'total'];
+
+/** Day number (learner.js dayNumber) as YYYY-MM-DD. */
+const dayDate = (day) => new Date(day * 86400000).toISOString().slice(0, 10);
+
+/**
+ * Stage benchmarks as CSV for a pilot study: one row per item answered, then one summary row per part
+ * (item = "(part)"), and one row per can-do rating (part = "can-do"). tools/pilot/item_analysis.py reads it.
+ */
+export function benchmarksCsv(progress) {
+  const rows = [];
+  progress.benchmarks.forEach((b, k) => {
+    const head = [k + 1, b.stage + 1, dayDate(b.day), b.done ? 1 : 0];
+    b.items.forEach(([part, item, ok, ms]) => rows.push([...head, part, item, ok, ms, '', '', '', '']));
+    Object.entries(b.parts).forEach(([part, v]) => rows.push([...head, part, '(part)', '', '', v.n ?? v.r, v.x ?? '', v.s ?? '', v.t ?? '']));
+    Object.entries(b.can || {}).forEach(([id, r]) => rows.push([...head, 'can-do', id, r, '', '', '', '', '']));
+  });
+  return [BENCH_COLUMNS.join(','), ...rows.map(r => r.map(cell).join(','))].join('\n') + '\n';
 }

@@ -252,6 +252,41 @@ export async function play(key, { voice = 'f', slow = false, text = '' } = {}) {
   return 'none';
 }
 
+// ---------------------------------------------------------------------------
+// Recordings (record and compare): the learner's voice is decoded and played in memory only.
+// ---------------------------------------------------------------------------
+/** Decode recorded audio (a Blob from MediaRecorder) into an AudioBuffer. */
+export async function decodeRecording(blob) {
+  const c = getContext();
+  if (!c) throw new Error('Web Audio not available');
+  return decode(c, await blob.arrayBuffer());
+}
+
+/** The decoded model clip (for its length and waveform), or null. */
+export async function clipBuffer(key, voice = 'f') {
+  await initAudio();
+  const url = clipUrl(key, voice);
+  if (!url) return null;
+  try { return (await loadBuffer(url)).buffer; } catch (e) { return null; }
+}
+
+/** Play an AudioBuffer (a recording) from `start` seconds. */
+export async function playRecording(buffer, start = 0) {
+  stop();
+  resumeContext();
+  await playBuffer({ buffer, offset: start });
+}
+
+/**
+ * iPhone: Safari 16.4+ needs the audio session in "play-and-record" while the microphone is on,
+ * and back in "playback" afterwards so the silent switch does not mute the app.
+ */
+export function setRecording(on) {
+  try {
+    if ('audioSession' in navigator) navigator.audioSession.type = on ? 'play-and-record' : 'playback';
+  } catch (e) { /* not supported */ }
+}
+
 /** Play several clips one after another (e.g. a short text, sentence by sentence). */
 export async function playSequence(items, { gapMs = 250, slow = false } = {}) {
   stop();

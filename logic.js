@@ -1,15 +1,18 @@
 // logic.js - Pure progress logic (no DOM). Extracted for testability.
 import { replayAttempts, localDateString, MAX_BOX } from './learner.js';
+import { FLUENCY_HISTORY, TEXT_HISTORY, BENCHMARK_HISTORY } from './assess.js';
 
 // Each progress version lives under its own key so tabs still running an older version can't overwrite it.
-// v3 (Phase 1) is migrated to v4. The owner chose a full reset for the old v2 curriculum: it is not migrated.
-export const STORAGE_KEY = 'literacyAppProgress.v4';
+// v3 (Phase 1) and v4 (Phase 2-3) are migrated to v5. The owner chose a full reset for the old v2
+// curriculum: it is not migrated.
+export const STORAGE_KEY = 'literacyAppProgress.v5';
+export const V4_KEY = 'literacyAppProgress.v4';
 export const V3_KEY = 'literacyAppProgress.v3';
 export const LEGACY_KEY = 'literacyAppProgress';
-export const PROGRESS_VERSION = 4;
+export const PROGRESS_VERSION = 5;
 export const PASS_MARK = 0.8;          // share of items right on the first try needed to pass an activity
 export const MAX_ATTEMPTS = 1500;      // size of the local answer log (oldest dropped first)
-export const OPTIONAL_ACTIVITIES = new Set(['tracing']);  // recommended, not needed to complete a unit
+export const OPTIONAL_ACTIVITIES = new Set(['tracing', 'read-aloud']);  // recommended, not needed to complete a unit
 
 export function getDefaultProgress() {
   return {
@@ -28,7 +31,11 @@ export function getDefaultProgress() {
     items: {},            // item memory for spaced review (learner.js)
     placement: null,      // { day, start, passed: [unit ids] }
     perception: {},       // ear training: { contrastId: { n, k, blocks: [% per block] } }
-    lastBackupDay: null
+    lastBackupDay: null,
+    fluency: { words: [], sentences: [], texts: [] },   // timed drills { day, n, x, s } and texts { day, id, wpm }
+    checks: {},           // unit checks: { unitId: { best, n, last, passed } }
+    benchmarks: [],       // stage benchmarks (assess.js)
+    selfAssess: {}        // can-do ratings: { stageIndex: { day, r: { id: 0|1|2 } } }
   };
 }
 
@@ -59,9 +66,40 @@ function validateV4Fields(parsed) {
   return { items, placement, perception, lastBackupDay: isDay(parsed.lastBackupDay) ? parsed.lastBackupDay : null };
 }
 
+const drillRec = (r) => obj(r) && isDay(r.day) && isCount(r.n) && isCount(r.x) && isCount(r.s);
+const partRec = (r) => obj(r) && ((isCount(r.n) && isCount(r.x) && isCount(r.s)) || (isCount(r.r) && isCount(r.t) && r.r <= r.t));
+const rating = (v) => v === 0 || v === 1 || v === 2;
+const ratings = (r) => Object.fromEntries(Object.entries(obj(r) || {}).filter(([, v]) => rating(v)));
+
+function validateV5Fields(parsed) {
+  const f = obj(parsed.fluency) || {};
+  const fluency = {
+    words: (Array.isArray(f.words) ? f.words : []).filter(drillRec).slice(-FLUENCY_HISTORY),
+    sentences: (Array.isArray(f.sentences) ? f.sentences : []).filter(drillRec).slice(-FLUENCY_HISTORY),
+    texts: (Array.isArray(f.texts) ? f.texts : []).filter(r => obj(r) && isDay(r.day) && typeof r.id === 'string' && isCount(r.wpm)).slice(-TEXT_HISTORY)
+  };
+  const checks = {};
+  Object.entries(obj(parsed.checks) || {}).forEach(([k, c]) => {
+    if (/^\d+$/.test(k) && obj(c) && isCount(c.best) && c.best <= 1 && isCount(c.n) && (c.last === null || isDay(c.last))) {
+      checks[k] = { best: c.best, n: c.n, last: c.last, passed: c.passed === true };
+    }
+  });
+  const benchmarks = (Array.isArray(parsed.benchmarks) ? parsed.benchmarks : []).filter(b => obj(b) && Number.isInteger(b.stage) && isDay(b.day)
+    && obj(b.parts) && Object.values(b.parts).every(partRec)).map(b => ({
+    stage: b.stage, day: b.day, done: b.done === true, parts: b.parts,
+    items: (Array.isArray(b.items) ? b.items : []).filter(i => Array.isArray(i) && i.length === 4),
+    can: ratings(b.can)
+  })).slice(-BENCHMARK_HISTORY);
+  const selfAssess = {};
+  Object.entries(obj(parsed.selfAssess) || {}).forEach(([k, v]) => {
+    if (/^\d+$/.test(k) && obj(v) && isDay(v.day)) selfAssess[k] = { day: v.day, r: ratings(v.r) };
+  });
+  return { fluency, checks, benchmarks, selfAssess };
+}
+
 export function validateProgress(parsed) {
   const d = getDefaultProgress();
-  if (typeof parsed !== 'object' || parsed === null || ![3, PROGRESS_VERSION].includes(parsed.version)) return d;
+  if (typeof parsed !== 'object' || parsed === null || ![3, 4, PROGRESS_VERSION].includes(parsed.version)) return d;
   const completedActivities = {};
   Object.entries(obj(parsed.completedActivities) || {}).forEach(([k, v]) => {
     if (Array.isArray(v)) completedActivities[k] = v.filter(a => typeof a === 'string');
@@ -78,6 +116,9 @@ export function validateProgress(parsed) {
   const v4 = parsed.version === 3
     ? { items: replayAttempts(attempts), placement: null, perception: {}, lastBackupDay: null }
     : validateV4Fields(parsed);
+  // v4 -> v5: the Phase 4 records start empty.
+  const v5 = parsed.version === PROGRESS_VERSION ? validateV5Fields(parsed)
+    : { fluency: { words: [], sentences: [], texts: [] }, checks: {}, benchmarks: [], selfAssess: {} };
   return {
     version: PROGRESS_VERSION,
     unlockedUnit: Number.isInteger(parsed.unlockedUnit) && parsed.unlockedUnit >= 1 ? parsed.unlockedUnit : d.unlockedUnit,
@@ -91,20 +132,21 @@ export function validateProgress(parsed) {
     attempts,
     stats: { gpc: gpcStats, confusions },
     seenNotices: Array.isArray(parsed.seenNotices) ? parsed.seenNotices.filter(n => typeof n === 'string') : [],
-    ...v4
+    ...v4,
+    ...v5
   };
 }
 
 /**
  * Load progress from a storage-like object ({getItem}).
  * Returns { progress, legacyFound } — legacyFound means old (v2) progress exists and was not migrated.
- * Phase 1 (v3) progress is migrated when there is no v4 progress yet.
+ * Older progress (v4, then v3) is migrated when there is no v5 progress yet.
  */
 export function loadProgressFrom(storage) {
   let progress = getDefaultProgress();
   let legacyFound = false;
   try {
-    const saved = storage.getItem(STORAGE_KEY) || storage.getItem(V3_KEY);
+    const saved = storage.getItem(STORAGE_KEY) || storage.getItem(V4_KEY) || storage.getItem(V3_KEY);
     if (saved) progress = validateProgress(JSON.parse(saved));
     legacyFound = !!storage.getItem(LEGACY_KEY);
   } catch (e) {

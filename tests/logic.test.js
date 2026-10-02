@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  STORAGE_KEY, V3_KEY, LEGACY_KEY, PASS_MARK, MAX_ATTEMPTS,
+  STORAGE_KEY, V4_KEY, V3_KEY, LEGACY_KEY, PASS_MARK, MAX_ATTEMPTS,
   getDefaultProgress, validateProgress, loadProgressFrom, recordAttempt, topConfusions, graphemeAccuracy,
   hasPassed, getPossibleActivities, isUnitComplete, nextUnitId,
   shuffleArray, formatTime, computeStreak, pickDistractors
@@ -12,9 +12,13 @@ const memoryStorage = (items = {}) => ({ getItem: (k) => (k in items ? items[k] 
 
 // ---------- defaults & validation ----------
 describe('getDefaultProgress', () => {
-  it('returns a fresh v4 object', () => {
+  it('returns a fresh v5 object', () => {
     const p = getDefaultProgress();
-    assert.equal(p.version, 4);
+    assert.equal(p.version, 5);
+    assert.deepEqual(p.fluency, { words: [], sentences: [], texts: [] });
+    assert.deepEqual(p.checks, {});
+    assert.deepEqual(p.benchmarks, []);
+    assert.deepEqual(p.selfAssess, {});
     assert.deepEqual(p.items, {});
     assert.equal(p.placement, null);
     assert.deepEqual(p.perception, {});
@@ -41,6 +45,39 @@ describe('validateProgress', () => {
     for (const bad of [null, 'x', 42, undefined, { version: 2, points: 50 }]) {
       assert.deepEqual(validateProgress(bad), getDefaultProgress());
     }
+  });
+
+  it('keeps valid v5 fields and drops invalid ones', () => {
+    const input = {
+      ...getDefaultProgress(),
+      fluency: { words: [{ day: 20000, n: 18, x: 2, s: 60 }], sentences: [{ day: 20000, n: 7, x: 1, s: 90 }], texts: [{ day: 20000, id: '11:0', wpm: 62 }] },
+      checks: { 3: { best: 0.92, n: 2, last: 20000, passed: true } },
+      benchmarks: [{ stage: 0, day: 20000, done: true, parts: { words: { n: 20, x: 1, s: 60 }, decoding: { r: 5, t: 6 } }, items: [['decoding', 'nis', 1, 1200]], can: { 'read-words': 2 } }],
+      selfAssess: { 0: { day: 20000, r: { 'read-words': 2 } } }
+    };
+    assert.deepEqual(validateProgress(input), input);
+    const bad = validateProgress({
+      ...input,
+      fluency: { words: [{ day: 1, n: -1, x: 0, s: 60 }, 'x'], sentences: 'bad', texts: [{ day: 1, id: 3, wpm: 1 }] },
+      checks: { a: { best: 1, n: 1, last: 1 }, 2: { best: 2, n: 1, last: 1 } },
+      benchmarks: [{ stage: 'x', day: 1, parts: {} }, { stage: 1, day: 2, parts: { decoding: { r: 7, t: 6 } } }],
+      selfAssess: { 1: { day: 3, r: { a: 3, b: 1 } } }
+    });
+    assert.deepEqual(bad.fluency, { words: [], sentences: [], texts: [] });
+    assert.deepEqual(bad.checks, {});
+    assert.deepEqual(bad.benchmarks, []);
+    assert.deepEqual(bad.selfAssess, { 1: { day: 3, r: { b: 1 } } });
+  });
+
+  it('migrates v4 progress: keeps it, with empty Phase 4 records', () => {
+    const v4 = { ...getDefaultProgress(), version: 4, points: 70, completedUnits: [1, 2], items: { 'w:pin': { b: 2, due: 20000, h: '11', rt: null, days: 2, last: 19998 } } };
+    delete v4.fluency; delete v4.checks; delete v4.benchmarks; delete v4.selfAssess;
+    const p = validateProgress(v4);
+    assert.equal(p.version, 5);
+    assert.equal(p.points, 70);
+    assert.deepEqual(p.completedUnits, [1, 2]);
+    assert.equal(p.items['w:pin'].b, 2);
+    assert.deepEqual(p.benchmarks, []);
   });
 
   it('keeps valid v4 fields', () => {
@@ -71,7 +108,7 @@ describe('validateProgress', () => {
       ]
     };
     const p = validateProgress(v3);
-    assert.equal(p.version, 4);
+    assert.equal(p.version, 5);
     assert.equal(p.unlockedUnit, 3);
     assert.equal(p.points, 80);
     assert.equal(p.attempts.length, 4);
@@ -104,18 +141,25 @@ describe('validateProgress', () => {
 });
 
 describe('loadProgressFrom', () => {
-  it('loads v4 progress', () => {
+  it('loads v5 progress, or migrates v4 progress when there is no v5 yet', () => {
+    const v4 = { ...getDefaultProgress(), version: 4, points: 33 };
+    assert.equal(loadProgressFrom(memoryStorage({ [V4_KEY]: JSON.stringify(v4) })).progress.points, 33);
+    const both = loadProgressFrom(memoryStorage({ [V4_KEY]: JSON.stringify(v4), [STORAGE_KEY]: JSON.stringify({ ...getDefaultProgress(), points: 8 }) }));
+    assert.equal(both.progress.points, 8);
+  });
+
+  it('loads current progress', () => {
     const saved = { ...getDefaultProgress(), points: 40 };
     const { progress, legacyFound } = loadProgressFrom(memoryStorage({ [STORAGE_KEY]: JSON.stringify(saved) }));
     assert.equal(progress.points, 40);
     assert.equal(legacyFound, false);
   });
 
-  it('migrates v3 progress when there is no v4 progress yet', () => {
+  it('migrates v3 progress when there is no newer progress yet', () => {
     const v3 = { ...getDefaultProgress(), version: 3, points: 55 };
     delete v3.items;
     const { progress } = loadProgressFrom(memoryStorage({ [V3_KEY]: JSON.stringify(v3) }));
-    assert.equal(progress.version, 4);
+    assert.equal(progress.version, 5);
     assert.equal(progress.points, 55);
     const both = loadProgressFrom(memoryStorage({ [V3_KEY]: JSON.stringify(v3), [STORAGE_KEY]: JSON.stringify({ ...getDefaultProgress(), points: 9 }) }));
     assert.equal(both.progress.points, 9);

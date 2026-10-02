@@ -106,7 +106,9 @@ export const ACTIVITY_META = {
   'heart-words':       { title: 'كلمات القلب',             desc: 'استمع واختر الكتابة الصحيحة لكلمة شائعة.',            icon: '♥' },
   'sentence-build':    { title: 'رتّب الجملة',             desc: 'رتّب الكلمات لتكوّن جملة إنجليزية صحيحة.',            icon: '🔀' },
   'signs':             { title: 'اقرأ اللافتة',            desc: 'اقرأ لافتة من الحرم الجامعي واختر معناها.',          icon: '🪧' },
-  'forms':             { title: 'الاستمارات',              desc: 'اقرأ استمارة: أين تكتب اسمك ورقمك وبريدك؟',          icon: '🗂️' }
+  'forms':             { title: 'الاستمارات',              desc: 'اقرأ استمارة: أين تكتب اسمك ورقمك وبريدك؟',          icon: '🗂️' },
+  'read-aloud':        { title: 'اقرأ بصوت عالٍ',          desc: 'اقرأ الجملة وسجّل صوتك، ثم قارنه بالنموذج.',          icon: '🎙️', optional: true },
+  'unit-check':        { title: 'اختبار الوحدة',           desc: '١٢ سؤالًا من الوحدة كلها، بلا تصحيح حتى النهاية. النجاح: ٨٠٪.', icon: '🏁', check: true }
 };
 
 // Stages shown as headings on the dashboard.
@@ -796,7 +798,8 @@ export const PERCEPTION = [
 ];
 
 // All units in teaching order: Stages 0-2 (above) and Stages 3-5 (data-stages3-5.js).
-export const units = [...stage0to2, ...stage3to5];
+// Every unit ends with reading aloud (optional, record and compare) and the unit check (Phase 4).
+export const units = [...stage0to2, ...stage3to5].map(u => ({ ...u, activities: [...u.activities, 'read-aloud', 'unit-check'] }));
 
 // Backwards-compatible container used by the app.
 export const appData = { units };
