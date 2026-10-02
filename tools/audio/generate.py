@@ -44,8 +44,10 @@ PIPELINE_VERSION = '2'  # bump to force regeneration of everything
 # --- pronunciation fixes (misaki US phonemes) ----------------------------------------------
 # Kokoro's US lexicon uses /ɔ/ in dog, long, off...; the app teaches short o as /ɑ/ (a common,
 # cot-caught-merged American accent), so single-o words are normalised to /ɑ/.
-SHORT_O = re.compile(r'^[b-df-hj-np-tv-z]*o[b-df-hj-np-tv-z]+$')
-NAME_PHONEMES = {'Ali': 'ˈɑli', 'Sara': 'sˈɑɹə'}
+# r is excluded from the end: or, for, north keep /ɔɹ/ (otherwise "for" would sound like "far").
+SHORT_O = re.compile(r'^[b-df-hj-np-tv-z]*o[b-df-hj-np-qs-tv-z]+$')
+NAME_PHONEMES = {'Ali': 'ˈɑli', 'Sara': 'sˈɑɹə', 'Hassan': 'həsˈɑn', 'Nora': 'nˈɔɹə',
+                 'Mr': 'mˈɪstəɹ', 'Mrs': 'mˈɪsɪz', 'Dr': 'dˈɑktəɹ'}
 LETTER_PHONEMES = {'a': 'ˈA', 'i': 'ˈI'}
 
 # --- isolated sounds -------------------------------------------------------------------------
@@ -85,9 +87,27 @@ PHONEME_CANDIDATES = {
     'aa': [('ˈɑks', 'vowel'), ('pˈɑt', 'vowel'), ('tˈɑp', 'vowel'), ('ˈɑ', 'whole')],
     # The model renders /ð/ like a short [d]; the app teaches it through its keyword ("this").
     'dh': [],
+    # Stage 4-5: long vowels, r-controlled vowels, diphthongs (misaki tokens: A=eɪ, I=aɪ, O=oʊ, W=aʊ, Y=ɔɪ).
+    # Cut from words with a voiceless start so the voiced stretch is the vowel only, or said alone ("whole").
+    'long-a': [('ˈA', 'whole'), ('kˈAk', 'vowel'), ('pˈAt', 'vowel'), ('tˈAp', 'vowel')],
+    'long-i': [('ˈI', 'whole'), ('kˈIt', 'vowel'), ('tˈIp', 'vowel'), ('pˈIp', 'vowel')],
+    'long-o': [('ˈO', 'whole'), ('kˈOt', 'vowel'), ('tˈOt', 'vowel'), ('sˈOp', 'vowel')],
+    'long-u': [('jˈu', 'whole'), ('kjˈut', 'post-voice-vowel')],
+    'long-e': [('ˈi', 'whole'), ('sˈit', 'vowel'), ('pˈit', 'vowel'), ('kˈip', 'vowel')],
+    'long-oo': [('ˈu', 'whole'), ('tˈut', 'vowel'), ('sˈup', 'vowel')],
+    'short-oo': [('ˈʊ', 'whole'), ('kˈʊk', 'vowel'), ('tˈʊk', 'vowel'), ('pˈʊt', 'vowel')],
+    'ar': [('ˈɑɹ', 'whole'), ('pˈɑɹt', 'vowel'), ('kˈɑɹt', 'vowel')],
+    'or': [('ˈɔɹ', 'whole'), ('pˈɔɹt', 'vowel'), ('fˈɔɹk', 'vowel')],
+    'er': [('ˈɜɹ', 'whole'), ('hˈɜɹt', 'vowel'), ('pˈɜɹk', 'vowel')],
+    'ow-cow': [('ˈW', 'whole'), ('hˈWs', 'vowel'), ('kˈWt', 'vowel')],
+    'oy': [('ˈY', 'whole'), ('kˈYs', 'vowel'), ('tˈYk', 'vowel')],
+    'aw': [('ˈɔ', 'whole'), ('tˈɔk', 'vowel'), ('sˈɔs', 'vowel')],
+    'awl': [('ˈɔl', 'whole'), ('kˈɔl', 'post-voice'), ('tˈɔl', 'post-voice')],
+    'shun': [('ʃən', 'whole')],
 }
 CONTINUANTS = {'s', 'f', 'sh', 'th', 'm', 'n', 'l', 'r', 'z', 'v', 'ng'}
-VOWELS = {'ae', 'ih', 'eh', 'uh', 'aa'}
+VOWELS = {'ae', 'ih', 'eh', 'uh', 'aa', 'long-a', 'long-i', 'long-o', 'long-u', 'long-e', 'long-oo', 'short-oo',
+          'ar', 'or', 'er', 'ow-cow', 'oy', 'aw', 'awl', 'shun'}
 # Words glued together from cut sounds; the recogniser must hear the word.
 BLEND_WORDS = {
     'pan': ['p', 'ae', 'n'], 'cat': ['k', 'ae', 't'], 'hat': ['h', 'ae', 't'], 'sat': ['s', 'ae', 't'], 'bad': ['b', 'ae', 'd'],
@@ -109,8 +129,36 @@ BLEND_WORDS = {
     'yes': ['y', 'eh', 's'], 'yet': ['y', 'eh', 't'], 'quit': ['kw', 'ih', 't'], 'quick': ['kw', 'ih', 'k'],
     'six': ['s', 'ih', 'ks'], 'sing': ['s', 'ih', 'ng'], 'long': ['l', 'aa', 'ng'], 'pink': ['p', 'ih', 'ngk'],
     'bank': ['b', 'ae', 'ngk'],
+    # Stage 4-5
+    'make': ['m', 'long-a', 'k'], 'late': ['l', 'long-a', 't'], 'game': ['g', 'long-a', 'm'], 'name': ['n', 'long-a', 'm'],
+    'time': ['t', 'long-i', 'm'], 'bike': ['b', 'long-i', 'k'], 'like': ['l', 'long-i', 'k'], 'fine': ['f', 'long-i', 'n'],
+    'home': ['h', 'long-o', 'm'], 'boat': ['b', 'long-o', 't'], 'note': ['n', 'long-o', 't'], 'road': ['r', 'long-o', 'd'],
+    'cute': ['k', 'long-u', 't'], 'mule': ['m', 'long-u', 'l'], 'fuse': ['f', 'long-u', 'z'],
+    'feet': ['f', 'long-e', 't'], 'need': ['n', 'long-e', 'd'], 'team': ['t', 'long-e', 'm'], 'seat': ['s', 'long-e', 't'],
+    'moon': ['m', 'long-oo', 'n'], 'food': ['f', 'long-oo', 'd'], 'room': ['r', 'long-oo', 'm'], 'soon': ['s', 'long-oo', 'n'],
+    'book': ['b', 'short-oo', 'k'], 'good': ['g', 'short-oo', 'd'], 'look': ['l', 'short-oo', 'k'], 'cook': ['k', 'short-oo', 'k'],
+    'park': ['p', 'ar', 'k'], 'farm': ['f', 'ar', 'm'], 'card': ['k', 'ar', 'd'], 'hard': ['h', 'ar', 'd'],
+    'fork': ['f', 'or', 'k'], 'born': ['b', 'or', 'n'], 'short': ['sh', 'or', 't'], 'horn': ['h', 'or', 'n'],
+    'bird': ['b', 'er', 'd'], 'turn': ['t', 'er', 'n'], 'hurt': ['h', 'er', 't'], 'shirt': ['sh', 'er', 't'],
+    'loud': ['l', 'ow-cow', 'd'], 'down': ['d', 'ow-cow', 'n'], 'mouth': ['m', 'ow-cow', 'th'], 'house': ['h', 'ow-cow', 's'],
+    'coin': ['k', 'oy', 'n'], 'boil': ['b', 'oy', 'l'], 'join': ['jh', 'oy', 'n'], 'toys': ['t', 'oy', 'z'],
+    'talk': ['t', 'aw', 'k'], 'saw': ['s', 'aw'], 'law': ['l', 'aw'], 'dawn': ['d', 'aw', 'n'],
+    'ball': ['b', 'awl'], 'tall': ['t', 'awl'], 'call': ['k', 'awl'], 'fall': ['f', 'awl'],
+    'nation': ['n', 'long-a', 'shun'], 'motion': ['m', 'long-o', 'shun'], 'lotion': ['l', 'long-o', 'shun'],
 }
 PASS_SCORE = {'vowel': 0.6, 'consonant': 0.5}
+# Consonants and short vowels are scored only on the short-vowel words above, so adding long-vowel words
+# (whose glued diphthongs the recogniser often misses) cannot reject a consonant cut that was fine.
+SHORT_VOWELS = {'ae', 'ih', 'eh', 'uh', 'aa'}
+# A long vowel said on its own ('whole') has no cut to go wrong: if its glued words score too low, it is
+# still accepted when the recogniser hears it alone as the sound's name (I/eye, oh, you, or, ow, all...).
+ALONE_NAMES = {
+    'long-a': {'a', 'ay', 'eh'}, 'long-i': {'i', 'eye', 'aye', 'ai'}, 'long-o': {'o', 'oh', 'owe'},
+    'long-u': {'you', 'u', 'yu', 'ew'}, 'long-e': {'e', 'ee'}, 'long-oo': {'oo', 'ooh', 'ou'},
+    'ar': {'are', 'r', 'ar'}, 'or': {'or', 'oar', 'ore'}, 'er': {'er', 'ur', 'err'},
+    'ow-cow': {'ow', 'ou', 'au', 'ouch'}, 'oy': {'oy', 'oi', 'oye'}, 'aw': {'aw', 'awe'},
+    'awl': {'all', 'awl'}, 'shun': {'shun', 'shon', 'tion'},
+}
 # Acoustic sanity checks for cut consonants: voiced share and spectral centroid (Hz) ranges.
 CONSONANT_CHECKS = {
     's': {'voiced_max': 0.3, 'centroid_min': 7000}, 'sh': {'voiced_max': 0.3, 'centroid_min': 3000, 'centroid_max': 7800},
@@ -303,7 +351,7 @@ def cut_sound(a, method):
     if method == 'glide':
         on = times[vr[0][0]] if vr else 0.0
         return seg(0, on + 0.11), {'on': round(on, 3)}
-    if method == 'post-voice':
+    if method in ('post-voice', 'post-voice-vowel'):
         return (seg(times[vr[0][0]], len(a) / SR), {}) if vr else (None, {'error': 'no voicing'})
     if method == 'final':
         return (seg(times[vr[-1][1]], len(a) / SR), {}) if vr else (None, {'error': 'no voicing'})
@@ -430,8 +478,12 @@ def build_sounds(synth, checker, report):
             cache[key] = checker.text(audio)
         return cache[key]
 
+    def phase1(ph):
+        return ph not in VOWELS or ph in SHORT_VOWELS
+
     def score(ph, choice):
-        tests = [(w, parts) for w, parts in BLEND_WORDS.items() if ph in parts and all(p in choice for p in parts)]
+        tests = [(w, parts) for w, parts in BLEND_WORDS.items() if ph in parts and all(p in choice for p in parts)
+                 and (not phase1(ph) or all(phase1(p) for p in parts))]
         if not tests:
             return 1.0, []
         results = [(w, heard(w, parts, choice)) for w, parts in tests]
@@ -456,9 +508,24 @@ def build_sounds(synth, checker, report):
         s, detail = score(ph, current)
         kind = 'vowel' if ph in VOWELS else 'consonant'
         accepted = s >= PASS_SCORE[kind]
+        alone = None
+        if not accepted and ph in ALONE_NAMES:
+            for cand in candidates[ph]:
+                if cand['method'] != 'whole':
+                    continue
+                heard_alone = checker.text(cand['audio'])
+                got = norm_words(heard_alone)
+                alone = {'heard': heard_alone, 'ok': len(got) == 1 and got[0] in ALONE_NAMES[ph]}
+                if alone['ok']:
+                    current[ph], accepted = cand, True
+                    s, detail = score(ph, current)
+                break
         report['sounds'][ph] = {'accepted': accepted, 'score': round(s, 2), 'source': current[ph]['src'],
                                 'method': current[ph]['method'], 'tests': detail, **current[ph]['info']}
-        print(f"sound {ph:4s} {'OK ' if accepted else 'NO '} {s:.2f} from {current[ph]['src']}", flush=True)
+        if alone:
+            report['sounds'][ph]['alone'] = alone
+        print(f"sound {ph:4s} {'OK ' if accepted else 'NO '} {s:.2f} from {current[ph]['src']}"
+              + (f" (alone: {alone['heard']!r})" if alone else ''), flush=True)
         if accepted:
             sounds[ph] = current[ph]['audio']
     return sounds
