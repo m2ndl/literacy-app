@@ -336,6 +336,24 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--c-accent); outl
 .guide-icon { display: inline-block; width: 1.6rem; height: 1.6rem; vertical-align: middle; color: var(--c-accent); }
 .inapp-banner { background: #fef3c7; color: #78350f; border-bottom: 2px solid #f59e0b; padding: 1rem; line-height: 1.9; text-align: right; }
 
+/* ===================== Phase 3: Stages 3-5 ===================== */
+.stage-title { grid-column: 1 / -1; font-size: 1.15rem; font-weight: 700; color: var(--c-muted); margin-top: .8rem; border-bottom: 1px solid var(--c-border); padding-bottom: .3rem; }
+.pattern-chip .pattern-label { font-size: 1.1rem; font-weight: 700; color: var(--c-accent); }
+.sign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .7rem; }
+.sign-chip { display: flex; flex-direction: column; align-items: center; gap: .3rem; background: var(--c-soft); border-radius: .8rem; padding: .7rem .4rem; }
+.sign-plate { display: inline-block; font-family: 'Arial', 'Helvetica', sans-serif; font-weight: 800; letter-spacing: .06em; color: #fff; border-radius: .4rem; padding: .35rem .8rem; font-size: 1.1rem; border: 3px solid rgba(255, 255, 255, .85); box-shadow: 0 0 0 2px rgba(0, 0, 0, .15); }
+.prompt .sign-plate { font-size: 2rem; padding: .6rem 1.4rem; }
+.sign-stop { background: #dc2626; }
+.sign-go { background: #15803d; }
+.sign-info { background: #1d4ed8; }
+.form-card { width: 100%; max-width: 26rem; text-align: left; background: var(--c-surface); border: 2px solid var(--c-border); border-radius: .8rem; padding: .9rem 1rem; }
+.form-title { font-weight: 700; font-size: 1.15rem; margin-bottom: .5rem; border-bottom: 1px solid var(--c-border); padding-bottom: .3rem; }
+.form-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem; padding: .3rem 0; }
+.form-label { font-weight: 700; }
+.form-value { flex: 1; min-width: 6rem; border-bottom: 1px solid var(--c-muted); padding: 0 .3rem; }
+.form-value.is-empty { min-height: 1.4rem; }
+.form-ar { width: 100%; font-family: 'Tajawal', sans-serif; font-size: .85rem; color: var(--c-muted); text-align: right; }
+
 @media (max-width: 480px) {
   .options-grapheme .option-btn { width: 4.6rem; height: 4.6rem; font-size: 2rem; }
   .options-word .option-btn { font-size: 1.35rem; padding: .6rem 1rem; }

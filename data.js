@@ -4,11 +4,15 @@
 // graphemes taught in that unit or earlier, plus heart words and names already introduced.
 // American English pronunciation.
 
-export const DATA_VERSION = 3;
+import { stage3to5 } from './data-stages3-5.js';
+
+export const DATA_VERSION = 4;
 
 // Grapheme-phoneme correspondences. `ph` is the sound's audio key (audio/.../ph/<ph>.mp3).
 // `ar` is an Arabic "bridge" letter when the sound exists in Arabic; `newSound` marks sounds
 // Arabic speakers need to learn; `variantOf` marks another spelling of the same sound.
+// Keys like a_e are "magic e" spellings (make); `label` is how a key is shown when it differs from the
+// key: ow2, y2, y3, c2 and g2 are second sounds of a spelling already taught (cow, fly, baby, city, page).
 export const gpc = {
   s:  { ph: 's',   ipa: 's',  kw: 'sun',      emoji: '☀️', ar: 'س' },
   a:  { ph: 'ae',  ipa: 'æ',  kw: 'apple',    emoji: '🍎', vowel: true, newSound: true },
@@ -46,7 +50,41 @@ export const gpc = {
   th: { ph: 'th',  ipa: 'θ',  kw: 'three',    emoji: '3️⃣', ar: 'ث', alt: { ph: 'dh', ipa: 'ð', kw: 'this', emoji: '👉', ar: 'ذ' } },
   ng: { ph: 'ng',  ipa: 'ŋ',  kw: 'ring',     emoji: '💍', newSound: true },
   nk: { ph: 'ngk', ipa: 'ŋk', kw: 'bank',     emoji: '🏦' },
-  wh: { ph: 'w',   ipa: 'w',  kw: 'what',     emoji: '❓', ar: 'و', variantOf: 'w' }
+  wh: { ph: 'w',   ipa: 'w',  kw: 'what',     emoji: '❓', ar: 'و', variantOf: 'w' },
+  // Stage 4: long vowels, r-controlled vowels and diphthongs
+  a_e: { ph: 'long-a', ipa: 'eɪ', kw: 'cake',   emoji: '🎂', vowel: true, newSound: true },
+  i_e: { ph: 'long-i', ipa: 'aɪ', kw: 'bike',   emoji: '🚲', vowel: true, ar: 'آي' },
+  o_e: { ph: 'long-o', ipa: 'oʊ', kw: 'home',   emoji: '🏠', vowel: true, newSound: true },
+  u_e: { ph: 'long-u', ipa: 'juː', kw: 'cube',  emoji: '🧊', vowel: true, ar: 'يو' },
+  ee:  { ph: 'long-e', ipa: 'iː', kw: 'tree',   emoji: '🌳', vowel: true, ar: 'ي' },
+  ea:  { ph: 'long-e', ipa: 'iː', kw: 'tea',    emoji: '🍵', vowel: true, ar: 'ي', variantOf: 'ee' },
+  ai:  { ph: 'long-a', ipa: 'eɪ', kw: 'rain',   emoji: '🌧️', vowel: true, variantOf: 'a_e' },
+  ay:  { ph: 'long-a', ipa: 'eɪ', kw: 'play',   emoji: '▶️', vowel: true, variantOf: 'a_e' },
+  oa:  { ph: 'long-o', ipa: 'oʊ', kw: 'boat',   emoji: '🚤', vowel: true, variantOf: 'o_e' },
+  ow:  { ph: 'long-o', ipa: 'oʊ', kw: 'snow',   emoji: '❄️', vowel: true, variantOf: 'o_e' },
+  igh: { ph: 'long-i', ipa: 'aɪ', kw: 'night',  emoji: '🌙', vowel: true, ar: 'آي', variantOf: 'i_e' },
+  y2:  { ph: 'long-i', ipa: 'aɪ', kw: 'sky',    emoji: '🌤️', vowel: true, ar: 'آي', variantOf: 'i_e', label: 'y' },
+  ie:  { ph: 'long-i', ipa: 'aɪ', kw: 'tie',    emoji: '👔', vowel: true, ar: 'آي', variantOf: 'i_e' },
+  oo:  { ph: 'long-oo', ipa: 'uː', kw: 'spoon', emoji: '🥄', vowel: true, ar: 'و', alt: { ph: 'short-oo', ipa: 'ʊ', kw: 'book', emoji: '📖', ar: 'ـُ' } },
+  ew:  { ph: 'long-oo', ipa: 'uː', kw: 'new',   emoji: '🆕', vowel: true, ar: 'و', variantOf: 'oo' },
+  ue:  { ph: 'long-oo', ipa: 'uː', kw: 'blue',  emoji: '🔵', vowel: true, ar: 'و', variantOf: 'oo' },
+  ar:  { ph: 'ar',  ipa: 'ɑɹ', kw: 'car',       emoji: '🚗', vowel: true, ar: 'آر' },
+  or:  { ph: 'or',  ipa: 'ɔɹ', kw: 'fork',      emoji: '🍴', vowel: true, ar: 'أور' },
+  er:  { ph: 'er',  ipa: 'ɝ',  kw: 'fern',      emoji: '🌿', vowel: true, newSound: true },
+  ir:  { ph: 'er',  ipa: 'ɝ',  kw: 'bird',      emoji: '🐦', vowel: true, variantOf: 'er' },
+  ur:  { ph: 'er',  ipa: 'ɝ',  kw: 'turtle',    emoji: '🐢', vowel: true, variantOf: 'er' },
+  ou:  { ph: 'ow-cow', ipa: 'aʊ', kw: 'cloud',  emoji: '☁️', vowel: true, ar: 'آو' },
+  ow2: { ph: 'ow-cow', ipa: 'aʊ', kw: 'cow',    emoji: '🐄', vowel: true, ar: 'آو', variantOf: 'ou', label: 'ow' },
+  oi:  { ph: 'oy',  ipa: 'ɔɪ', kw: 'coin',      emoji: '🪙', vowel: true, ar: 'أوي' },
+  oy:  { ph: 'oy',  ipa: 'ɔɪ', kw: 'toy',       emoji: '🧸', vowel: true, ar: 'أوي', variantOf: 'oi' },
+  aw:  { ph: 'aw',  ipa: 'ɔ',  kw: 'saw',       emoji: '🪚', vowel: true, newSound: true },
+  all: { ph: 'awl', ipa: 'ɔl', kw: 'ball',      emoji: '⚽', vowel: true, ar: 'أول' },
+  // Stage 5: second sounds of y, c and g; -tion; ph
+  y3:  { ph: 'long-e', ipa: 'i', kw: 'baby',    emoji: '👶', vowel: true, ar: 'ي', variantOf: 'ee', label: 'y' },
+  c2:  { ph: 's',   ipa: 's',  kw: 'city',      emoji: '🏙️', ar: 'س', variantOf: 's', label: 'c' },
+  g2:  { ph: 'jh',  ipa: 'dʒ', kw: 'page',      emoji: '📄', ar: 'ج', variantOf: 'j', label: 'g' },
+  tion: { ph: 'shun', ipa: 'ʃən', kw: 'station', emoji: '🚉', ar: 'شَن' },
+  ph:  { ph: 'f',   ipa: 'f',  kw: 'phone',     emoji: '📱', ar: 'ف', variantOf: 'f' }
 };
 
 // The English alphabet (for letter names and capital/small matching).
@@ -66,8 +104,18 @@ export const ACTIVITY_META = {
   'tracing':           { title: 'اكتب الحرف',              desc: 'شاهد كيف يُكتب الحرف، ثم تتبّعه بإصبعك، ثم اكتبه وحدك.', icon: '✏️', optional: true },
   'dictation':         { title: 'إملاء',                   desc: 'استمع إلى الكلمة واكتبها بلوحة المفاتيح الإنجليزية.',  icon: '⌨️' },
   'heart-words':       { title: 'كلمات القلب',             desc: 'استمع واختر الكتابة الصحيحة لكلمة شائعة.',            icon: '♥' },
-  'sentence-build':    { title: 'رتّب الجملة',             desc: 'رتّب الكلمات لتكوّن جملة إنجليزية صحيحة.',            icon: '🔀' }
+  'sentence-build':    { title: 'رتّب الجملة',             desc: 'رتّب الكلمات لتكوّن جملة إنجليزية صحيحة.',            icon: '🔀' },
+  'signs':             { title: 'اقرأ اللافتة',            desc: 'اقرأ لافتة من الحرم الجامعي واختر معناها.',          icon: '🪧' },
+  'forms':             { title: 'الاستمارات',              desc: 'اقرأ استمارة: أين تكتب اسمك ورقمك وبريدك؟',          icon: '🗂️' }
 };
+
+// Stages shown as headings on the dashboard.
+export const STAGES = [
+  { title: 'المرحلة ١: الأصوات والكلمات القصيرة', from: 1, to: 10 },
+  { title: 'المرحلة ٢: حروف ساكنة متتالية ونهايات الكلمات', from: 11, to: 14 },
+  { title: 'المرحلة ٣: حروف العلة الطويلة', from: 15, to: 21 },
+  { title: 'المرحلة ٤: كلمات أطول، لافتات واستمارات', from: 22, to: 24 }
+];
 
 // Arabic feedback hints: first by the exact pair of graphemes confused (sorted, joined by |),
 // then by error type (see classifyError in phonics.js).
@@ -95,7 +143,24 @@ export const HINTS = {
     's|x': 'x صوتان: k ثم s، مثل «كس».',
     'd|t': 'd بصوت مثل «د»، و t بلا صوت مثل «ت».',
     'g|k': 'g بصوت، و k بلا صوت مثل «ك».',
-    's|z': 'z بصوت مثل «ز»، و s بلا صوت مثل «س».'
+    's|z': 'z بصوت مثل «ز»، و s بلا صوت مثل «س».',
+    // Stage 3-5
+    'a|a_e': 'e في آخر الكلمة لا تُنطق، لكنها تجعل a تُقرأ باسمها: cap ← cape.',
+    'i|i_e': 'e في آخر الكلمة تجعل i تُقرأ «آي»: sit ← site.',
+    'o|o_e': 'e في آخر الكلمة تجعل o تُقرأ «أو»: not ← note.',
+    'u|u_e': 'e في آخر الكلمة تجعل u تُقرأ «يو»: cut ← cute.',
+    'ee|i': 'i قصيرة (ship)، و ee طويلة مثل «إي» ممدودة (sheep).',
+    'ea|i': 'i قصيرة (sit)، و ea طويلة مثل «إي» ممدودة (seat).',
+    'e|ee': 'e قصيرة (met)، و ee طويلة (meet).',
+    'ai|e': 'e قصيرة (wet)، و ai = «اِي» (wait).',
+    'a|ai': 'a قصيرة مفتوحة (man)، و ai = «اِي» (main).',
+    'o|oa': 'o قصيرة (got)، و oa = «أو» طويلة (goat).',
+    'oo|u': 'u قصيرة (sun)، و oo = «او» طويلة (soon).',
+    'a|ar': 'ar = «آر» مع r واضحة (art)، و a قصيرة (at).',
+    'ar|or': 'ar = «آر» (car)، و or = «أور» (fork).',
+    'ir|u': 'u قصيرة (shut)، و ir صوت جديد بلا مقابل عربي (shirt).',
+    'or|u': 'u قصيرة (shut)، و or = «أور» (short).',
+    'a|ou': 'ou = «آو» (out)، و a قصيرة (at).'
   },
   types: {
     vowel: 'استمع جيدًا إلى حرف العلة في وسط الكلمة.',
@@ -121,7 +186,7 @@ const FIRST_UNIT = LETTER_UNIT.filter(a => a !== 'sentence-build');
 // Heart words: mark puts the "tricky" part in [brackets].
 // pseudo = made-up "brand names" for the placement test (decodable, not English words); each has two
 // spoken foils: a vowel misreading and a consonant misreading.
-export const units = [
+const stage0to2 = [
   {
     id: 1,
     title: 'الوحدة ١',
@@ -474,7 +539,7 @@ export const units = [
       { w: 'rich', ar: 'غنيّ', emoji: '💰' },
       { w: 'check', ar: 'يتحقّق / يراجع', emoji: '✔️' },
       { w: 'chess', ar: 'شطرنج', emoji: '♟️' },
-      { w: 'thin', ar: 'نحيف / رقيق' },
+      { w: 'thin', ar: 'نحيف / رقيق', group: 'thin' },
       { w: 'thick', ar: 'سميك' },
       { w: 'math', ar: 'رياضيات', emoji: '➗' },
       { w: 'path', ar: 'ممر / مسار' },
@@ -725,8 +790,13 @@ export const PERCEPTION = [
   { id: 'v-w', a: 'v', b: 'w', pairs: [['vet', 'wet'], ['vest', 'west'], ['vine', 'wine'], ['vent', 'went'], ['vow', 'wow'], ['vary', 'wary'], ['veil', 'wail'], ['vile', 'while'], ['veal', 'wheel']] },
   { id: 'j-y', a: 'j', b: 'y', pairs: [['jet', 'yet'], ['jam', 'yam'], ['jell', 'yell'], ['joke', 'yolk'], ['jeer', 'year'], ['jot', 'yacht'], ['jaw', 'yaw']] },
   { id: 'sh-ch', a: 'sh', b: 'ch', pairs: [['ship', 'chip'], ['shop', 'chop'], ['sheep', 'cheap'], ['shoe', 'chew'], ['share', 'chair'], ['wash', 'watch'], ['cash', 'catch'], ['dish', 'ditch'], ['mash', 'match'], ['sheet', 'cheat']] },
-  { id: 'n-ng', a: 'n', b: 'ng', pairs: [['thin', 'thing'], ['win', 'wing'], ['sin', 'sing'], ['ban', 'bang'], ['ran', 'rang'], ['run', 'rung'], ['kin', 'king'], ['sun', 'sung'], ['fan', 'fang'], ['pin', 'ping']] }
+  { id: 'n-ng', a: 'n', b: 'ng', pairs: [['thin', 'thing'], ['win', 'wing'], ['sin', 'sing'], ['ban', 'bang'], ['ran', 'rang'], ['run', 'rung'], ['kin', 'king'], ['sun', 'sung'], ['fan', 'fang'], ['pin', 'ping']] },
+  // Stage 4: short i vs long ee (ship / sheep)
+  { id: 'i-ee', a: 'i', b: 'ee', pairs: [['ship', 'sheep'], ['sit', 'seat'], ['fill', 'feel'], ['bit', 'beat'], ['hit', 'heat'], ['slip', 'sleep'], ['chip', 'cheap'], ['lip', 'leap'], ['dip', 'deep'], ['fit', 'feet'], ['still', 'steal']] }
 ];
+
+// All units in teaching order: Stages 0-2 (above) and Stages 3-5 (data-stages3-5.js).
+export const units = [...stage0to2, ...stage3to5];
 
 // Backwards-compatible container used by the app.
 export const appData = { units };

@@ -250,3 +250,97 @@ describe('compareSpelling (dictation)', () => {
     assert.deepEqual(r.confusion, { target: 't', chosen: 'd' });
   });
 });
+
+describe('Stage 3-5 decoding', () => {
+  const g = (k, extra = {}) => [k, { ph: k, ...extra }];
+  const gpc5 = Object.fromEntries([
+    ...'abcdefghijklmnopqrstuvwxyz'.split('').map(l => g(l)),
+    ...['ck', 'sh', 'ch', 'th', 'ng', 'nk', 'wh', 'qu', 'ff', 'll', 'ss', 'zz', 'a_e', 'i_e', 'o_e', 'u_e', 'ai', 'ay', 'ee', 'ea',
+      'oa', 'ow', 'igh', 'ie', 'oo', 'ew', 'ue', 'ar', 'or', 'er', 'ir', 'ur', 'ou', 'oi', 'oy', 'aw', 'all', 'y2', 'y3', 'tion'].map(k => g(k))
+  ]);
+  const u5 = [
+    { id: 1, graphemes: ['s', 'a', 't', 'i', 'n', 'p', 'm', 'd', 'o', 'g', 'c', 'k', 'ck', 'e', 'u', 'r', 'h', 'b', 'f', 'l', 'ff', 'll', 'ss', 'j', 'v', 'w', 'x', 'y', 'z', 'zz', 'qu', 'sh', 'ch', 'th', 'ng', 'nk', 'wh'], rules: ['doubles', 'plural-s', 'plural-es'], heart: [{ w: 'the' }] },
+    { id: 9, rules: ['two-syllable'], words: [{ w: 'laptop', split: 'lap|top' }, { w: 'student', split: 'stu|dent' }, { w: 'baby', split: 'ba|by' }, { w: 'table', split: 'ta|ble' }, { w: 'station', split: 'sta|tion' }] },
+    { id: 11, rules: ['blends-s'] },
+    { id: 12, rules: ['blends-lr'] },
+    { id: 13, rules: ['blends-final', 'blends-3'] },
+    { id: 14, rules: ['suffix-ed', 'suffix-ing'] },
+    { id: 15, graphemes: ['a_e', 'i_e', 'o_e', 'u_e'], rules: ['silent-e'] },
+    { id: 16, graphemes: ['ee', 'ea', 'ai', 'ay'] },
+    { id: 17, graphemes: ['oa', 'ow', 'igh', 'y2', 'ie'] },
+    { id: 19, graphemes: ['ar', 'or', 'er', 'ir', 'ur'] },
+    { id: 22, graphemes: ['y3'], rules: ['open-syllable', 'soft-cg', 'consonant-le'] },
+    { id: 23, graphemes: ['tion'], rules: ['suffix-er', 'suffixes', 'prefixes', 'digits'] }
+  ];
+  const lex5 = buildLexicon(u5, gpc5);
+  const ok = (w, unit) => decodeWord(w, unit, lex5).ok;
+  const tok = (w, unit) => analyzeToken(w, unit, lex5).ok;
+
+  it('opens consonant clusters only after they are taught', () => {
+    assert.equal(ok('stop', 1), false);
+    assert.equal(ok('stop', 11), true);
+    assert.equal(ok('flag', 11), false);
+    assert.equal(ok('flag', 12), true);
+    assert.equal(ok('hand', 12), false);
+    assert.equal(ok('hand', 13), true);
+    assert.equal(ok('strap', 13), true);
+    assert.equal(ok('tsap', 13), false, 'not an English cluster');
+  });
+
+  it('reads magic e, vowel teams, r-vowels and y', () => {
+    assert.equal(ok('make', 14), false);
+    assert.deepEqual(decodeWord('make', 15, lex5).graphemes, ['m', 'a_e', 'k']);
+    assert.deepEqual(decodeWord('make', 15, lex5).pieces, ['m', 'a', 'k', 'e']);
+    assert.equal(ok('five', 15), true);
+    assert.equal(ok('give', 15), false, 'give is irregular');
+    assert.equal(ok('rain', 15), false);
+    assert.equal(ok('rain', 16), true);
+    assert.equal(ok('paint', 16), true);
+    assert.equal(ok('night', 17), true);
+    assert.equal(ok('my', 16), false);
+    assert.equal(ok('fly', 17), true);
+    assert.equal(ok('start', 19), true);
+    assert.equal(ok('more', 19), true, 'or + silent e');
+    assert.equal(ok('cold', 19), false, 'cold is a heart word');
+    assert.equal(ok('want', 19), false, 'w + a');
+    assert.equal(ok('word', 19), false, 'w + or');
+  });
+
+  it('reads open syllables, y = /i/, consonant-le, soft c/g and -tion in later stages', () => {
+    assert.equal(ok('student', 19), false);
+    assert.equal(ok('student', 22), true);
+    assert.equal(ok('baby', 22), true);
+    assert.deepEqual(decodeWord('baby', 22, lex5).graphemes, ['b', 'a', 'b', 'y3']);
+    assert.equal(ok('table', 22), true);
+    assert.equal(ok('face', 19), false);
+    assert.equal(ok('face', 22), true);
+    assert.equal(ok('station', 22), false);
+    assert.equal(ok('station', 23), true);
+  });
+
+  it('reads word endings and beginnings once taught', () => {
+    assert.equal(tok('jumped', 13), false);
+    assert.equal(tok('jumped', 14), true);
+    assert.equal(tok('stopped', 14), true);
+    assert.equal(tok('running', 14), true);
+    assert.equal(tok('liked', 15), true);
+    assert.equal(tok('making', 15), true);
+    assert.equal(tok('teacher', 22), false);
+    assert.equal(tok('teacher', 23), true);
+    assert.equal(tok('quickly', 23), true);
+    assert.equal(tok('unlock', 23), true);
+    assert.equal(tok('babies', 22), true);
+    assert.equal(tok('makes', 15), true);
+    assert.equal(tok('10:30', 22), false);
+    assert.equal(tok('10:30', 23), true);
+  });
+
+  it('finds magic-e contrasts and same sounds', () => {
+    assert.deepEqual(contrastOf('cap', 'cape'), { pos: 1, from: 'a', to: 'a_e' });
+    assert.deepEqual(contrastOf('ship', 'sheep'), { pos: 1, from: 'i', to: 'ee' });
+    assert.equal(sameSound('ai', 'a_e'), true);
+    assert.equal(sameSound('ow', 'ow2'), true);
+    assert.equal(sameSound('ar', 'or'), false);
+    assert.equal(classifyError('a', 'a_e'), 'vowel');
+  });
+});

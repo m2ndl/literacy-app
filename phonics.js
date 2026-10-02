@@ -9,7 +9,7 @@
 // yet (vowel teams, r-controlled vowels, silent letters...) are still recognised, so a word
 // like "feet" or "car" fails the check instead of slipping through as single letters.
 export const INVENTORY = [
-  'eigh',
+  'eigh', 'tion',
   'tch', 'dge', 'igh', 'air', 'ear', 'eer', 'ure', 'all',
   'sh', 'ch', 'th', 'wh', 'ph', 'gh', 'ng', 'nk', 'ck', 'qu', 'kn', 'wr', 'mb',
   'ff', 'll', 'ss', 'zz', 'pp', 'dd', 'gg', 'tt', 'bb', 'nn', 'mm', 'rr', 'cc',
@@ -19,24 +19,73 @@ export const INVENTORY = [
 ].sort((a, b) => b.length - a.length);
 
 export const SHORT_VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
+// Long-vowel, diphthong and r-controlled spellings (Stage 4), and "magic e" units such as a_e.
+const VOWEL_TEAMS = new Set(['ai', 'ay', 'ee', 'ea', 'ey', 'ei', 'ie', 'oa', 'oe', 'oo', 'ou', 'ow', 'oi', 'oy', 'ue', 'ui', 'ew', 'au', 'aw', 'igh', 'eigh']);
+const R_VOWELS = new Set(['ar', 'er', 'ir', 'or', 'ur', 'air', 'ear', 'eer', 'ure']);
 const DOUBLES = new Set(['ff', 'll', 'ss', 'zz', 'pp', 'dd', 'gg', 'tt', 'bb', 'nn', 'mm']);
-// Consonant graphemes that only occur at the start / only at the end of a syllable in Stage 0-2.
+// Consonant graphemes that only occur at the start / only at the end of a syllable.
 const ONSET_ONLY = new Set(['qu', 'wh', 'y', 'w', 'j', 'v', 'h']);
 const CODA_ONLY = new Set(['ck', 'x', 'ng', 'nk', ...DOUBLES]);
-// Spellings whose pronunciation breaks the patterns taught in Stage 0-2.
+// Consonants that can stand between a vowel and a "magic e" (make, five, bathe).
+const MAGIC_E_CONSONANTS = new Set([...'bcdfgklmnprstvz', 'th']);
+// Consonant clusters (Stage 3) and the rule that introduces each.
+const ONSET_CLUSTERS = {
+  'blends-s': ['st', 'sp', 'sk', 'sc', 'sm', 'sn', 'sl', 'sw'],
+  'blends-lr': ['bl', 'cl', 'fl', 'gl', 'pl', 'br', 'cr', 'dr', 'fr', 'gr', 'pr', 'tr', 'tw', 'thr', 'shr'],
+  'blends-3': ['str', 'spr', 'spl', 'scr', 'squ']
+};
+const FINAL_CLUSTERS = ['st', 'sk', 'sp', 'nd', 'nt', 'mp', 'ft', 'lt', 'lk', 'lp', 'lf', 'ld', 'lm', 'pt', 'ct', 'xt', 'nch', 'nth', 'mpt'];
+// Spellings whose pronunciation breaks the patterns taught (taught as heart words when needed).
 export const BLOCKLIST = new Set([
+  // u = /ʊ/, o = /ʌ/, irregular short words
   'put', 'push', 'pull', 'full', 'bull', 'bush', 'puss',
   'son', 'won', 'ton', 'from', 'of', 'front', 'month',
   'both', 'most', 'post', 'host', 'ghost', 'roll', 'toll', 'poll', 'troll',
-  'is', 'as', 'has', 'his', 'was', 'what', 'does'
+  'is', 'as', 'has', 'his', 'was', 'what', 'does',
+  // magic-e look-alikes that are not long vowels
+  'give', 'live', 'have', 'love', 'glove', 'dove', 'come', 'some', 'done', 'none', 'one', 'gone', 'move', 'lose',
+  'whose', 'were', 'where', 'there', 'here', 'are', 'sure', 'were', 'eye', 'bye',
+  // vowel teams with another sound
+  'said', 'says', 'again', 'been', 'head', 'bread', 'dead', 'ready', 'heavy', 'breakfast', 'health', 'weather',
+  'great', 'break', 'steak', 'blood', 'flood', 'door', 'floor', 'poor', 'friend', 'you', 'your', 'could', 'would',
+  'should', 'soup', 'group', 'touch', 'young', 'country', 'four', 'pour', 'tour', 'though', 'through', 'thought',
+  'enough', 'cousin', 'double', 'trouble', 'field', 'piece', 'chief', 'shoe', 'canoe', 'build', 'built', 'busy',
+  'women', 'people', 'water', 'father', 'mother', 'brother', 'other', 'any', 'many', 'very', 'every', 'only', 'quiet'
 ]);
 // Regular words that the soft-c/g and w+a rules would otherwise reject.
-export const ALLOWLIST = new Set(['get', 'gets', 'gig', 'wax', 'wag', 'quack']);
+export const ALLOWLIST = new Set(['get', 'gets', 'gig', 'wax', 'wag', 'quack', 'give', 'girl', 'begin', 'target']);
 // Suffix endings that need -es (not -s) in the plural.
-const ES_BASE_ENDINGS = new Set(['s', 'ss', 'x', 'z', 'zz', 'sh', 'ch']);
+const ES_BASE_ENDINGS = new Set(['s', 'ss', 'x', 'z', 'zz', 'sh', 'ch', 'tch']);
 
+/** Any vowel spelling: a short vowel letter, a vowel team, an r-controlled vowel, "all" or a magic-e unit (a_e). */
 export function isVowel(g) {
+  return SHORT_VOWELS.has(g) || VOWEL_TEAMS.has(g) || R_VOWELS.has(g) || g === 'all' || /^[aeiou]_e$/.test(g);
+}
+
+export function isShortVowel(g) {
   return SHORT_VOWELS.has(g);
+}
+
+/**
+ * Fold a final "magic e" into the vowel: m,a,k,e -> m,a_e,k. A silent final e after a vowel team or an
+ * r-controlled vowel (cheese, more) is dropped. Returns { units, silentE }.
+ */
+export function foldMagicE(gs) {
+  const n = gs.length;
+  if (n >= 3 && gs[n - 1] === 'e' && SHORT_VOWELS.has(gs[n - 3]) && MAGIC_E_CONSONANTS.has(gs[n - 2])) {
+    return { units: [...gs.slice(0, n - 3), `${gs[n - 3]}_e`, gs[n - 2]], silentE: 'magic' };
+  }
+  if (n >= 3 && gs[n - 1] === 'e' && (VOWEL_TEAMS.has(gs[n - 3]) || R_VOWELS.has(gs[n - 3])) && MAGIC_E_CONSONANTS.has(gs[n - 2])) {
+    return { units: gs.slice(0, n - 1), silentE: 'after-team' };
+  }
+  if (n >= 2 && gs[n - 1] === 'e' && gs[n - 2] === 'or') return { units: gs.slice(0, n - 1), silentE: 'after-team' };
+  return { units: gs, silentE: null };
+}
+
+/** Sound units of a whole one-syllable word (segment + magic e), or null. */
+export function soundUnits(word) {
+  const gs = segment(word);
+  return gs ? foldMagicE(gs).units : null;
 }
 
 /** Split a single syllable (lowercase letters only) into graphemes by longest match. */
@@ -72,23 +121,43 @@ export function clipKey(kind, text) {
   return kind === 'ph' || kind === 'ln' ? `${kind}:${text}` : `${kind}:${slugify(text)}`;
 }
 
-// Misaki (Kokoro) phoneme symbols for affricates.
-const KOKORO_IPA = { 'dʒ': 'ʤ', 'tʃ': 'ʧ' };
+// IPA in the grapheme table -> misaki (Kokoro) phoneme tokens.
+const KOKORO_IPA = { 'dʒ': 'ʤ', 'tʃ': 'ʧ', 'eɪ': 'A', 'aɪ': 'I', 'oʊ': 'O', 'aʊ': 'W', 'ɔɪ': 'Y', 'juː': 'ju', 'iː': 'i', 'uː': 'u', 'ɝ': 'ɜɹ' };
 
 /**
  * Phonemes for a made-up word, from its graphemes (used to synthesise placement "brand names").
- * Stress on the first syllable; the second syllable keeps a full vowel (secondary stress).
+ * Stress on the first syllable; later syllables keep a full vowel (secondary stress).
  */
 export function toPhonemes(word, gpc, split = null) {
   const syllables = split ? split.split('|') : [word];
+  const LONG = { a: 'A', e: 'i', i: 'I', o: 'O', u: 'ju' };   // a vowel at the end of an open syllable says its name
   return syllables.map((syl, i) => {
+    const stress = i === 0 ? 'ˈ' : 'ˌ';
+    if (/^(?:[bcdfgkptz]|ck)le$/.test(syl)) return `${KOKORO_IPA[gpc[syl[0]].ipa] || gpc[syl[0]].ipa}əl`;
     const gs = segment(syl);
     if (!gs) throw new Error(`cannot segment "${syl}"`);
-    return gs.map(g => {
+    let units = foldMagicE(gs).units;
+    if (!units.some(isVowel) && units[units.length - 1] === 'y') units = [...units.slice(0, -1), syllables.length > 1 ? 'y3' : 'y2'];
+    // soft c and g before e, i, y
+    units = units.map((g, k) => ((g === 'c' || g === 'g') && /^[eiy]/.test(units[k + 1] || '') ? `${g}2` : g));
+    const open = SHORT_VOWELS.has(units[units.length - 1]);
+    return units.map((g, k) => {
+      if (open && k === units.length - 1) return stress + LONG[g];
+      if (!gpc[g]) throw new Error(`no sound for "${g}" in "${syl}"`);
       const ipa = KOKORO_IPA[gpc[g].ipa] || gpc[g].ipa;
-      return isVowel(g) ? (i === 0 ? 'ˈ' : 'ˌ') + ipa : ipa;
+      return isVowel(g) || g === 'y2' || g === 'y3' ? stress + ipa : ipa;
     }).join('');
   }).join('');
+}
+
+/**
+ * A made-up word or one of its foils as { text, ipa }. Foils may be written with | for syllables ("si|nep")
+ * or as { w, ipa } when the spelling alone doesn't give the sound (word endings).
+ */
+export function pseudoForm(item, gpc, targetSplit = null) {
+  if (typeof item === 'object') return { text: item.w, ipa: item.ipa || toPhonemes(item.w, gpc, item.split || null) };
+  if (item.includes('|')) return { text: item.replace(/\|/g, ''), ipa: toPhonemes(item.replace(/\|/g, ''), gpc, item) };
+  return { text: item, ipa: toPhonemes(item, gpc, targetSplit ? splitLike(item, targetSplit) : null) };
 }
 
 /**
@@ -125,9 +194,13 @@ export function requiredClips(units, gpc, alphabet, perception = []) {
     (u.names || []).forEach(n => add('w', n.w, ['f']));
     (u.sentences || []).forEach(s => add('s', s.text, ['f', 'fs']));
     (u.texts || []).forEach(t => [...t.sentences, ...t.questions].forEach(s => add('s', s.text, ['f', 'fs'])));
-    (u.pseudo || []).forEach(pw => [pw.w, ...pw.foils].forEach(w => {
-      add('p', w, ['f'], { ipa: toPhonemes(w, gpc, pw.split ? splitLike(w, pw.split) : null) });
-    }));
+    (u.pseudo || []).forEach(pw => {
+      const target = pw.ipa ? { text: pw.w, ipa: pw.ipa } : pseudoForm(pw.split || pw.w, gpc);
+      add('p', target.text, ['f'], { ipa: target.ipa });
+      pw.foils.forEach(f => { const form = pseudoForm(f, gpc, pw.split); add('p', form.text, ['f'], { ipa: form.ipa }); });
+    });
+    (u.signs || []).forEach(s => add('s', s.say, ['f']));
+    (u.forms || []).forEach(f => f.statements.forEach(st => add('s', st.text, ['f'])));
   });
   perception.forEach(set => set.pairs.flat().forEach(w => add('w', w, ['f', 'm', 'f2', 'm2'])));
   return [...clips.values()].sort((a, b) => a.key.localeCompare(b.key));
@@ -178,55 +251,101 @@ function graphemeTaught(g, unitId, lex) {
   return false;
 }
 
-/** Check one closed syllable: [onset consonant]? + one short vowel + one consonant. */
-function checkSyllable(syl, unitId, lex) {
-  const gs = segment(syl);
-  if (!gs) return { ok: false, reason: `cannot segment "${syl}"` };
+const fail = (reason, graphemes) => ({ ok: false, reason, ...(graphemes ? { graphemes } : {}) });
+const ruleTaught = (rule, unitId, lex) => introducedBy(lex.rules, rule, unitId, lex);
+
+/**
+ * Check one syllable against what has been taught by a unit.
+ * Stage 0-2: [consonant] + short vowel + one consonant. Later stages add consonant clusters, magic e,
+ * vowel teams, r-controlled vowels, open syllables (go, stu|dent), y as a vowel (my, ba|by),
+ * consonant-le (ta|ble) and -tion.
+ * Returns { ok, graphemes (sound units, e.g. a_e), pieces (spelling chunks in order) }.
+ */
+function checkSyllable(syl, unitId, lex, { last = true, multi = false } = {}) {
+  const raw = segment(syl);
+  if (!raw) return fail(`cannot segment "${syl}"`);
+  // ta|ble, lit|tle: a consonant + le syllable
+  if (multi && last && /^(?:[bcdfgkptz]|ck)le$/.test(syl)) {
+    if (!ruleTaught('consonant-le', unitId, lex)) return fail('consonant-le syllables not taught yet', raw);
+    return { ok: true, graphemes: [raw[0], 'le'], pieces: [syl.slice(0, -2), 'le'] };
+  }
+  if (syl === 'tion') {
+    return graphemeTaught('tion', unitId, lex) ? { ok: true, graphemes: ['tion'], pieces: ['tion'] } : fail('"tion" not taught yet', raw);
+  }
+  const { units, silentE } = last ? foldMagicE(raw) : { units: raw, silentE: null };
+  if (silentE === 'after-team' && !ruleTaught('silent-e', unitId, lex)) return fail('silent final e not taught yet', raw);
+  let gs = units;
+  // y as a vowel at the end of a syllable: my, fly (long i); ba|by, hap|py (long e)
+  const yVowel = !gs.some(isVowel) && gs[gs.length - 1] === 'y' && (gs.length >= 2 || (multi && last));
+  if (yVowel) gs = [...gs.slice(0, -1), multi && last ? 'y3' : 'y2'];
   for (const g of gs) {
     if (!graphemeTaught(g, unitId, lex)) {
-      return { ok: false, graphemes: gs, reason: lex.gpc[g] ? `"${g}" not taught yet` : `pattern "${g}" not in this stage` };
+      return fail(lex.gpc[g] ? `"${g}" not taught yet` : `pattern "${g}" not in this stage`, gs);
     }
   }
-  const vIdx = gs.map((g, i) => (isVowel(g) ? i : -1)).filter(i => i >= 0);
-  if (vIdx.length !== 1) return { ok: false, graphemes: gs, reason: 'needs exactly one short vowel' };
+  const vIdx = gs.map((g, i) => (isVowel(g) || g === 'y2' || g === 'y3' ? i : -1)).filter(i => i >= 0);
+  if (vIdx.length !== 1) return fail(vIdx.length ? 'needs exactly one vowel' : 'needs exactly one short vowel', gs);
   const v = vIdx[0];
+  const nucleus = gs[v];
   const onset = gs.slice(0, v);
   const coda = gs.slice(v + 1);
-  if (onset.length > 1) return { ok: false, graphemes: gs, reason: 'consonant cluster at the start' };
-  if (coda.length !== 1) return { ok: false, graphemes: gs, reason: coda.length ? 'consonant cluster at the end' : 'open syllable (ends in a vowel)' };
-  if (onset.length && CODA_ONLY.has(onset[0])) return { ok: false, graphemes: gs, reason: `"${onset[0]}" cannot start a syllable` };
-  if (ONSET_ONLY.has(coda[0])) return { ok: false, graphemes: gs, reason: `"${coda[0]}" cannot end a syllable` };
-  return { ok: true, graphemes: gs };
+  if (onset.length > 1) {
+    const cluster = onset.join('');
+    const rule = Object.keys(ONSET_CLUSTERS).find(r => ONSET_CLUSTERS[r].includes(cluster));
+    if (!rule) return fail(`"${cluster}" is not an English starting cluster`, gs);
+    if (!ruleTaught(rule, unitId, lex)) return fail('consonant cluster at the start', gs);
+  } else if (onset.length && CODA_ONLY.has(onset[0])) {
+    return fail(`"${onset[0]}" cannot start a syllable`, gs);
+  }
+  if (coda.length === 0 && SHORT_VOWELS.has(nucleus)) {
+    // An open syllable (go, stu|dent): the vowel says its name.
+    if (!ruleTaught('open-syllable', unitId, lex)) return fail('open syllable (ends in a vowel)', gs);
+  }
+  if (coda.length > 1) {
+    const cluster = coda.join('');
+    if (!FINAL_CLUSTERS.includes(cluster)) return fail(`"${cluster}" is not an English final cluster`, gs);
+    if (!ruleTaught('blends-final', unitId, lex)) return fail('consonant cluster at the end', gs);
+  }
+  if (coda.length === 1 && ONSET_ONLY.has(coda[0]) && !/_e$/.test(nucleus)) return fail(`"${coda[0]}" cannot end a syllable`, gs);
+  if (silentE === 'magic' && !graphemeTaught(nucleus, unitId, lex)) return fail(`"${nucleus}" not taught yet`, gs);
+  return { ok: true, graphemes: gs, pieces: yVowel ? raw : [...raw] };
 }
 
-function spellingRulesOk(word) {
+function spellingRulesOk(word, unitId, lex) {
   if (ALLOWLIST.has(word)) return true;
-  if (/c[eiy]/.test(word)) return false;          // soft c (cent, city)
-  if (/g[eiy]/.test(word)) return false;          // soft g (gem, gin)
-  if (/(w|wh|qu)a/.test(word)) return false;      // w + a changes the vowel (want, wash)
+  const soft = lex && ruleTaught('soft-cg', unitId, lex);
+  if (!soft && /c[eiy]/.test(word)) return false;   // soft c (cent, city)
+  if (!soft && /g[eiy]/.test(word)) return false;   // soft g (gem, gin)
+  if (/(w|wh|qu)a/.test(word) && !/(w|wh|qu)a(y|i)/.test(word)) return false;  // w + a changes the vowel (want, wash)
+  if (/w(or|ar)/.test(word)) return false;           // word, work, warm
+  if (/(old|olt|ind|ild)$/.test(word)) return false;  // long vowel in a closed syllable (cold, find, child)
+  if (/alk$|alf$|alm$/.test(word)) return false;     // talk, half, calm
   return true;
 }
 
 /**
  * Is a plain lowercase word decodable at a unit using taught graphemes only?
- * Two-syllable words must be known to the lexicon with a split ("lap|top"), or the split is given.
+ * Words of two or more syllables must be known to the lexicon with a split ("lap|top"), or the split is given.
+ * Returns { ok, graphemes, pieces, syllables } or { ok: false, reason }.
  */
 export function decodeWord(word, unitId, lex, split = null) {
   if (BLOCKLIST.has(word)) return { ok: false, reason: 'irregular spelling' };
-  if (!spellingRulesOk(word)) return { ok: false, reason: 'spelling rule not taught yet (soft c/g or w+a)' };
+  if (!spellingRulesOk(word, unitId, lex)) return { ok: false, reason: 'spelling rule not taught yet (soft c/g, w+a, -old/-ind)' };
   const known = split ? { split } : lex.words.get(word);
   if (known && known.split) {
     if (!introducedBy(lex.rules, 'two-syllable', unitId, lex)) return { ok: false, reason: 'two-syllable words not taught yet' };
     const parts = known.split.split('|');
     const graphemes = [];
-    for (const p of parts) {
-      const r = checkSyllable(p, unitId, lex);
+    const pieces = [];
+    for (let i = 0; i < parts.length; i++) {
+      const r = checkSyllable(parts[i], unitId, lex, { last: i === parts.length - 1, multi: true });
       if (!r.ok) return r;
       graphemes.push(...r.graphemes);
+      pieces.push(...r.pieces);
     }
-    return { ok: true, via: 'gpc', graphemes, syllables: parts };
+    return { ok: true, via: 'gpc', graphemes, pieces, syllables: parts };
   }
-  const r = checkSyllable(word, unitId, lex);
+  const r = checkSyllable(word, unitId, lex, { last: true, multi: false });
   return r.ok ? { ...r, via: 'gpc', syllables: [word] } : r;
 }
 
@@ -237,9 +356,10 @@ export function decodeWord(word, unitId, lex, split = null) {
  * @param {Object} lex        from buildLexicon
  * @param {boolean} sentenceStart  true for the first token of a sentence
  */
-export function analyzeToken(rawToken, unitId, lex, sentenceStart = false) {
+export function analyzeToken(rawToken, unitId, lex, sentenceStart = false, depth = 0) {
   const tok = cleanToken(rawToken);
   if (!tok) return { ok: false, reason: 'empty token' };
+  if (/^[0-9][0-9:.]*$/.test(tok) && ruleTaught('digits', unitId, lex)) return { ok: true, via: 'number' };
   if (/[0-9]/.test(tok)) return { ok: false, reason: 'digits are not used yet' };
   if (/['\-]/.test(tok)) return { ok: false, reason: 'apostrophes and hyphens are not used yet' };
   if (introducedBy(lex.names, tok, unitId, lex)) return { ok: true, via: 'name' };
@@ -247,21 +367,65 @@ export function analyzeToken(rawToken, unitId, lex, sentenceStart = false) {
   if (/[A-Z]/.test(tok.slice(1))) return { ok: false, reason: 'capital letter inside a word' };
   if (/^[A-Z]/.test(tok) && !sentenceStart) return { ok: false, reason: `"${tok}" is capitalised but is not a taught name` };
   const word = tok.toLowerCase();
-  if (introducedBy(lex.heart, word, unitId, lex)) return { ok: true, via: 'heart' };
+  if (introducedBy(lex.heart, word, unitId, lex)) return { ok: true, via: 'heart', graphemes: [word], pieces: [word] };
   const direct = decodeWord(word, unitId, lex);
   if (direct.ok) return direct;
-  // -es after s/x/z/sh/ch (boxes, quizzes) and -s (pens, gets)
-  if (word.endsWith('es') && introducedBy(lex.rules, 'plural-es', unitId, lex)) {
-    const base = word.slice(0, -2);
-    const b = decodeWord(base, unitId, lex);
-    if (b.ok && ES_BASE_ENDINGS.has(b.graphemes[b.graphemes.length - 1])) return { ok: true, via: 'suffix-es', graphemes: [...b.graphemes, 'es'], base };
+  if (depth > 1) return direct;
+  const base = (w) => {
+    const r = analyzeToken(w, unitId, lex, false, depth + 1);
+    return r.ok ? r : null;
+  };
+  const lastUnit = (b) => (b.graphemes || [])[(b.graphemes || []).length - 1];
+  // -es after s/x/z/sh/ch (boxes, quizzes), -ies (cities) and -s (pens, gets, makes)
+  if (word.endsWith('ies') && ruleTaught('plural-es', unitId, lex)) {
+    const b = base(`${word.slice(0, -3)}y`);
+    if (b) return { ok: true, via: 'suffix-es', graphemes: [...b.graphemes, 's'], pieces: [...b.pieces.slice(0, -1), 'ies'], base: `${word.slice(0, -3)}y` };
   }
-  if (word.endsWith('s') && !word.endsWith('ss') && introducedBy(lex.rules, 'plural-s', unitId, lex)) {
-    const base = word.slice(0, -1);
-    const b = decodeWord(base, unitId, lex);
-    if (b.ok && !ES_BASE_ENDINGS.has(b.graphemes[b.graphemes.length - 1])) return { ok: true, via: 'suffix-s', graphemes: [...b.graphemes, 's'], base };
+  if (word.endsWith('es') && ruleTaught('plural-es', unitId, lex)) {
+    const b = base(word.slice(0, -2));
+    if (b && ES_BASE_ENDINGS.has(lastUnit(b))) return { ok: true, via: 'suffix-es', graphemes: [...b.graphemes, 'es'], pieces: [...b.pieces, 'es'], base: word.slice(0, -2) };
+  }
+  if (word.endsWith('s') && !word.endsWith('ss') && ruleTaught('plural-s', unitId, lex)) {
+    const b = base(word.slice(0, -1));
+    if (b && !ES_BASE_ENDINGS.has(lastUnit(b))) return { ok: true, via: 'suffix-s', graphemes: [...b.graphemes, 's'], pieces: [...b.pieces, 's'], base: word.slice(0, -1) };
+  }
+  for (const [suffix, rule] of SUFFIXES) {
+    if (!word.endsWith(suffix) || word.length <= suffix.length + 1 || !ruleTaught(rule, unitId, lex)) continue;
+    for (const cand of baseCandidates(word, suffix)) {
+      const b = base(cand);
+      if (b) return { ok: true, via: `suffix-${suffix}`, graphemes: [...b.graphemes, suffix], pieces: [...stemPieces(b.pieces, cand, word.slice(0, -suffix.length)), suffix], base: cand };
+    }
+  }
+  for (const [prefix, rule] of PREFIXES) {
+    if (!word.startsWith(prefix) || word.length <= prefix.length + 1 || !ruleTaught(rule, unitId, lex)) continue;
+    const b = base(word.slice(prefix.length));
+    if (b) return { ok: true, via: `prefix-${prefix}`, graphemes: [prefix, ...b.graphemes], pieces: [prefix, ...b.pieces], base: word.slice(prefix.length) };
   }
   return direct;
+}
+
+// Word endings and beginnings (Stage 3 and 5) and the rules that introduce them.
+const SUFFIXES = [['ing', 'suffix-ing'], ['ed', 'suffix-ed'], ['est', 'suffix-er'], ['er', 'suffix-er'],
+  ['ful', 'suffixes'], ['less', 'suffixes'], ['ness', 'suffixes'], ['ment', 'suffixes'], ['ly', 'suffixes']];
+const PREFIXES = [['un', 'prefixes'], ['re', 'prefixes']];
+
+/** Spelling pieces of the stem as written before a suffix: drive -> driv(er), stop -> stop+p(ed), try -> tri(ed). */
+function stemPieces(pieces, base, stem) {
+  if (stem === base) return pieces;
+  if (stem === base.slice(0, -1)) return pieces.slice(0, -1);                   // e dropped: driv|er
+  if (stem === base + base[base.length - 1]) return [...pieces, base[base.length - 1]];   // doubled: stop|p|ed
+  if (base.endsWith('y') && stem === `${base.slice(0, -1)}i`) return [...pieces.slice(0, -1), 'i'];   // tri|ed
+  return [stem];
+}
+
+/** Possible base words before a suffix: jump|ed, stop(p)|ed, lik(e)|ed, tri(y)|ed. */
+function baseCandidates(word, suffix) {
+  const stem = word.slice(0, -suffix.length);
+  const out = [stem];
+  if (/([b-df-hj-np-tv-z])\1$/.test(stem) && !/(ll|ss|ff|zz)$/.test(stem)) out.push(stem.slice(0, -1));
+  out.push(`${stem}e`);
+  if (stem.endsWith('i')) out.push(`${stem.slice(0, -1)}y`);
+  return out;
 }
 
 /** Analyse a whole sentence (or several); returns the tokens that fail. */
@@ -282,10 +446,10 @@ export function checkSentence(text, unitId, lex) {
 // ---------------------------------------------------------------------------
 // Contrasts and errors
 // ---------------------------------------------------------------------------
-/** If two one-syllable words differ in exactly one grapheme, return where and how. */
+/** If two one-syllable words differ in exactly one sound unit (cap/cape counts), return where and how. */
 export function contrastOf(a, b) {
-  const ga = segment(a);
-  const gb = segment(b);
+  const ga = soundUnits(a);
+  const gb = soundUnits(b);
   if (!ga || !gb || ga.length !== gb.length) return null;
   const diff = ga.map((g, i) => (g === gb[i] ? -1 : i)).filter(i => i >= 0);
   if (diff.length !== 1) return null;
@@ -294,12 +458,17 @@ export function contrastOf(a, b) {
 }
 
 // Graphemes that spell the same sound: never offer one as a distractor for the other.
-const SAME_SOUND = [['ch', 'tch'], ['c', 'k', 'ck'], ['f', 'ff'], ['l', 'll'], ['s', 'ss'], ['z', 'zz'], ['w', 'wh'], ['p', 'pp'], ['d', 'dd'], ['g', 'gg']];
+// Keys such as ow2, y2, c2 are second sounds of the same spelling (cow, fly, city); they never go together either.
+const SAME_SOUND = [['ch', 'tch'], ['c', 'k', 'ck'], ['f', 'ff'], ['l', 'll'], ['s', 'ss', 'c2'], ['z', 'zz'], ['w', 'wh'], ['p', 'pp'],
+  ['d', 'dd'], ['g', 'gg'], ['j', 'g2', 'dge'], ['a_e', 'ai', 'ay'], ['i_e', 'igh', 'ie', 'y2'], ['o_e', 'oa', 'ow'], ['ee', 'ea', 'y3'],
+  ['oo', 'ew', 'ue', 'u_e'], ['er', 'ir', 'ur'], ['ou', 'ow2'], ['oi', 'oy'], ['ow', 'ow2'], ['y', 'y2', 'y3'], ['c', 'c2'], ['g', 'g2']];
 // Sounds Arabic speakers tend to confuse (listening).
 export const SOUND_CONFUSIONS = [
   ['p', 'b'], ['f', 'v'], ['w', 'v'], ['j', 'y'], ['t', 'd'], ['k', 'g'], ['c', 'g'], ['s', 'z'],
   ['sh', 'ch'], ['s', 'sh'], ['th', 't'], ['th', 's'], ['n', 'ng'], ['ng', 'nk'], ['qu', 'k'], ['x', 's'],
-  ['e', 'i'], ['e', 'a'], ['a', 'i'], ['u', 'o'], ['u', 'a'], ['o', 'a']
+  ['e', 'i'], ['e', 'a'], ['a', 'i'], ['u', 'o'], ['u', 'a'], ['o', 'a'],
+  ['a', 'a_e'], ['i', 'i_e'], ['o', 'o_e'], ['u', 'u_e'], ['i', 'ee'], ['e', 'ee'], ['e', 'ai'], ['o', 'oa'], ['u', 'oo'],
+  ['ar', 'or'], ['er', 'ar'], ['or', 'er'], ['ou', 'oa'], ['oi', 'i_e']
 ];
 // Letters that look alike (reading).
 export const VISUAL_CONFUSIONS = [['b', 'd'], ['p', 'q'], ['b', 'p'], ['d', 'q'], ['n', 'u'], ['m', 'w'], ['h', 'n'], ['i', 'l'], ['t', 'f']];

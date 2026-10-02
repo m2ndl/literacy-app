@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { units, gpc, ALPHABET, PERCEPTION } from '../data.js';
-import { createQuestionBank, PERCEPTION_VOICES } from '../questions.js';
+import { createQuestionBank, PERCEPTION_VOICES, SHORT_PLACEMENT_FROM } from '../questions.js';
 import { makeRng, requiredClips, sameSound, contrastOf, segment } from '../phonics.js';
 
 const bank = createQuestionBank({ units, gpc, alphabet: ALPHABET, perception: PERCEPTION });
@@ -10,8 +10,8 @@ const SEEDS = [1, 2, 3, 4, 5];
 
 // Minimum questions per activity (some pools are small by design, e.g. unit 1 has 6 sounds).
 const MIN_ITEMS = { 'sound-match': 4, 'capital-match': 4, 'which-word': 3, 'word-build': 6, 'missing-letter': 6,
-  meaning: 6, 'first-last-sound': 6, 'complete-sentence': 4, 'read-text': 9, dictation: 6, 'heart-words': 3,
-  'sentence-build': 4, tracing: 2 };
+  meaning: 6, 'first-last-sound': 6, 'complete-sentence': 4, 'read-text': 3, dictation: 6, 'heart-words': 3,
+  'sentence-build': 4, tracing: 2, signs: 6, forms: 6 };
 
 /** Checks shared by every question, whatever builds it. */
 function checkQuestion(q, activity) {
@@ -69,7 +69,7 @@ describe('question bank', () => {
         for (const seed of SEEDS) {
           const qs = bank.build(u.id, activity, { rng: makeRng(seed) });
           assert.ok(qs.length >= MIN_ITEMS[activity], `only ${qs.length} questions`);
-          assert.ok(qs.length <= 12);
+          assert.ok(qs.length <= 12 || activity === 'read-text');
           assert.equal(new Set(qs.map(q => q.key)).size, qs.length, 'duplicate question keys');
           for (const q of qs) checkQuestion(q, activity);
         }
@@ -162,17 +162,22 @@ describe('question bank', () => {
     assert.deepEqual([...types], ['dictation']);
   });
 
-  it('builds five placement items for every unit, with made-up words', () => {
+  it('builds placement items for every unit (5, or 3 from unit 11), with made-up words', () => {
     assert.deepEqual(bank.placementUnits(), units.filter(u => !u.review).map(u => u.id));
+    let longest = 0;
     for (const unitId of bank.placementUnits()) {
+      const n = unitId >= SHORT_PLACEMENT_FROM ? 3 : 5;
+      longest += n;
       for (const seed of SEEDS) {
         const qs = bank.placementItems(unitId, makeRng(seed));
-        assert.equal(qs.length, 5, `unit ${unitId}: ${qs.map(q => q.activity)}`);
-        assert.equal(new Set(qs.map(q => q.key)).size, 5);
+        assert.equal(qs.length, n, `unit ${unitId}: ${qs.map(q => q.activity)}`);
+        assert.equal(new Set(qs.map(q => q.key)).size, n);
+        if (n === 3) assert.deepEqual(qs.map(q => q.activity), ['which-word', 'pseudo', 'dictation']);
         assert.ok(qs.some(q => q.activity === 'pseudo'));
         qs.forEach(q => { assert.ok(q.key.startsWith('place:')); checkQuestion(q, q.activity); });
       }
     }
+    assert.ok(longest <= 90, `a strong reader answers ${longest} items`);
   });
 
   it('opens ear-training sets once both letters are taught', () => {

@@ -1,6 +1,6 @@
 // app.js (ES module) - Interface for the course: units, lessons, activities, review, ear training,
 // placement, reports. Pedagogical design: see PEDAGOGY_PLAN.md.
-import { units, gpc, ALPHABET, ACTIVITY_META, HINTS, PERCEPTION, getAchievements } from './data.js';
+import { units, gpc, ALPHABET, ACTIVITY_META, HINTS, PERCEPTION, STAGES, getAchievements } from './data.js';
 import {
   STORAGE_KEY, V3_KEY, LEGACY_KEY, getDefaultProgress, loadProgressFrom, recordAttempt, topConfusions,
   graphemeAccuracy, hasPassed, isUnitComplete, requiredActivities, nextUnitId, formatTime, computeStreak, PASS_MARK
@@ -9,7 +9,7 @@ import {
   dayNumber, learnItems, dueItems, weakTargets, recentConfusions, itemStatus, placementOutcome, recordPerceptionBlock
 } from './learner.js';
 import { createQuestionBank, PERCEPTION_VOICES } from './questions.js';
-import { clipKey, errorFocus, classifyError, compareSpelling, sameSound, isVowel, shuffle } from './phonics.js';
+import { clipKey, errorFocus, classifyError, compareSpelling, sameSound, isVowel, shuffle, toPhonemes } from './phonics.js';
 import * as audio from './audio.js';
 import { el, en, svgIcon, richArabic, wordNode, heartNode, section, toArabicDigits, configureWords } from './dom.js';
 import { buildWidget, keyboardWidget, audioChoiceWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
@@ -43,6 +43,8 @@ let showingAchievement = false;
 const $ = (id) => document.getElementById(id);
 const unitById = (id) => units.find(u => u.id === id);
 const today = () => dayNumber();
+/** How a grapheme key is shown: a_e, ow (for ow2), y (for y2)... */
+const gLabel = (g) => (gpc[g] && gpc[g].label) || g;
 const unitOfGrapheme = (g) => units.find(u => (u.graphemes || []).includes(g))?.id ?? null;
 
 // ---------------------------------------------------------------------------
@@ -164,6 +166,8 @@ function renderDashboard() {
   const grid = $('unit-grid');
   grid.replaceChildren();
   units.forEach(u => {
+    const stage = STAGES.find(st => st.from === u.id);
+    if (stage) grid.append(el('h2', { class: 'stage-title', text: stage.title }));
     const locked = u.id > progress.unlockedUnit;
     const done = progress.completedUnits.includes(u.id);
     const required = requiredActivities(u);
@@ -177,8 +181,8 @@ function renderDashboard() {
       onclick: () => showLesson(u.id)
     },
     el('div', { class: 'flex justify-between items-start' }, el('span', { class: 'text-sm font-semibold text-gray-500', text: u.title }), icon),
-    u.graphemes.length
-      ? el('div', { class: 'unit-graphemes mt-3' }, ...u.graphemes.map(g => en(g, 'grapheme-pill')))
+    u.graphemes.length || (u.patterns || []).length
+      ? el('div', { class: 'unit-graphemes mt-3' }, ...(u.graphemes.length ? u.graphemes.map(gLabel) : u.patterns.map(p => p.p)).map(g => en(g, 'grapheme-pill')))
       : el('div', { class: 'mt-3 text-lg font-bold text-gray-800', text: sub }),
     el('div', { class: 'text-sm text-gray-500 mt-3', text: `${toArabicDigits(count)} / ${toArabicDigits(required.length)} أنشطة` })));
   });
@@ -202,7 +206,7 @@ function soundCard(g) {
   const card = el('div', { class: 'sound-card' });
   card.append(el('button', {
     class: 'sound-main', 'aria-label': `استمع إلى صوت ${g}`, onclick: () => playSound(info.ph, info.kw)
-  }, en(g.length === 1 ? `${g.toUpperCase()}${g}` : g, 'sound-letters'), el('span', { class: 'sound-play', 'aria-hidden': 'true', text: '🔊' })));
+  }, en(g.length === 1 ? `${g.toUpperCase()}${g}` : gLabel(g), 'sound-letters'), el('span', { class: 'sound-play', 'aria-hidden': 'true', text: '🔊' })));
   if (g.length === 1) {
     card.append(el('button', { class: 'name-btn', onclick: () => audio.play(clipKey('ln', g)) }, 'اسم الحرف'));
   }
@@ -282,6 +286,12 @@ function showLesson(unitId) {
     root.append(section('أصوات جديدة', el('p', { class: 'section-help', text: 'اضغط على الحرف لتسمع صوته. في القراءة نستخدم الصوت، أما «اسم الحرف» فللتهجئة.' }),
       el('div', { class: 'sound-grid' }, ...u.graphemes.map(soundCard))));
   }
+  if ((u.patterns || []).length) {
+    root.append(section('أنماط جديدة', el('p', { class: 'section-help', text: 'اضغط على المثال لتسمعه، واقرأ الحروف معًا بلا حركة بينها.' }),
+      el('div', { class: 'word-grid' }, ...u.patterns.map(p => el('button', {
+        class: 'word-chip pattern-chip', onclick: () => audio.play(clipKey('w', p.ex), { text: p.ex })
+      }, en(p.p, 'pattern-label'), wordNode(p.ex))))));
+  }
   if (u.words.length) {
     const slowBtn = el('button', { class: `small-btn ${slowWords ? 'is-on' : ''}`, 'aria-pressed': String(slowWords) }, '🐢 استماع بطيء');
     slowBtn.addEventListener('click', () => {
@@ -298,6 +308,15 @@ function showLesson(unitId) {
     root.append(section('كلمات القلب ♥', el('p', { class: 'section-help', text: 'كلمات شائعة جدًا لا تُقرأ بالقواعد التي تعلّمتها بعد. الجزء الملوّن هو الجزء الصعب: احفظه.' }),
       el('div', { class: 'word-grid' }, ...heart.map(heartChip))));
   }
+  if ((u.signs || []).length) {
+    root.append(section('لافتات في الحرم الجامعي', el('p', { class: 'section-help', text: 'اللافتات تُكتب غالبًا بحروف كبيرة. اضغط على اللافتة لتسمعها.' }),
+      el('div', { class: 'sign-grid' }, ...u.signs.map(sg => el('button', { class: 'sign-chip', onclick: () => audio.play(clipKey('s', sg.say), { text: sg.say }) },
+        signPlate(sg.text, sg.kind), el('span', { class: 'chip-ar', text: sg.ar }))))));
+  }
+  (u.forms || []).forEach(f => {
+    root.append(section(`استمارة: ${f.ar}`, el('p', { class: 'section-help', text: 'تعرّف على خانات الاستمارة ومعانيها.' }),
+      formCard({ title: f.title, fields: f.fields.map(x => ({ label: x.label, value: '', ar: x.ar })) })));
+  });
   if ((u.texts || []).length) {
     root.append(section('نصوص قصيرة', el('p', { class: 'section-help', text: 'اقرأ بنفسك، ثم استمع وتابع، ثم اقرأ مرة أخرى.' }), ...u.texts.map(textReader)));
   }
@@ -375,6 +394,21 @@ function promptAudioButtons(q) {
   return el('div', { class: 'prompt-audio' }, big, slow);
 }
 
+/** A campus sign: capital letters on a coloured plate (red = stop / not allowed, green = go, blue = information). */
+function signPlate(text, kind = 'info') {
+  return el('span', { class: `sign-plate sign-${kind}`, lang: 'en', dir: 'ltr', text });
+}
+
+/** A simple form: labels, with the learner's values or empty lines. */
+function formCard(form) {
+  return el('div', { class: 'form-card english-content', dir: 'ltr', lang: 'en' },
+    el('div', { class: 'form-title', text: form.title }),
+    ...form.fields.map(f => el('div', { class: 'form-row' },
+      el('span', { class: 'form-label', text: `${f.label}:` }),
+      el('span', { class: `form-value ${f.value ? '' : 'is-empty'}`, text: f.value || '' }),
+      f.ar ? el('span', { class: 'form-ar', dir: 'rtl', lang: 'ar', text: f.ar }) : null)));
+}
+
 function renderPrompt(q) {
   const box = el('div', { class: 'prompt' });
   const p = q.prompt;
@@ -386,7 +420,7 @@ function renderPrompt(q) {
     box.append(brandCard(wordNode(p.text, { split: p.split, cls: 'brand-name' })));
     return box;
   }
-  if (p.audio && !['meaning', 'read-text'].includes(q.activity)) box.append(promptAudioButtons(q));
+  if (p.audio && !['meaning', 'read-text', 'signs', 'forms'].includes(q.activity)) box.append(promptAudioButtons(q));
   if (q.activity === 'capital-match' || q.activity === 'meaning') {
     box.append(q.activity === 'meaning' ? wordNode(p.text, { cls: 'prompt-big' }) : en(p.text, 'prompt-big'));
   }
@@ -412,6 +446,11 @@ function renderPrompt(q) {
     });
     box.append(line);
   }
+  if (q.activity === 'signs') box.append(signPlate(p.sign, p.kind));
+  if (q.activity === 'forms') {
+    box.append(formCard(p.form));
+    if (p.statement) box.append(el('div', { class: 'statement' }, el('button', { class: 'small-btn', onclick: () => audio.play(p.audio, { text: p.statement }) }, '🔊'), en(p.statement)));
+  }
   if (q.activity === 'read-text') {
     const reader = el('div', { class: 'reader reader-compact' }, en(p.title, 'reader-title'),
       ...p.sentences.map(s => el('button', { class: 'reader-line', onclick: () => audio.play(s.audio, { text: s.text }) }, en(s.text))));
@@ -423,6 +462,7 @@ function renderPrompt(q) {
 
 function optionLabel(q, o) {
   if (o.lang !== 'en') return o.label;
+  if (['read-text', 'forms'].includes(q.activity) || /\s/.test(o.label)) return en(o.label);
   if (GRAPHEME_OPTIONS.has(q.activity) || q.activity === 'heart-words') return en(o.label);
   return wordNode(o.label);
 }
@@ -488,13 +528,27 @@ function pairHint(c) {
   return HINTS.pairs[[c.target, c.chosen].sort().join('|')] || HINTS.types[classifyError(c.target, c.chosen)] || HINTS.types.other;
 }
 
+/** Two spellings of the same sounds (rane / rain, fone / phone)? */
+function soundsTheSame(target, typed) {
+  if (!typed || typed === target) return false;
+  try {
+    const plain = (w) => toPhonemes(w, gpc).replace(/[ˈˌ]/g, '');
+    return plain(typed) === plain(target);
+  } catch (e) {
+    return false;
+  }
+}
+
 function hintFor(q, value, spell) {
   if (q.activity === 'meaning') return 'اقرأ الكلمة صوتًا صوتًا، ثم فكّر في معناها.';
   if (q.activity === 'read-text') return 'اقرأ النص مرة أخرى، وابحث عن الكلمات المهمة.';
   if (q.activity === 'heart-words') return 'هذه كلمة قلب: لا تُقرأ بالقواعد كلها. انظر إلى شكلها واحفظ الجزء الصعب.';
   if (q.activity === 'sentence-build') return 'ابدأ بالكلمة التي أولها حرف كبير، وانتهِ بالكلمة التي فيها النقطة. استمع مرة أخرى.';
+  if (q.activity === 'signs') return 'اقرأ اللافتة كلمةً كلمة: الحروف الكبيرة هي الحروف نفسها (EXIT = exit).';
+  if (q.activity === 'forms') return q.prompt.statement ? 'اقرأ الخانة المطلوبة في الاستمارة وقارنها بالجملة.' : 'اقرأ كلمات الخانات، واختر الخانة التي تعني ما تحتاجه.';
   if (q.type === 'trace') return 'ابدأ من النقطة الخضراء واتبع الأسهم، وابقَ قريبًا من الخط المنقّط.';
   if (q.type === 'spell') {
+    if (soundsTheSame(q.answer, String(value))) return 'نطقك صحيح! لكن هذه الكلمة تُكتب بطريقة أخرى. انظر إلى الكلمة وتذكّر شكلها.';
     const c = spell && spell.confusion;
     if (c && sameSound(c.target, c.chosen)) return `الصوت صحيح، لكن الكتابة هنا ${c.target}.`;
     if (c) return pairHint(c);
@@ -542,6 +596,9 @@ function handleAssessment(node) {
 
 function feedbackMeaning(q) {
   const f = q.feedback;
+  if (q.activity === 'signs') return el('p', { class: 'feedback-word' }, signPlate(f.word, q.prompt.kind), ` — ${f.ar}`);
+  if (q.activity === 'forms' && !q.prompt.statement) return el('p', { class: 'feedback-word' }, en(f.word), ` — ${f.ar}`);
+  if (q.activity === 'forms') return el('p', { class: 'feedback-ar', text: f.ar });
   if (q.activity === 'complete-sentence' || q.activity === 'read-text' || q.activity === 'sentence-build') {
     return el('div', {}, q.activity === 'sentence-build' ? el('p', { class: 'feedback-word' }, en(f.text)) : null, el('p', { class: 'feedback-ar', text: f.ar }));
   }
@@ -811,7 +868,13 @@ const CAN_DO = [
   [1, 'تعرف أصوات عدد من الحروف، وتقرأ كلمات قصيرة مثل pin و map.'],
   [4, 'تقرأ كلمات قصيرة بحروف علة مختلفة مثل pen و cup و bag.'],
   [6, 'تقرأ كلمات وجملًا قصيرة فيها معظم أصوات الحروف.'],
-  [8, 'تقرأ كلمات من مقطعين وجملًا بسيطة.']
+  [8, 'تقرأ كلمات من مقطعين وجملًا بسيطة.'],
+  // Counts of units passed: units 1-9 = 9, then 11-14 (clusters, endings), 15-20 (long vowels), 22-23.
+  [10, 'تقرأ كلمات تبدأ بحرفين ساكنين مثل stop و spin.'],
+  [13, 'تقرأ كلمات فيها حروف ساكنة متتالية ونهايات مثل hand و jumped و helping.'],
+  [16, 'تقرأ حروف العلة الطويلة مثل make و rain و night.'],
+  [19, 'تقرأ معظم حروف العلة الطويلة ونصوصًا قصيرة عن الحياة الجامعية.'],
+  [21, 'تقرأ كلمات طويلة مثل student و teacher، ولافتات واستمارات بسيطة.']
 ];
 
 function introducePlacement() {

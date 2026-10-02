@@ -11,12 +11,14 @@
 //   'trace'        answer: letter (tracing)
 //   'audio-choice' options: [{ value, audio }], answer (made-up words in the placement test)
 import {
-  buildLexicon, decodeWord, analyzeToken, segment, isVowel, contrastOf, slugify, clipKey, cleanToken,
-  pickGraphemeDistractors, pickWordDistractors, pickBlank, shuffle, VISUAL_CONFUSIONS, SOUND_CONFUSIONS, sameSound
+  buildLexicon, decodeWord, analyzeToken, segment, isVowel, isShortVowel, contrastOf, slugify, clipKey, cleanToken,
+  pickGraphemeDistractors, pickWordDistractors, shuffle, VISUAL_CONFUSIONS, SOUND_CONFUSIONS, sameSound, pseudoForm
 } from './phonics.js';
 
 export const DEFAULT_ITEMS = 8;
 export const PERCEPTION_VOICES = ['f', 'm', 'f2', 'm2'];
+/** From this unit on, a placement part has 3 items instead of 5. */
+export const SHORT_PLACEMENT_FROM = 11;
 
 export const INSTRUCTIONS = {
   'sound-match': 'استمع إلى الصوت واختر الحرف الذي يمثّله.',
@@ -35,8 +37,12 @@ export const INSTRUCTIONS = {
   'sentence-build': 'استمع، ثم رتّب الكلمات لتكوّن الجملة.',
   tracing: 'شاهد كيف يُكتب الحرف، ثم تتبّعه، ثم اكتبه وحدك.',
   pseudo: 'هذا اسم منتج جديد. استمع إلى الخيارات الثلاثة: أيّها يقرأ الاسم بشكل صحيح؟',
-  perception: 'استمع: أيّ صوت تسمع؟'
+  perception: 'استمع: أيّ صوت تسمع؟',
+  signs: 'اقرأ اللافتة: ماذا تعني؟',
+  'read-text-choice': 'اقرأ النص، ثم اختر الإجابة الصحيحة.',
+  'forms-statement': 'اقرأ الاستمارة: هل هذه الجملة صحيحة؟'
 };
+const SUFFIX_TILES = ['ed', 'ing', 's', 'es', 'er', 'est', 'ly', 'ful'];
 
 export function createQuestionBank({ units, gpc, alphabet, perception = [], hasClip = () => true }) {
   const lex = buildLexicon(units, gpc);
@@ -47,7 +53,11 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
 
   const taughtGraphemes = (unitId) => [...new Set(upTo(unitId).flatMap(u => u.graphemes || []))];
   const taughtLetters = (unitId) => taughtGraphemes(unitId).filter(g => g.length === 1 && alphabet.includes(g));
-  const keyboardLetters = (unitId) => [...new Set(taughtGraphemes(unitId).flatMap(g => g.split('')))].sort();
+  const keyboardLetters = (unitId) => [...new Set(taughtGraphemes(unitId).flatMap(g => g.split('')).filter(c => /[a-z]/.test(c)))].sort();
+  const label = (g) => (gpc[g] && gpc[g].label) || g;
+  // Grapheme keys that are spellings (not second-sound keys such as c2, ow2), for spelling options.
+  const spellings = (list) => list.filter(g => !/[0-9]/.test(g) && !/_e$/.test(g));
+  const signsUpTo = (unitId) => upTo(unitId).flatMap(u => u.signs || []);
   const wordsUpTo = (unitId) => upTo(unitId).flatMap(u => u.words || []);
   const heartUpTo = (unitId) => upTo(unitId).flatMap(u => u.heart || []);
   const allWords = wordsUpTo(lastUnit.id);
@@ -58,9 +68,24 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
   // Words practised in a unit: its own words, or the whole pool in a review unit.
   const unitWords = (u) => (u.review ? wordsUpTo(u.id) : u.words || []);
   const unitHeart = (u) => (u.review ? heartUpTo(u.id) : u.heart || []);
-  const graphemesOf = (w, unitId) => {
-    const r = decodeWord(w, unitId, lex);
-    return r.ok ? r.graphemes : segment(w) || [w];
+  /** Sound units (graphemes, e.g. a_e) and spelling chunks (pieces, e.g. a ... e, ed) of a course word. */
+  const analyze = (w) => {
+    const r = decodeWord(w, lastUnit.id, lex);
+    if (r.ok) return r;
+    const a = analyzeToken(w, lastUnit.id, lex);
+    if (a.ok && a.pieces) return a;
+    const gs = segment(w) || [w];
+    return { graphemes: gs, pieces: gs };
+  };
+  const graphemesOf = (w) => analyze(w).graphemes;
+  const piecesOf = (w) => analyze(w).pieces;
+  /** Vowel spellings to offer beside a target vowel: same kind (short / long), never the same sound twice. */
+  const vowelDistractors = (target, pool, n, rng) => {
+    const short = isShortVowel(target);
+    const cands = shuffle(spellings(pool).filter(g => isVowel(g) && isShortVowel(g) === short && !sameSound(g, target)), rng);
+    const out = [];
+    for (const g of cands) { if (out.length < n && !out.some(o => sameSound(o, g))) out.push(g); }
+    return out;
   };
   const opt = (value, label = value, lang = 'en') => ({ value, label, lang });
   const wordFeedback = (w) => {
@@ -99,7 +124,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
       type: 'choice',
       instruction: INSTRUCTIONS['sound-match'],
       prompt: { audio: clipKey('ph', ph), kw: info.kw },
-      options: shuffle([answer, ...distractors], rng).map(g => opt(g)),
+      options: shuffle([answer, ...distractors], rng).map(g => opt(g, label(g))),
       answer,
       focus: [answer],
       memory: [`ph:${ph}`],
@@ -153,22 +178,28 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
 
   function wordBuildItem(u, info, rng) {
     const w = info.w;
-    const twoSyllable = (u.review ? wordsUpTo(u.id) : u.words || []).filter(x => x.split);
-    const vowels = taughtGraphemes(u.id).filter(isVowel);
+    const own = (u.review ? wordsUpTo(u.id) : u.words || []).filter(x => x.split && x.w !== w);
+    const twoSyllable = own.length ? own : wordsUpTo(u.id).filter(x => x.split && x.w !== w);
+    const taught = spellings(taughtGraphemes(u.id));
     let pieces;
     let extras;
     if (info.split) {
       pieces = info.split.split('|');
-      const other = shuffle(twoSyllable.filter(x => x.w !== w).flatMap(x => x.split.split('|')), rng).filter(p => !pieces.includes(p));
+      const other = shuffle(twoSyllable.flatMap(x => x.split.split('|')), rng).filter(p => !pieces.includes(p));
       extras = other.slice(0, 1);
     } else {
-      pieces = graphemesOf(w, u.id);
+      pieces = piecesOf(w);
       const v = pieces.find(isVowel);
-      // One vowel distractor (vowels are what Arabic speakers tend to skip), sometimes a confusable consonant.
-      extras = shuffle(vowels.filter(x => x !== v), rng).slice(0, 1);
-      const cons = pieces.find(p => !isVowel(p));
-      const consExtra = cons ? pickGraphemeDistractors(cons, taughtGraphemes(u.id), 1, rng).filter(x => !pieces.includes(x)) : [];
-      if (rng() < 0.5) extras = [...extras, ...consExtra];
+      // One vowel distractor (vowels are what Arabic speakers tend to skip), sometimes a confusable consonant,
+      // and another ending for words with -ed / -ing.
+      extras = v ? vowelDistractors(v, taught, 1, rng).filter(x => !pieces.includes(x)) : [];
+      const cons = pieces.find(p => !isVowel(p) && gpc[p]);
+      const consExtra = cons ? pickGraphemeDistractors(cons, taught, 1, rng).filter(x => !pieces.includes(x)) : [];
+      if (rng() < 0.5 || !extras.length) extras = [...extras, ...consExtra];
+      const ending = pieces[pieces.length - 1];
+      if (SUFFIX_TILES.includes(ending) && !gpc[ending]) extras = [...extras, shuffle(SUFFIX_TILES.filter(x => x !== ending), rng)[0]];
+      // Words built on a heart word (re|do, kind|ness): offer another word part.
+      if (!extras.length) extras = [shuffle(['un', 're', ...SUFFIX_TILES].filter(x => !pieces.includes(x)), rng)[0]];
     }
     const tiles = shuffle([...pieces, ...extras], rng).map((label, i) => ({ id: `t${i}`, label }));
     return {
@@ -181,7 +212,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
       prompt: { audio: clipKey('w', w) },
       tiles,
       answerTiles: pieces,
-      focus: info.split ? [] : pieces,
+      focus: info.split ? [] : graphemesOf(w).filter(g => gpc[g]),
       memory: [`w:${w}`],
       feedback: wordFeedback(w)
     };
@@ -189,17 +220,26 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
 
   function missingLetterItem(u, info, rng, { blank = null, include = null } = {}) {
     const w = info.w;
-    const taught = taughtGraphemes(u.id);
-    const vowels = taught.filter(isVowel);
-    const gs = graphemesOf(w, u.id);
-    const i = blank && gs.includes(blank) ? gs.indexOf(blank) : pickBlank(gs, rng);
+    const taught = spellings(taughtGraphemes(u.id));
+    const { graphemes, pieces } = analyze(w);
+    const gs = pieces;
+    // Blanks: spellings of single sounds (not word endings, not the silent e of a magic-e word).
+    const magicE = graphemes.some(g => /_e$/.test(g));
+    const eligible = gs.map((g, k) => (gpc[g] && !(magicE && k === gs.length - 1 && g === 'e') ? k : -1)).filter(k => k >= 0);
+    const vowelSlots = eligible.filter(k => isVowel(gs[k]));
+    let i;
+    if (blank && gs.includes(blank)) i = gs.indexOf(blank);
+    else if (vowelSlots.length && rng() < 0.6) i = vowelSlots[Math.floor(rng() * vowelSlots.length)];
+    else i = eligible[Math.floor(rng() * eligible.length)];
     const target = gs[i];
     let distractors = isVowel(target)
-      ? shuffle(vowels.filter(v => v !== target), rng).slice(0, 3)
+      ? vowelDistractors(target, taught, 3, rng)
       : pickGraphemeDistractors(target, taught, 3, rng);
-    if (include && include !== target && taught.includes(include) && !sameSound(include, target) && !distractors.includes(include)) {
+    if (include && include !== target && taught.includes(include) && !sameSound(include, target) && !distractors.includes(include)
+      && !distractors.some(d => sameSound(d, include))) {
       distractors = [include, ...distractors].slice(0, 3);
     }
+    const focus = magicE && isShortVowel(target) && graphemes.includes(`${target}_e`) ? `${target}_e` : target;
     return {
       key: `${u.id}:missing-letter:${w}`,
       unit: u.id,
@@ -210,7 +250,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
       prompt: { audio: clipKey('w', w), parts: gs.map((g, k) => (k === i ? { blank: true } : { text: g })) },
       options: shuffle([target, ...distractors], rng).map(g => opt(g)),
       answer: target,
-      focus: [target],
+      focus: [focus],
       memory: [`w:${w}`],
       feedback: wordFeedback(w)
     };
@@ -239,9 +279,11 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
   }
 
   function firstLastItem(u, info, last, rng) {
-    const gs = graphemesOf(info.w, u.id);
+    const gs = graphemesOf(info.w).filter(g => gpc[g]);
     const target = last ? gs[gs.length - 1] : gs[0];
-    const distractors = pickGraphemeDistractors(target, taughtGraphemes(u.id), 3, rng);
+    // Options are shown by label, so never two keys with the same label (c / c2).
+    const pool = taughtGraphemes(u.id).filter(g => !/_e$/.test(g));
+    const distractors = pickGraphemeDistractors(target, pool, 3, rng);
     return {
       key: `${u.id}:first-last-sound:${info.w}:${last ? 'last' : 'first'}`,
       unit: u.id,
@@ -250,7 +292,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
       type: 'choice',
       instruction: INSTRUCTIONS[last ? 'last-sound' : 'first-sound'],
       prompt: { audio: clipKey('w', info.w), position: last ? 'last' : 'first' },
-      options: shuffle([target, ...distractors], rng).map(g => opt(g)),
+      options: shuffle([target, ...distractors], rng).map(g => opt(g, label(g))),
       answer: target,
       focus: [target],
       memory: [`w:${info.w}`],
@@ -295,7 +337,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
 
   function dictationItem(u, info, rng) {
     const w = info.w;
-    const graphemes = graphemesOf(w, lastUnit.id);
+    const { graphemes, pieces } = analyze(w);
     return {
       key: `${u.id}:dictation:${w}`,
       unit: u.id,
@@ -305,9 +347,9 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
       instruction: INSTRUCTIONS.dictation,
       prompt: { audio: clipKey('w', w), voice: rng() < 0.5 ? 'm' : 'f' },
       answer: w,
-      graphemes: info.split ? info.split.split('|').flatMap(p => segment(p) || [p]) : graphemes,
+      graphemes: pieces,
       keys: keyboardLetters(u.id),
-      focus: info.split ? [] : graphemes,
+      focus: info.split ? [] : graphemes.filter(g => gpc[g]),
       memory: [`w:${w}`],
       feedback: wordFeedback(w)
     };
@@ -381,7 +423,8 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
   }
 
   function pseudoItem(u, pw, rng) {
-    const words = [pw.w, ...pw.foils];
+    const words = [pw.w, ...pw.foils.map(f => pseudoForm(f, gpc, pw.split).text)];
+    const decoded = pw.split ? decodeWord(pw.w, u.id, lex, pw.split) : analyzeToken(pw.w, u.id, lex);
     return {
       key: `${u.id}:pseudo:${pw.w}`,
       unit: u.id,
@@ -392,7 +435,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
       prompt: { text: pw.w, split: pw.split || null },
       options: shuffle(words, rng).map(w => ({ value: w, audio: clipKey('p', w) })),
       answer: pw.w,
-      focus: decodeWord(pw.w, u.id, lex, pw.split || null).graphemes || [],
+      focus: (decoded.graphemes || []).filter(g => gpc[g]),
       memory: [],
       feedback: { audio: clipKey('p', pw.w), word: pw.w, ar: '', emoji: '' }
     };
@@ -471,14 +514,14 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
 
   const tracing = (u) => (u.graphemes || []).filter(g => g.length === 1 && alphabet.includes(g)).map(l => tracingItem(u, l));
 
-  function readText(u) {
+  function readText(u, n, rng = Math.random) {
     return (u.texts || []).flatMap(t => t.questions.map((q, k) => ({
       key: `${u.id}:read-text:${t.id}:${k}`,
       unit: u.id,
       activity: 'read-text',
       item: `${t.id}:${k}`,
-      type: 'yesno',
-      instruction: INSTRUCTIONS['read-text'],
+      type: q.options ? 'choice' : 'yesno',
+      instruction: INSTRUCTIONS[q.options ? 'read-text-choice' : 'read-text'],
       prompt: {
         title: t.title,
         textId: t.id,
@@ -486,12 +529,75 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
         statement: q.text,
         audio: clipKey('s', q.text)
       },
-      options: [opt(true, 'نعم', 'ar'), opt(false, 'لا', 'ar')],
+      options: q.options ? shuffle(q.options, rng).map(o => opt(o)) : [opt(true, 'نعم', 'ar'), opt(false, 'لا', 'ar')],
       answer: q.answer,
       focus: [],
       memory: [],
-      feedback: { audio: clipKey('s', q.text), text: q.text, ar: q.ar, word: '', emoji: '' }
+      feedback: { audio: clipKey('s', q.text), text: q.options ? `${q.text} ${q.answer}` : q.text, ar: q.ar, word: '', emoji: '' }
     })));
+  }
+
+  function signItem(u, sign, rng) {
+    const others = shuffle(signsUpTo(lastUnit.id).filter(x => x.ar !== sign.ar), rng);
+    // Prefer signs already met, then any course sign, so there are always four meanings.
+    const known = signsUpTo(u.id);
+    const distractors = [...others.filter(x => known.includes(x)), ...others.filter(x => !known.includes(x))].slice(0, 3);
+    return {
+      key: `${u.id}:signs:${slugify(sign.text)}`,
+      unit: u.id,
+      activity: 'signs',
+      item: sign.text,
+      type: 'choice',
+      instruction: INSTRUCTIONS.signs,
+      prompt: { sign: sign.text, kind: sign.kind, audio: clipKey('s', sign.say) },
+      options: shuffle([sign, ...distractors], rng).map(x => opt(x.text, x.ar, 'ar')),
+      answer: sign.text,
+      focus: [],
+      memory: [],
+      feedback: { audio: clipKey('s', sign.say), word: sign.text, text: sign.say, ar: sign.ar, emoji: '' }
+    };
+  }
+
+  function signs(u, n, rng) {
+    const own = shuffle(u.signs || [], rng);
+    const earlier = shuffle(signsUpTo(u.id).filter(x => !own.includes(x)), rng);
+    return take([...own, ...earlier], n).map(x => signItem(u, x, rng));
+  }
+
+  function forms(u, n, rng) {
+    return shuffle((u.forms || []).flatMap(f => {
+      const empty = { title: f.title, ar: f.ar, fields: f.fields.map(x => ({ label: x.label, value: '' })) };
+      const filled = { title: f.title, ar: f.ar, fields: f.fields.map(x => ({ label: x.label, value: x.value })) };
+      const fieldItems = f.fields.map(field => ({
+        key: `${u.id}:forms:${f.id}:${slugify(field.label)}`,
+        unit: u.id,
+        activity: 'forms',
+        item: `${f.id}:${field.label}`,
+        type: 'choice',
+        instruction: field.ask,
+        prompt: { form: empty },
+        options: shuffle([field, ...shuffle(f.fields.filter(x => x !== field), rng).slice(0, 3)], rng).map(x => opt(x.label)),
+        answer: field.label,
+        focus: [],
+        memory: [],
+        feedback: { audio: '', word: field.label, ar: field.ar, emoji: '' }
+      }));
+      const statementItems = f.statements.map((st, k) => ({
+        key: `${u.id}:forms:${f.id}:statement-${k}`,
+        unit: u.id,
+        activity: 'forms',
+        item: `${f.id}:${k}`,
+        type: 'yesno',
+        instruction: INSTRUCTIONS['forms-statement'],
+        prompt: { form: filled, statement: st.text, audio: clipKey('s', st.text) },
+        options: [opt(true, 'نعم', 'ar'), opt(false, 'لا', 'ar')],
+        answer: st.answer,
+        focus: [],
+        memory: [],
+        feedback: { audio: clipKey('s', st.text), text: st.text, ar: st.ar, word: '', emoji: '' }
+      }));
+      return [...shuffle(fieldItems, rng).slice(0, Math.max(4, n - statementItems.length)), ...statementItems];
+    }), rng).slice(0, Math.max(n, 6));
   }
 
   const BUILDERS = {
@@ -507,7 +613,9 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
     dictation,
     'heart-words': heartWords,
     'sentence-build': sentenceBuild,
-    tracing
+    tracing,
+    signs,
+    forms
   };
 
   /** Build the questions for one activity of one unit. */
@@ -611,10 +719,15 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
   }
 
   // ---------------- placement ----------------
-  /** Five items for one unit of the placement test (no feedback is given during the test). */
+  /**
+   * Items for one unit of the placement test (no feedback is given during the test).
+   * Units 1-9: five items. From unit 11 the words are cumulative, so three items (minimal pair, made-up word,
+   * dictation) are enough and keep the whole test near 10 minutes for a strong reader.
+   */
   function placementItems(unitId, rng = Math.random) {
     const u = unitOf(unitId);
     if (!u) return [];
+    if (unitId >= SHORT_PLACEMENT_FROM) return shortPlacementItems(u, rng);
     const items = [];
     const soundGraphemes = (u.graphemes || []).filter(g => !gpc[g].variantOf && hasClip(clipKey('ph', gpc[g].ph)));
     if (soundGraphemes.length) {
@@ -633,6 +746,17 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
     const heart = u.heart || [];
     if (u.id % 2 === 0 && heart.length) items.push(heartItem(u, pick(heart, rng), rng));
     else items.push(dictationItem(u, pick(unitWords(u), rng), rng));
+    return items.filter(Boolean).map(q => ({ ...q, key: `place:${q.key}` }));
+  }
+
+  function shortPlacementItems(u, rng) {
+    const items = [];
+    for (const set of shuffle(u.contrasts || [], rng)) {
+      const q = whichWordItem(u, pick(set, rng), set, rng);
+      if (q) { items.push(q); break; }
+    }
+    if ((u.pseudo || []).length) items.push(pseudoItem(u, pick(u.pseudo, rng), rng));
+    items.push(dictationItem(u, pick(unitWords(u), rng), rng));
     return items.filter(Boolean).map(q => ({ ...q, key: `place:${q.key}` }));
   }
 

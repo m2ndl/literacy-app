@@ -198,7 +198,8 @@ describe('units and passing', () => {
 
   it('finds the next unit', () => {
     assert.equal(nextUnitId(units, 1), 2);
-    assert.equal(nextUnitId(units, 10), null);
+    assert.equal(nextUnitId(units, 10), 11);
+    assert.equal(nextUnitId(units, 24), null);
     assert.equal(nextUnitId(units, 99), null);
   });
 });

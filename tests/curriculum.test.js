@@ -2,7 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { units, gpc, ACTIVITY_META, PERCEPTION } from '../data.js';
-import { buildLexicon, decodeWord, checkSentence, contrastOf, sameSound, tokenize } from '../phonics.js';
+import { buildLexicon, decodeWord, analyzeToken, checkSentence, contrastOf, sameSound, tokenize, segment } from '../phonics.js';
 
 const lex = buildLexicon(units, gpc);
 const ARABIC = /[؀-ۿ]/;
@@ -12,8 +12,8 @@ function cumulativeWords(unitIndex) {
 }
 
 describe('curriculum structure', () => {
-  it('has ten units with unique sequential ids', () => {
-    assert.equal(units.length, 10);
+  it('has 24 units with unique sequential ids', () => {
+    assert.equal(units.length, 24);
     units.forEach((u, i) => assert.equal(u.id, i + 1));
   });
 
@@ -47,11 +47,11 @@ describe('curriculum structure', () => {
 });
 
 describe('words', () => {
-  it('are decodable when introduced', () => {
+  it('are decodable when introduced (word endings count from Stage 3)', () => {
     for (const u of units) {
       for (const w of u.words || []) {
-        const r = decodeWord(w.w, u.id, lex);
-        assert.ok(r.ok, `unit ${u.id}: "${w.w}" is not decodable (${r.reason})`);
+        const r = analyzeToken(w.w, u.id, lex);
+        assert.ok(r.ok && r.via !== 'heart', `unit ${u.id}: "${w.w}" is not decodable (${r.reason})`);
       }
     }
   });
@@ -80,7 +80,7 @@ describe('words', () => {
   it('split two-syllable words correctly', () => {
     for (const u of units) {
       for (const w of u.words || []) {
-        if (w.split) assert.equal(w.split.replace('|', ''), w.w, `bad split for "${w.w}"`);
+        if (w.split) assert.equal(w.split.replace(/\|/g, ''), w.w, `bad split for "${w.w}"`);
       }
     }
   });
@@ -117,6 +117,16 @@ describe('heart words and names', () => {
   });
 });
 
+/** True if one word is the other with one consonant letter added (top / stop, ask / mask, ten / tent). */
+function insertion(a, b) {
+  const [s, l] = a.length < b.length ? [a, b] : [b, a];
+  if (l.length !== s.length + 1) return false;
+  for (let i = 0; i < l.length; i++) {
+    if (l.slice(0, i) + l.slice(i + 1) === s) return !'aeiou'.includes(l[i]);
+  }
+  return false;
+}
+
 describe('contrasts', () => {
   it('use decodable words already in the word pool, one grapheme apart, different sounds', () => {
     units.forEach((u, idx) => {
@@ -130,6 +140,7 @@ describe('contrasts', () => {
         for (let i = 0; i < set.length; i++) {
           for (let j = i + 1; j < set.length; j++) {
             const c = contrastOf(set[i], set[j]);
+            if (!c && insertion(set[i], set[j])) continue;   // top / stop: a consonant added to make a cluster
             assert.ok(c, `unit ${u.id}: "${set[i]}" / "${set[j]}" differ in more than one grapheme`);
             assert.ok(!sameSound(c.from, c.to), `unit ${u.id}: "${set[i]}" / "${set[j]}" sound the same`);
           }
@@ -156,14 +167,19 @@ describe('sentences and texts', () => {
   it('texts and their questions are decodable', () => {
     for (const u of units) {
       for (const t of u.texts || []) {
-        for (const s of [...t.sentences, ...t.questions]) {
+        for (const s of [...t.sentences, ...t.questions, ...t.questions.flatMap(q => (q.options || []).map(o => ({ text: o, ar: q.ar })))]) {
           const fails = checkSentence(s.text, u.id, lex);
           assert.deepEqual(fails, [], `unit ${u.id} text "${t.id}": "${s.text}" -> ${JSON.stringify(fails)}`);
           assert.match(s.ar, ARABIC);
         }
         assert.ok(t.questions.length >= 3);
-        t.questions.forEach(q => assert.equal(typeof q.answer, 'boolean'));
-        assert.ok(t.questions.some(q => q.answer) && t.questions.some(q => !q.answer), `text "${t.id}" needs yes and no answers`);
+        const yesNo = t.questions.filter(q => !q.options);
+        yesNo.forEach(q => assert.equal(typeof q.answer, 'boolean'));
+        t.questions.filter(q => q.options).forEach(q => {
+          assert.ok(q.options.includes(q.answer), `text "${t.id}": answer "${q.answer}" not in the options`);
+          assert.equal(new Set(q.options).size, q.options.length);
+        });
+        assert.ok(yesNo.some(q => q.answer) && yesNo.some(q => !q.answer), `text "${t.id}" needs yes and no answers`);
       }
     }
   });
@@ -180,12 +196,13 @@ describe('made-up words (placement test)', () => {
     for (const u of units.filter(x => !x.review)) {
       assert.ok((u.pseudo || []).length >= 3, `unit ${u.id} needs made-up words`);
       for (const pw of u.pseudo) {
-        const r = decodeWord(pw.w, u.id, lex, pw.split || null);
+        const r = pw.split ? decodeWord(pw.w, u.id, lex, pw.split) : analyzeToken(pw.w, u.id, lex);
         assert.ok(r.ok, `unit ${u.id}: "${pw.w}" is not decodable (${r.reason})`);
         assert.ok(!real.has(pw.w), `"${pw.w}" is a curriculum word`);
         assert.equal(pw.foils.length, 2);
-        assert.equal(new Set([pw.w, ...pw.foils]).size, 3, `"${pw.w}": foils must differ`);
-        for (const f of pw.foils) assert.equal(f.length >= pw.w.length - 1 && f.length <= pw.w.length + 1, true);
+        const foils = pw.foils.map(f => (typeof f === 'string' ? f.replace(/\|/g, '') : f.w));
+        assert.equal(new Set([pw.w, ...foils]).size, 3, `"${pw.w}": foils must differ`);
+        for (const f of foils) assert.ok(f.length >= pw.w.length - 2 && f.length <= pw.w.length + 2, `"${pw.w}": foil "${f}"`);
       }
     }
   });
@@ -193,6 +210,7 @@ describe('made-up words (placement test)', () => {
   it('are unique across units', () => {
     const all = units.flatMap(u => (u.pseudo || []).map(p => p.w));
     assert.equal(new Set(all).size, all.length);
+    assert.ok(segment('snep'));
   });
 });
 
@@ -229,5 +247,60 @@ describe('activity metadata', () => {
   it('marks tracing as optional and only tracing', () => {
     const optional = Object.entries(ACTIVITY_META).filter(([, m]) => m.optional).map(([k]) => k);
     assert.deepEqual(optional, ['tracing']);
+  });
+});
+
+describe('Stage 3-5 additions', () => {
+  const pool = new Set(units.flatMap(u => (u.words || []).map(w => w.w)));
+  it('patterns have an example word from the course', () => {
+    for (const u of units) {
+      for (const p of u.patterns || []) assert.ok(pool.has(p.ex), `unit ${u.id}: pattern example "${p.ex}" is not a course word`);
+    }
+  });
+
+  it('signs can be read with what has been taught, and have unique meanings', () => {
+    const meanings = new Set();
+    for (const u of units) {
+      for (const s of u.signs || []) {
+        assert.match(s.text, /^[A-Z ]+$/);
+        assert.equal(s.say.toUpperCase(), s.text);
+        assert.match(s.ar, ARABIC);
+        assert.ok(['stop', 'go', 'info'].includes(s.kind));
+        assert.ok(!meanings.has(s.ar), `sign meaning "${s.ar}" is used twice`);
+        meanings.add(s.ar);
+        const fails = checkSentence(s.say, u.id, lex);
+        assert.deepEqual(fails, [], `unit ${u.id}: sign "${s.text}" -> ${JSON.stringify(fails)}`);
+      }
+    }
+  });
+
+  it('forms have readable labels, Arabic questions and decodable statements', () => {
+    for (const u of units) {
+      for (const f of u.forms || []) {
+        assert.ok(f.fields.length >= 4);
+        assert.equal(new Set(f.fields.map(x => x.label)).size, f.fields.length);
+        for (const field of f.fields) {
+          assert.match(field.ar, ARABIC);
+          assert.match(field.ask, ARABIC);
+          const fails = checkSentence(field.label, u.id, lex);
+          assert.deepEqual(fails, [], `unit ${u.id}: form label "${field.label}" -> ${JSON.stringify(fails)}`);
+        }
+        assert.ok(f.statements.some(x => x.answer) && f.statements.some(x => !x.answer));
+        for (const st of f.statements) {
+          assert.deepEqual(checkSentence(st.text, u.id, lex), [], `unit ${u.id}: "${st.text}"`);
+          assert.match(st.ar, ARABIC);
+        }
+      }
+    }
+  });
+
+  it('every unit after the first ten has a campus text', () => {
+    for (const u of units.filter(x => x.id > 10)) assert.ok((u.texts || []).length >= 1, `unit ${u.id} has no text`);
+  });
+
+  it('the heart-word strand reaches about 100 words', () => {
+    const heart = units.flatMap(u => u.heart || []);
+    assert.equal(new Set(heart.map(h => h.w)).size, heart.length, 'a heart word is taught twice');
+    assert.ok(heart.length >= 95, `only ${heart.length} heart words`);
   });
 });

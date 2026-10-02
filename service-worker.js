@@ -1,7 +1,7 @@
 // service-worker.js - Offline support.
 // Bump SHELL_CACHE whenever app files change. Audio clips live in their own cache: their URLs
 // carry a content hash (?v=...), so app updates don't throw away audio the learner downloaded.
-const SHELL_CACHE = 'lughatii-v5';
+const SHELL_CACHE = 'lughatii-v6';
 const AUDIO_CACHE = 'lughatii-audio-v1';
 const PREFIX = 'lughatii-';
 const NETWORK_TIMEOUT_MS = 4000;
@@ -14,6 +14,7 @@ const urlsToCache = [
   './logic.js',
   './learner.js',
   './data.js',
+  './data-stages3-5.js',
   './phonics.js',
   './questions.js',
   './audio.js',
