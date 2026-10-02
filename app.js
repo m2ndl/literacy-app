@@ -637,7 +637,6 @@ function finishActivity() {
       } else unlockedMsg = 'أكملت الوحدة. أحسنت!';
     }
   }
-  checkAchievements();
   save(true);
   session = null;
   const top = Object.entries(confusions).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k.split('|'));
@@ -647,9 +646,10 @@ function finishActivity() {
     passed ? null : el('p', { class: 'text-gray-600', text: `المطلوب ${toArabicDigits(Math.round(PASS_MARK * 100))}٪ على الأقل. الأخطاء جزء من التعلّم — حاول مرة أخرى.` }),
     unlockedMsg ? el('p', { class: 'text-green-700 font-bold mt-2', text: unlockedMsg }) : null,
     top.length ? el('p', { class: 'mt-3 text-base' }, 'انتبه إلى: ', ...top.flatMap(([a, b], i) => [i ? '، ' : '', en(`${a} / ${b}`)])) : null);
+  // New badges are shown after the result, not on top of it.
   showMessage(msg, [
-    { label: 'أعد المحاولة', onClick: () => startActivity(unitId, activityId), secondary: passed },
-    { label: 'العودة إلى الوحدة', onClick: () => showLesson(unitId), secondary: !passed }
+    { label: 'أعد المحاولة', onClick: () => { startActivity(unitId, activityId); checkAchievements(); }, secondary: passed },
+    { label: 'العودة إلى الوحدة', onClick: () => { showLesson(unitId); checkAchievements(); }, secondary: !passed }
   ]);
 }
 
