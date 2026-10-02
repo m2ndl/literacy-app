@@ -37,6 +37,8 @@ Read each task in Arabic. Record success (✓ without help / ½ with a hint / �
 | 9 | احفظ نسخة احتياطية من تقدّمك وأرسلها لنفسك. | Makes a code and copies or shares it |
 | 10 | (prepared phone, unit 21 open) افتح الوحدة ٢١ وأكمل «اقرأ اللافتة». | Finishes; can say what one sign means without looking at the options |
 | 11 | (prepared phone, unit 23 open) في «الاستمارات»، أين تكتب رقم هاتفك؟ | Chooses the *Phone* field; says whether they understood the form |
+| 12 | (prepared phone, unit activities done) خذ «اختبار الوحدة»، ثم تدرّب على أخطائك. | Finishes the check; finds and uses "practise your mistakes" |
+| 13 | جرّب «اقرأ بصوت عالٍ»: سجّل جملة واحدة وقارنها بالنموذج. | Allows the microphone, records, plays both, rates; says whether the comparison helped |
 
 After the tasks, ask: «ما أصعب شيء في البرنامج؟ ما أكثر شيء أفادك؟ هل ستستخدمه غدًا؟ لماذا؟»
 

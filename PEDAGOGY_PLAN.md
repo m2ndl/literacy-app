@@ -2,7 +2,7 @@
 
 **Purpose:** review the app as a literacy course and plan how to make it the best possible English reading app for **college-level EFL learners at CEFR pre-A1 whose first language is Arabic**.
 **Audience:** the app owner, teachers who recommend the app, and developers.
-**Status:** this document is the plan. Phase 1 (section 12), Phase 2 (section 13) and Phase 3 (section 14) are implemented in this repository. Later phases are proposals.
+**Status:** this document is the plan. Phases 1–4 (sections 12–15) are implemented in this repository; Phase 4's benchmarks still need validating in a pilot. Phase 5 is a proposal.
 
 Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 
@@ -24,7 +24,8 @@ Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 12. [Phase 1 — what this release changes](#12-phase-1--what-this-release-changes)
 13. [Phase 2 — the learner model](#13-phase-2--the-learner-model)
 14. [Phase 3 — the full course (Stages 3–5)](#14-phase-3--the-full-course-stages-35)
-15. [References](#15-references)
+15. [Phase 4 — fluency and assessment](#15-phase-4--fluency-and-assessment)
+16. [References](#16-references)
 
 ---
 
@@ -213,6 +214,7 @@ Names (*Ali, Sara* and a few others) are flagged as name-words for cultural rele
 | **Complete the sentence** ("أكمل الجملة", was "بناء الجمل") | Mislabelled; translation visible | Translation shown **after** answering; same-word-class distractors | Real word-order building (adjective before noun) |
 | *New in Phase 2* | | | Dictation, heart-word spelling, sentence order, letter formation (optional), ear training, placement test (section 13) |
 | *New in Phase 3* | | | Read the sign, forms, multiple-choice text questions; word build and missing letter with vowel teams and word parts (section 14) |
+| *New in Phase 4* | | | Unit check; read aloud and compare (optional); timed word and sentence drills; timed text reading; stage benchmarks; can-do self-assessment (section 15) |
 | *Later* | | | Blending (tap each sound → word), timed reading, record-and-compare |
 
 ### Feedback and error correction (Phase 1)
@@ -295,16 +297,16 @@ It places the learner at the first unit not yet mastered and lets them test out 
 - Mastery rule (Phase 2): ≥ 90% correct over the last ≥ 8 first tries, spread over ≥ 2 days, and an average response under 3 s on recognition tasks. The time counts from when the item appears, so it includes about 1 s of audio (≈ 2 s after the audio ends).
 - These thresholds should be calibrated in the pilot study.
 
-**Unit check (Phase 4).** 12 mixed items, including 2 pseudowords and 1 mini-text; pass at ≥ 80%.
+**Unit check (built in Phase 4, section 15).** 12 mixed items, including 2 made-up words and a reading item; pass at ≥ 80%, with corrective practice and a retake.
 
 **Stage benchmarks** are linked to:
 - the CEFR Companion Volume (2020) Pre-A1/A1 reading descriptors, e.g. Pre-A1 "Can recognise familiar words accompanied by pictures…";
 - the CLB *ESL for Adult Literacy Learners*;
 - the *LASLLIAM* technical-literacy scales.
 
-Learners see Arabic can-do statements.
+Learners see Arabic can-do statements. The built benchmarks (section 15) have five parts: timed word reading, timed sentence verification, made-up words, dictation, and an unseen text. Self-assessment follows. Their speed criteria are provisional until the pilot.
 
-**Learner report:** sounds I know vs sounds to practise, words learned, texts read, and speed over time.
+**Learner report:** sounds I know vs sounds to practise, words learned, unit checks, stage benchmark profiles with self-ratings, and speed over time (built in Phases 2 and 4).
 
 ---
 
@@ -364,6 +366,7 @@ Learners see Arabic can-do statements.
   - SUS ≥ 70;
   - ≥ 40% of learners return after 7 days.
 - **Ethics:** informed consent; anonymous random learner codes; data leaves the device only when the learner chooses to export it (no login, no tracking).
+- **Benchmark validation:** the same pilot validates the stage benchmarks (section 15). Learners export their benchmark CSV; a teacher adds a 1-minute oral reading and a CEFR-descriptor rating; `tools/pilot/item_analysis.py` reports the results.
 
 ---
 
@@ -374,7 +377,7 @@ Learners see Arabic can-do statements.
 | **1 Foundation** (this release) | This plan; decodable Stage 0–2 curriculum; generated American audio for sounds, words and sentences; iPhone/Android audio engine; explanatory feedback; local error log; curriculum-checking tests | All tests pass; 100% decodable; audio plays on both platforms |
 | **2 Learner model** (built, section 13) | Placement test; item-level mastery; daily spaced review; "practise my weak sounds"; multi-voice perception training; dictation; tracing; word-order sentences; backup code; iPhone install guide; in-app-browser warning | First usability round SUS ≥ 70 ([usability kit](./docs/usability-kit.md)) |
 | **3 Curriculum** (built, section 14) | Stages 3–5; heart-word strand (≈100); decodable adult readers (campus series) with read-along highlighting and comprehension; campus signs and forms | Content metrics met (all but vocabulary frequency; see section 14) |
-| 4 Fluency & assessment | Timed fluency tasks; record-and-compare reading aloud; unit checks and stage benchmarks; can-do self-assessment | Benchmarks validated in pilot |
+| **4 Fluency & assessment** (built, section 15) | Timed fluency tasks; record-and-compare reading aloud; unit checks and stage benchmarks; can-do self-assessment | Benchmarks validated in pilot (tools and protocol ready; needs learners) |
 | 5 Evaluation | Tier 3 pilot; report; revisions | Report complete |
 
 ---
@@ -799,7 +802,161 @@ Running-word coverage is the usual measure of how readable a text is for a learn
 
 ---
 
-## 15. References
+## 15. Phase 4 — fluency and assessment
+
+Phase 4 builds what the roadmap lists:
+- timed fluency tasks;
+- record-and-compare reading aloud;
+- unit checks and stage benchmarks;
+- can-do self-assessment.
+
+The roadmap's "done when" is **benchmarks validated in a pilot**, which needs learners. This release builds the benchmarks, the data export and the analysis tool for that pilot, and sets out how validation will be done.
+
+### Unit checks (اختبار الوحدة)
+- **Where.** The last activity of every unit. It opens once all the unit's other required activities are done.
+- **What.** 12 mixed items:
+  - 2 minimal pairs;
+  - 2 meanings;
+  - 2 dictation words;
+  - 1 word-part item (missing letter or word build);
+  - 1 heart word;
+  - 2 made-up words;
+  - the unit's signs, forms or new sounds;
+  - a reading item, always last: a text question (units 1–9: complete the sentence).
+- **How.** No feedback until the end, like the placement test. 80% (10 of 12) completes the unit and opens the next one; the first pass gives 20 points.
+- **After the check.** The learner sees each missed item with its right answer and audio.
+  - "Practise your mistakes" replays the missed items with the usual feedback: hint, then answer, then a delayed retest.
+  - Then the learner can retake the check, with new items.
+  - This is mastery learning's cycle: formative test, then correctives, then a second test (Kulik, Kulik & Bangert-Drowns 1990; Black & Wiliam 1998).
+  - Check answers also update item memory, so the check is retrieval practice too.
+- **Existing learners.** Units completed before this release stay complete. Their check is available but not required.
+
+### Timed reading practice (تدريب السرعة)
+**Why.** Accuracy is not enough: word recognition has to become automatic, or reading stays slow and comprehension suffers (LaBerge & Samuels 1974; Perfetti 2007). For adult EFL learners, timed and repeated reading improves rate and comprehension (Gorsuch & Taguchi 2008; Therrien 2004).
+
+**How speed is measured.** The app is offline and has no speech recogniser, so speed is measured with silent tasks that can only be done by reading for meaning.
+- **Words (60 s).** Read an English word and pick its meaning from two (picture and Arabic). The pool is every word of the units completed.
+- **True or false? (90 s).** Read a sentence and say whether it is true. This is sentence verification, as in TOSREC (Wagner et al. 2010) and the PIAAC reading components (Sabatini & Bruce 2009).
+  - 72 sentences (`data-assess.js`), each plainly true or false from everyday knowledge (*A fish can swim.* / *A rock can swim.*).
+  - Each is decodable at its unit, and the pool grows as units are completed. The linter checks decodability and a 40–60% true share in every stage.
+- **Score.** Items right minus items wrong, per minute, so guessing does not pay. The result shows the personal best, a trend line and the mistakes with their answers.
+- **Pausing.** Time only runs while the app is on screen.
+- **Timed text reading (repeated reading).** Every lesson text has a "⏱ measure your speed" button.
+  - The learner reads silently, taps "done", and sees words a minute next to their previous reading of the same text.
+  - Readings faster than 4 words a second are refused as not real reading.
+- **When.** The word drill opens after the first completed unit; the sentence drill opens once at least 10 sentences can be read (around unit 7). A "speed practice" card appears on the Today panel.
+
+### Read aloud and compare (اقرأ بصوت عالٍ)
+- **The activity.** Optional, in every unit: 5 of the unit's sentences.
+  - The learner reads the sentence silently, records reading it aloud, and then hears their own reading followed by the model.
+  - They rate it: *like the model*, *close* or *I need practice*.
+- **Cues to help the comparison:**
+  - speaking time against the model's, with silence trimmed, plus advice on pace (e.g. "much slower than the model, which is normal at first");
+  - the two waveforms side by side, where pauses show as gaps.
+- **No automatic scoring.** A browser cannot recognise speech offline, and certainly not learner speech. Cloud recognition would break the no-account, offline design. So the learner judges, helped by the cues: self-monitoring against a model, as in repeated and assisted reading.
+- **Logging.** Each rating is logged with both durations (`rating|learner s|model s`), so a pilot can follow learners' speaking-rate ratio over time.
+- **Privacy.** Recordings stay in memory and are gone when the learner moves on. Nothing is saved or sent, and the screen says so.
+- **iPhone.**
+  - The audio session switches to *play-and-record* while recording and back to *playback* afterwards.
+  - The microphone is released after each recording, so playback returns to the loudspeaker.
+  - This needs a check on a real iPhone.
+- **No microphone.** If recording is unavailable or permission is refused, the learner reads aloud, listens to the model and rates.
+
+### Stage benchmarks (اختبار المرحلة)
+
+| Part | Task | Score | Criterion |
+|---|---|---|---|
+| 1 Word reading | Words, 60 s; the stage's words come first | Net words a minute | ≥ 20 (provisional: 3 s a word, as in the mastery rule) |
+| 2 Sentence reading | True or false, 90 s; the stage's sentences come first | Net sentences a minute | ≥ 6 (provisional: 10 s a sentence) |
+| 3 Decoding | 6 made-up words from the stage (choose the right reading of three) | % right | ≥ 80% |
+| 4 Spelling | 6 dictation words from the stage | % of whole words right | ≥ 80% |
+| 5 Reading comprehension | An **unseen** text for the stage (48–65 words), 3 yes/no questions and 1 *who/what* question, no audio | % right | ≥ 75% |
+| then | Can-do self-assessment (4 statements) | — | — |
+
+- **During the test.** No feedback, about 10 minutes in all.
+- **Results.** A profile of the five parts:
+  - met or not met;
+  - the change since the previous sitting;
+  - what to practise for each part not met.
+- **When.**
+  - Recommended on the Today panel once every unit of a stage is complete.
+  - It can be taken whenever the stage is open, for example as a "before" measure. Each sitting records whether the stage was already finished, so before/after comparisons are possible.
+- **Not a gate.** The criteria are not validated, so they hold no learner back. The unit checks are the gate.
+- **The texts.** They are not used anywhere else (the linter checks this) and are decodable at the stage's last unit.
+- **A limitation.** The made-up words come from the stage's pool, which the placement test and unit checks also use, so a learner may have met some of them. New made-up words, with their audio, would make part 3 cleaner (pilot item).
+
+**Can-do statements and frameworks.** The statements are the course's own Arabic wording (`CAN_DO_STAGES`). Each names the descriptor family it was written from, for the Tier 1 raters to check. This is not a claim of equivalence, and the benchmark is not a CEFR test.
+
+| Stage | Statements (summary) | Written from |
+|---|---|---|
+| 1 | read short words; spell a heard word; tell *p/b, i/e* apart; read a short sentence | CEFR CV Pre-A1 overall reading comprehension; LASLLIAM technical literacy |
+| 2 | read clusters without an added vowel; read *-ed/-ing* words; spell clusters; read a short campus text | CEFR A1 overall reading comprehension; CLB ALL reading |
+| 3 | read long vowels; know several spellings of one sound; read campus signs; answer questions on a text | CEFR Pre-A1/A1 reading for orientation; CLB ALL |
+| 4 | read long words; understand words from their parts; read a form; read a short text at a comfortable speed | CEFR A1 reading for orientation; CLB ALL forms |
+
+### Can-do self-assessment
+- **The ratings.** Four statements per stage, each rated *yes, easily* / *yes, with help* / *not yet*.
+- **When.** Asked at the end of each benchmark, and available from the report at any time. The latest ratings are kept and shown next to the measured profile.
+- **Why.** Self-assessment builds learner autonomy, and in second-language studies it correlates moderately with other proficiency measures (Ross 1998). Seeing ratings next to results helps learners judge their own reading.
+
+### Report and data
+- **Report.** New sections show:
+  - speed: last and best rates with trend lines, and timed text readings;
+  - unit checks: best score per unit;
+  - stage benchmarks: the latest profile with self-ratings, and buttons to take or retake a benchmark and to self-assess.
+- **Progress v5** (`literacyAppProgress.v5`) adds:
+  - drill results (last 30 of each kind) and timed text readings (last 60);
+  - unit checks;
+  - benchmarks (last 12 sittings, item by item);
+  - self-assessments.
+
+  v4 and v3 progress are migrated; backup codes include the new records.
+- **Benchmark export.** From the backup screen, as CSV: one row per item answered, per part and per can-do rating. As before, nothing is sent automatically.
+
+### How the benchmarks will be validated
+This is an argument-based validation (Kane 2013). Steps 1–3 and 5–6 are computed by `tools/pilot/item_analysis.py` from the learners' exported CSV files and an optional criterion file.
+1. **Scoring.** Item facility and item–rest correlation. Items with facility above .95 or below .20, or correlation below .20, are revised.
+2. **Generalisation.**
+   - Test–retest of two sittings within 14 days: target *r* ≥ .80 for decisions about a learner.
+   - Internal consistency (KR-20) for the accuracy parts.
+   - The accuracy parts are short (4–6 items), so their reliability will be modest. Any part below .70 is lengthened (e.g. 10 made-up words) before it is used for decisions.
+3. **Extrapolation.** Correlation with measures taken by a teacher (target *r* ≥ .50):
+   - one minute of oral reading (words correct per minute; Fuchs et al. 2001);
+   - a rating against the CEFR Pre-A1/A1 reading descriptors.
+4. **Decision.**
+   - Replace the provisional speed criteria with values from data. For example, use contrasting groups: learners the teacher judges ready for the next stage, compared with those judged not ready.
+   - Update `assess.js` (`BENCHMARK_CRITERIA`) and this section.
+5. **Sensitivity.** Before/after sittings of the same stage: mean gain and paired effect size per part.
+6. **Self-assessment.** Correlation of can-do ratings with measured accuracy.
+
+The sample is the Tier 3 pilot (section 10): at least 30 learners, because correlations from usability rounds of 5–8 learners are too unstable. Phase 4 is **done** when this has been reported for at least stages 1 and 2, the criteria have been revised, and any part with reliability below .70 has been lengthened.
+
+### Verification
+- **`npm test`: 460 tests.** New or extended:
+  - scoring, history limits, benchmark profiles, the benchmark recommendation, the recording helpers (speech span, waveform, pace advice) and the CSV export;
+  - progress v5 and its migration from v4;
+  - the Phase 4 content linter (72 sentences decodable and balanced, unseen texts decodable at the end of each stage, can-do statements);
+  - unit checks for every unit × 5 seeds;
+  - drills and benchmarks for every stage.
+- **Browser run** (Chromium, Pixel 7, fake microphone): 25 checks, no page errors.
+  - The unit check is closed until the other activities are done.
+  - A pass: 12 items with no feedback; the unit completes, the next unit opens and 20 points are added.
+  - A fail: 4 missed items listed, corrective practice, and a retake offered.
+  - Read aloud: recording, both waveforms, and 5 ratings logged with durations.
+  - Word and sentence drills, with mistakes counted.
+  - A full stage 1 benchmark: 5 parts, 96 item responses, the profile and the self-assessment.
+  - The report sections and the text timer.
+- **Earlier browser runs repeated:** the Phase 2 flows, the placement test and the Stage 3 activities.
+- **The pilot analysis script** was run on synthetic exports (12 learners × 3 sittings).
+
+### Still to do by a person
+- **iPhone check of recording:** the permission prompt, the play-and-record switch, the loudspeaker after recording, and Home Screen mode.
+- **Expert review** of the benchmark texts, the true/false sentences and the can-do wording (Tier 1).
+- **The Tier 3 pilot**, with the validation steps above, to set the speed criteria.
+
+---
+
+## 16. References
 
 References were checked against DOI, ERIC or publisher records. Those marked † were located through web-search records of the publisher page but not re-opened for this document.
 
@@ -822,6 +979,7 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Ehri, L. C. (2014). Orthographic mapping in the acquisition of sight word reading, spelling memory, and vocabulary learning. *Scientific Studies of Reading, 18*(1), 5–21. https://doi.org/10.1080/10888438.2013.819356
 - Engelmann, S., & Carnine, D. (1982). *Theory of Instruction: Principles and Applications.* Irvington.
 - Goswami, U., & Bryant, P. (1990). *Phonological Skills and Learning to Read.* Lawrence Erlbaum.
+- † Fuchs, L. S., Fuchs, D., Hosp, M. K., & Jenkins, J. R. (2001). Oral reading fluency as an indicator of reading competence: A theoretical, empirical, and historical analysis. *Scientific Studies of Reading, 5*(3), 239–256. https://doi.org/10.1207/S1532799XSSR0503_3
 - Gough, P. B., & Tunmer, W. E. (1986). Decoding, reading, and reading disability. *Remedial and Special Education, 7*(1), 6–10. https://doi.org/10.1177/074193258600700104
 - LaBerge, D., & Samuels, S. J. (1974). Toward a theory of automatic information processing in reading. *Cognitive Psychology, 6*(2), 293–323. https://doi.org/10.1016/0010-0285(74)90015-2
 - McCandliss, B., Beck, I. L., Sandak, R., & Perfetti, C. (2003). Focusing attention on decoding for children with poor reading skills: Design and preliminary tests of the Word Building intervention. *Scientific Studies of Reading, 7*(1), 75–104. https://doi.org/10.1207/S1532799XSSR0701_05
@@ -831,12 +989,14 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Share, D. L. (1995). Phonological recoding and self-teaching: Sine qua non of reading acquisition. *Cognition, 55*(2), 151–218. https://doi.org/10.1016/0010-0277(94)00645-2
 - Therrien, W. J. (2004). Fluency and comprehension gains as a result of repeated reading: A meta-analysis. *Remedial and Special Education, 25*(4), 252–261. https://doi.org/10.1177/07419325040250040801
 - Treiman, R. (1985). Onsets and rimes as units of spoken syllables: Evidence from children. *Journal of Experimental Child Psychology, 39*(1), 161–181. https://doi.org/10.1016/0022-0965(85)90034-7
+- Wagner, R. K., Torgesen, J. K., Rashotte, C. A., & Pearson, N. A. (2010). *Test of Silent Reading Efficiency and Comprehension (TOSREC).* Pro-Ed.
 - Wiley, R. W., & Rapp, B. (2021). The effects of handwriting experience on literacy learning. *Psychological Science, 32*(7), 1086–1103. https://doi.org/10.1177/0956797621993111
 
 ### Adult and second-language literacy
 - Burt, M., Peyton, J. K., & Adams, R. (2003). *Reading and Adult English Language Learners: A Review of the Research.* Center for Applied Linguistics. ERIC ED482785.
 - Condelli, L., Wrigley, H. S., Yoon, K., Cronen, S., & Seburn, M. (2003). *"What Works" Study for Adult ESL Literacy Students: Final Report.* American Institutes for Research / U.S. Department of Education.
 - Condelli, L., Cronen, S., Bos, J., Tseng, F., & Altuna, J. (2010). *The Impact of a Reading Intervention for Low-Literate Adult ESL Learners* (NCEE 2011-4003). Institute of Education Sciences.
+- † Gorsuch, G., & Taguchi, E. (2008). Repeated reading for developing reading fluency and reading comprehension: The case of EFL learners in Vietnam. *System, 36*(2), 253–278. https://doi.org/10.1016/j.system.2007.09.009
 - Greenberg, D., Wise, J. C., Morris, R., Fredrick, L. D., Rodrigo, V., Nanda, A. O., & Pae, H. K. (2011). A randomized control study of instructional approaches for struggling adult readers. *Journal of Research on Educational Effectiveness, 4*(2), 101–117. https://doi.org/10.1080/19345747.2011.555288
 - Kruidenier, J. (2002). *Research-Based Principles for Adult Basic Education Reading Instruction.* National Institute for Literacy. ERIC ED472427.
 - Lesgold, A. M., & Welch-Ross, M. (Eds.). (2012). *Improving Adult Literacy Instruction: Options for Practice and Research.* National Research Council / National Academies Press. https://doi.org/10.17226/13242
@@ -853,6 +1013,7 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 ### Vocabulary, practice, fluency and motivation
 - Bjork, R. A. (1994). Memory and metamemory considerations in the training of human beings. In J. Metcalfe & A. P. Shimamura (Eds.), *Metacognition: Knowing about Knowing* (pp. 185–205). MIT Press.
 - Browne, C., Culligan, B., & Phillips, J. (2013). *The New General Service List* (Version 1.0). http://www.newgeneralservicelist.org
+- Black, P., & Wiliam, D. (1998). Assessment and classroom learning. *Assessment in Education: Principles, Policy & Practice, 5*(1), 7–74. https://doi.org/10.1080/0969595980050102
 - Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., & Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. *Psychological Bulletin, 132*(3), 354–380. https://doi.org/10.1037/0033-2909.132.3.354
 - Chang, A. C.-S., & Millett, S. (2015). Improving reading rates and comprehension through audio-assisted extensive reading for beginner learners. *System, 52*, 91–102. https://doi.org/10.1016/j.system.2015.05.003
 - Graham, S., & Hebert, M. (2010). *Writing to Read: Evidence for How Writing Can Improve Reading.* Alliance for Excellent Education.
@@ -861,6 +1022,7 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Karpicke, J. D., & Roediger, H. L. (2008). The critical importance of retrieval for learning. *Science, 319*(5865), 966–968. https://doi.org/10.1126/science.1152408
 - Knowles, M. S., Holton, E. F., & Swanson, R. A. (2015). *The Adult Learner* (8th ed.). Routledge.
 - Leitner, S. (1972). *So lernt man lernen.* Herder.
+- † Kulik, C.-L. C., Kulik, J. A., & Bangert-Drowns, R. L. (1990). Effectiveness of mastery learning programs: A meta-analysis. *Review of Educational Research, 60*(2), 265–299. https://doi.org/10.3102/00346543060002265
 - Laufer, B., & Shmueli, K. (1997). Memorizing new words: Does teaching have anything to do with it? *RELC Journal, 28*(1), 89–108. https://doi.org/10.1177/003368829702800106
 - Nation, I. S. P. (2006). How large a vocabulary is needed for reading and listening? *The Canadian Modern Language Review, 63*(1), 59–82. https://doi.org/10.3138/cmlr.63.1.59
 - Nation, P. (2007). The four strands. *Innovation in Language Learning and Teaching, 1*(1), 2–13. https://doi.org/10.2167/illt039.0
@@ -879,9 +1041,11 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Qian, M., Chukharev-Hudilainen, E., & Levis, J. (2018). A system for adaptive high-variability segmental perceptual training: Implementation, effectiveness, transfer. *Language Learning & Technology, 22*(1), 69–96.
 - † Uchihara, T., Karas, M., & Thomson, R. I. (2025). High variability phonetic training: A meta-analysis. *Studies in Second Language Acquisition.* https://doi.org/10.1017/S0272263125100879
 
-### App evaluation and usability
+### App evaluation, assessment and usability
 - AlGhannam, B. A., Albustan, S. A., Al-Hassan, A. A., & Albustan, L. A. (2018). Towards a standard Arabic System Usability Scale: Psychometric evaluation using communication disorder app. *International Journal of Human–Computer Interaction, 34*(9), 799–804. https://doi.org/10.1080/10447318.2017.1388099
 - Anthony, L., & Nation, I. S. P. (2017). *Picture Vocabulary Size Test* (Version 1.2.0) [Software]. Waseda University.
 - Chapelle, C. A. (2001). *Computer Applications in Second Language Acquisition: Foundations for Teaching, Testing and Research.* Cambridge University Press. https://doi.org/10.1017/CBO9781139524681
 - Hirsh-Pasek, K., Zosh, J. M., Golinkoff, R. M., Gray, J. H., Robb, M. B., & Kaufman, J. (2015). Putting education in "educational" apps: Lessons from the science of learning. *Psychological Science in the Public Interest, 16*(1), 3–34. https://doi.org/10.1177/1529100615569721
+- Kane, M. T. (2013). Validating the interpretations and uses of test scores. *Journal of Educational Measurement, 50*(1), 1–73. https://doi.org/10.1111/jedm.12000
 - Rosell-Aguilar, F. (2017). State of the app: A taxonomy and framework for evaluating language learning mobile applications. *CALICO Journal, 34*(2), 243–258. https://doi.org/10.1558/cj.27623
+- † Ross, S. (1998). Self-assessment in second language testing: A meta-analysis and analysis of experiential factors. *Language Testing, 15*(1), 1–20. https://doi.org/10.1177/026553229801500101
