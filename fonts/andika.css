@@ -1,0 +1,16 @@
+/* Andika (SIL International), a typeface designed for beginning readers: single-storey a and g,
+   and clearly different I / l / 1. Self-hosted so it works offline. Licence: fonts/OFL.txt */
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./andika-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./andika-700.woff2') format('woff2');
+}
