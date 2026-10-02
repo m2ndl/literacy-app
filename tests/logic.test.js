@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  STORAGE_KEY, LEGACY_KEY, PASS_MARK, MAX_ATTEMPTS,
+  STORAGE_KEY, V3_KEY, LEGACY_KEY, PASS_MARK, MAX_ATTEMPTS,
   getDefaultProgress, validateProgress, loadProgressFrom, recordAttempt, topConfusions, graphemeAccuracy,
   hasPassed, getPossibleActivities, isUnitComplete, nextUnitId,
   shuffleArray, formatTime, computeStreak, pickDistractors
@@ -12,9 +12,12 @@ const memoryStorage = (items = {}) => ({ getItem: (k) => (k in items ? items[k] 
 
 // ---------- defaults & validation ----------
 describe('getDefaultProgress', () => {
-  it('returns a fresh v3 object', () => {
+  it('returns a fresh v4 object', () => {
     const p = getDefaultProgress();
-    assert.equal(p.version, 3);
+    assert.equal(p.version, 4);
+    assert.deepEqual(p.items, {});
+    assert.equal(p.placement, null);
+    assert.deepEqual(p.perception, {});
     assert.equal(p.unlockedUnit, 1);
     assert.deepEqual(p.completedUnits, []);
     assert.deepEqual(p.completedActivities, {});
@@ -40,9 +43,13 @@ describe('validateProgress', () => {
     }
   });
 
-  it('keeps valid v3 fields', () => {
+  it('keeps valid v4 fields', () => {
     const input = {
       ...getDefaultProgress(),
+      items: { 'w:pin': { b: 2, due: 20000, h: '101', rt: 1500, days: 2, last: 19998 } },
+      placement: { day: 19990, start: 4, passed: [1, 2, 3] },
+      perception: { 'i-e': { n: 32, k: 25, blocks: [70, 86] } },
+      lastBackupDay: 19995,
       unlockedUnit: 4, completedUnits: [1, 2, 3], completedActivities: { 1: ['sound-match'] },
       points: 120, streak: 3, lastLoginDate: '2026-01-15', earnedAchievements: ['unit1'], timeSpent: 600,
       attempts: [{ t: 1, u: 1, a: 'sound-match', i: 's', n: 0, ok: true, c: 's', rt: 900 }],
@@ -50,6 +57,32 @@ describe('validateProgress', () => {
       seenNotices: ['new-course']
     };
     assert.deepEqual(validateProgress(input), input);
+  });
+
+  it('migrates v3 progress: keeps it and rebuilds item memory from the log', () => {
+    const t = new Date(2026, 0, 15, 10).getTime();
+    const v3 = {
+      version: 3, unlockedUnit: 3, completedUnits: [1, 2], completedActivities: { 1: ['sound-match'] }, points: 80,
+      attempts: [
+        { t, u: 1, a: 'which-word', i: 'pin', n: 0, ok: true, c: 'pin', rt: 1400 },
+        { t, u: 1, a: 'sound-match', i: 'ae', n: 0, ok: false, c: 'e', rt: 2000 },
+        { t, u: 1, a: 'sound-match', i: 'ae', n: 1, ok: true, c: 'a', rt: 900 },
+        { t, u: 1, a: 'complete-sentence', i: 'It is a pin.', n: 0, ok: true, c: 'pin', rt: 900 }
+      ]
+    };
+    const p = validateProgress(v3);
+    assert.equal(p.version, 4);
+    assert.equal(p.unlockedUnit, 3);
+    assert.equal(p.points, 80);
+    assert.equal(p.attempts.length, 4);
+    assert.deepEqual(Object.keys(p.items).sort(), ['ph:ae', 'w:pin']);
+    assert.equal(p.items['w:pin'].b, 1);
+    assert.equal(p.items['ph:ae'].h, '0');
+  });
+
+  it('drops invalid item records', () => {
+    const p = validateProgress({ ...getDefaultProgress(), items: { 'w:a': { b: 9, due: 1, h: '1', rt: null, days: 1, last: 1 }, 'x:b': { b: 1, due: 1, h: '', rt: null, days: 0, last: null }, 'w:ok': { b: 1, due: 5, h: '1', rt: null, days: 1, last: 4 } } });
+    assert.deepEqual(Object.keys(p.items), ['w:ok']);
   });
 
   it('cleans invalid values', () => {
@@ -71,11 +104,21 @@ describe('validateProgress', () => {
 });
 
 describe('loadProgressFrom', () => {
-  it('loads v3 progress', () => {
+  it('loads v4 progress', () => {
     const saved = { ...getDefaultProgress(), points: 40 };
     const { progress, legacyFound } = loadProgressFrom(memoryStorage({ [STORAGE_KEY]: JSON.stringify(saved) }));
     assert.equal(progress.points, 40);
     assert.equal(legacyFound, false);
+  });
+
+  it('migrates v3 progress when there is no v4 progress yet', () => {
+    const v3 = { ...getDefaultProgress(), version: 3, points: 55 };
+    delete v3.items;
+    const { progress } = loadProgressFrom(memoryStorage({ [V3_KEY]: JSON.stringify(v3) }));
+    assert.equal(progress.version, 4);
+    assert.equal(progress.points, 55);
+    const both = loadProgressFrom(memoryStorage({ [V3_KEY]: JSON.stringify(v3), [STORAGE_KEY]: JSON.stringify({ ...getDefaultProgress(), points: 9 }) }));
+    assert.equal(both.progress.points, 9);
   });
 
   it('does not migrate old progress (full reset) but reports it', () => {
@@ -99,9 +142,18 @@ describe('recordAttempt', () => {
     recordAttempt(p, { u: 1, a: 'sound-match', i: 'p', n: 1, ok: true, c: 'p', rt: 800, focus: ['p'] }, 11);
     recordAttempt(p, { u: 1, a: 'sound-match', i: 'p', n: 0, ok: true, c: 'p', rt: 700, focus: ['p'] }, 12);
     assert.equal(p.attempts.length, 3);
-    assert.deepEqual(p.attempts[0], { t: 10, u: 1, a: 'sound-match', i: 'p', n: 0, ok: false, c: 'b', rt: 1200 });
+    assert.deepEqual(p.attempts[0], { t: 10, u: 1, a: 'sound-match', i: 'p', n: 0, ok: false, c: 'b', rt: 1200, f: ['p'], x: 'p>b' });
+    assert.deepEqual(p.attempts[1], { t: 11, u: 1, a: 'sound-match', i: 'p', n: 1, ok: true, c: 'p', rt: 800 });
     assert.deepEqual(p.stats.gpc.p, { seen: 2, correct: 1 });
     assert.deepEqual(p.stats.confusions, { 'p>b': 1 });
+  });
+
+  it('does not count the delayed re-test as a first try', () => {
+    const p = getDefaultProgress();
+    recordAttempt(p, { u: 1, a: 'sound-match', i: 'p', n: 0, d: true, ok: true, c: 'p', rt: 700, focus: ['p'] }, 12);
+    assert.deepEqual(p.stats.gpc, {});
+    assert.equal(p.attempts[0].d, true);
+    assert.equal(p.attempts[0].f, undefined);
   });
 
   it('keeps only the newest attempts', () => {
@@ -134,10 +186,12 @@ describe('units and passing', () => {
     assert.deepEqual(getPossibleActivities(null), []);
   });
 
-  it('knows when a unit is complete', () => {
+  it('knows when a unit is complete (optional activities are not needed)', () => {
     const u = units[0];
+    const required = u.activities.filter(a => a !== 'tracing');
     assert.equal(isUnitComplete(u, {}), false);
-    assert.equal(isUnitComplete(u, { 1: u.activities.slice(1) }), false);
+    assert.equal(isUnitComplete(u, { 1: required.slice(1) }), false);
+    assert.equal(isUnitComplete(u, { 1: [...required] }), true);
     assert.equal(isUnitComplete(u, { 1: [...u.activities] }), true);
     assert.equal(isUnitComplete(undefined, {}), false);
   });
@@ -173,15 +227,21 @@ describe('formatTime', () => {
 describe('computeStreak', () => {
   const dayStr = (offset) => {
     const t = new Date();
-    const d = new Date(t.getFullYear(), t.getMonth(), t.getDate());
-    d.setDate(d.getDate() + offset);
-    return d.toISOString().slice(0, 10);
+    const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() + offset);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
   it('starts at 1, keeps today, increments after yesterday, resets after a gap', () => {
     assert.equal(computeStreak({ ...getDefaultProgress() }).streak, 1);
     assert.equal(computeStreak({ ...getDefaultProgress(), streak: 5, lastLoginDate: dayStr(0) }).streak, 5);
     assert.equal(computeStreak({ ...getDefaultProgress(), streak: 3, lastLoginDate: dayStr(-1) }).streak, 4);
     assert.equal(computeStreak({ ...getDefaultProgress(), streak: 10, lastLoginDate: '2020-01-01' }).streak, 1);
+  });
+
+  it('uses the local date, not the UTC date', () => {
+    // 1 am local time: in UTC+3 the UTC date is still the previous day.
+    const now = new Date(2026, 2, 10, 1, 0);
+    assert.equal(computeStreak({ ...getDefaultProgress() }, now).lastLoginDate, '2026-03-10');
+    assert.equal(computeStreak({ ...getDefaultProgress(), streak: 2, lastLoginDate: '2026-03-09' }, now).streak, 3);
   });
 });
 

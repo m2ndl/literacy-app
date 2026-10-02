@@ -2,7 +2,7 @@
 // Pedagogical design: see PEDAGOGY_PLAN.md.
 import { units, gpc, ALPHABET, ACTIVITY_META, HINTS, getAchievements } from './data.js';
 import {
-  STORAGE_KEY, LEGACY_KEY, getDefaultProgress, loadProgressFrom, recordAttempt, topConfusions,
+  STORAGE_KEY, V3_KEY, LEGACY_KEY, getDefaultProgress, loadProgressFrom, recordAttempt, topConfusions,
   graphemeAccuracy, hasPassed, isUnitComplete, nextUnitId, formatTime, computeStreak, PASS_MARK
 } from './logic.js';
 import { createQuestionBank } from './questions.js';
@@ -520,7 +520,7 @@ function onChoice(q, value, btn) {
   const rt = Math.round(performance.now() - session.shownAt);
   const confusion = correct ? null : confusionFor(q, value);
   recordAttempt(progress, {
-    u: session.unitId, a: session.activityId, i: q.item, n: session.tries, ok: correct,
+    u: session.unitId, a: session.activityId, i: q.item, n: session.tries, d: session.queue[session.index].delayed, ok: correct,
     c: Array.isArray(value) ? value.join('') : String(value), rt: document.hidden ? null : rt,
     focus: q.focus, confusion
   });
@@ -794,8 +794,7 @@ $('reset-progress').addEventListener('click', () => {
   closeMenu();
   confirmAction('هل أنت متأكد من رغبتك في إعادة تعيين كل تقدّمك؟ لا يمكن التراجع عن هذا الإجراء.', () => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(LEGACY_KEY);
+      [STORAGE_KEY, V3_KEY, LEGACY_KEY].forEach(k => localStorage.removeItem(k));
     } catch (e) { console.warn('Cannot clear localStorage (private browsing?):', e); }
     progress = getDefaultProgress();
     progress.seenNotices.push('new-course');
