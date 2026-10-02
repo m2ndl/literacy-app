@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   segment, cleanToken, tokenize, slugify, clipKey, buildLexicon, decodeWord, analyzeToken,
   checkSentence, contrastOf, classifyError, errorFocus, sameSound, makeRng, shuffle,
-  pickGraphemeDistractors, pickWordDistractors, pickBlank
+  pickGraphemeDistractors, pickWordDistractors, pickBlank, toPhonemes, compareSpelling
 } from '../phonics.js';
 
 // A small synthetic curriculum so these tests don't depend on the real content.
@@ -208,5 +208,45 @@ describe('random helpers', () => {
       if (gs[i] === 'i') vowels++;
     }
     assert.ok(vowels / 200 >= 0.5, `vowel share ${vowels / 200}`);
+  });
+});
+
+describe('toPhonemes (made-up words)', () => {
+  const ipa = { t: { ipa: 't' }, o: { ipa: 'ɑ' }, b: { ipa: 'b' }, n: { ipa: 'n' }, a: { ipa: 'æ' }, p: { ipa: 'p' }, j: { ipa: 'dʒ' }, u: { ipa: 'ʌ' }, ch: { ipa: 'tʃ' }, i: { ipa: 'ɪ' }, m: { ipa: 'm' } };
+  it('maps graphemes to Kokoro phonemes with stress', () => {
+    assert.equal(toPhonemes('jub', ipa), 'ʤˈʌb');
+    assert.equal(toPhonemes('chim', ipa), 'ʧˈɪm');
+    assert.equal(toPhonemes('tobnap', ipa, 'tob|nap'), 'tˈɑbnˌæp');
+    assert.throws(() => toPhonemes('t3', ipa));
+  });
+});
+
+describe('compareSpelling (dictation)', () => {
+  it('accepts the right spelling', () => {
+    const r = compareSpelling('ship', 'ship');
+    assert.equal(r.ok, true);
+    assert.equal(r.correct, 3);
+  });
+
+  it('finds a swapped grapheme', () => {
+    const r = compareSpelling('pen', 'pin');
+    assert.equal(r.ok, false);
+    assert.deepEqual(r.confusion, { target: 'e', chosen: 'i' });
+    assert.deepEqual(r.ops.map(o => o.op), ['ok', 'sub', 'ok']);
+    assert.deepEqual(compareSpelling('ship', 'sip').confusion, { target: 'sh', chosen: 's' });
+  });
+
+  it('marks missing and extra letters (no single confusion)', () => {
+    const miss = compareSpelling('pen', 'pn');
+    assert.deepEqual(miss.ops.map(o => o.op), ['ok', 'miss', 'ok']);
+    assert.equal(miss.confusion, null);
+    const extra = compareSpelling('pen', 'pena');
+    assert.equal(extra.ops[3].op, 'extra');
+    assert.equal(compareSpelling('pen', '').correct, 0);
+  });
+
+  it('uses the given graphemes for two-syllable words', () => {
+    const r = compareSpelling('laptop', 'lapdop', ['l', 'a', 'p', 't', 'o', 'p']);
+    assert.deepEqual(r.confusion, { target: 't', chosen: 'd' });
   });
 });

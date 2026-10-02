@@ -1,7 +1,7 @@
 // Curriculum linter: checks the content in data.js against the teaching sequence.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { units, gpc, ACTIVITY_META } from '../data.js';
+import { units, gpc, ACTIVITY_META, PERCEPTION } from '../data.js';
 import { buildLexicon, decodeWord, checkSentence, contrastOf, sameSound, tokenize } from '../phonics.js';
 
 const lex = buildLexicon(units, gpc);
@@ -171,5 +171,63 @@ describe('sentences and texts', () => {
   it('the review unit has texts', () => {
     const review = units.find(u => u.review);
     assert.ok(review && review.texts.length >= 3);
+  });
+});
+
+describe('made-up words (placement test)', () => {
+  const real = new Set(units.flatMap(u => [...(u.words || []), ...(u.heart || []), ...(u.names || [])].map(w => w.w.toLowerCase())));
+  it('every teaching unit has made-up words that are decodable there and are not curriculum words', () => {
+    for (const u of units.filter(x => !x.review)) {
+      assert.ok((u.pseudo || []).length >= 3, `unit ${u.id} needs made-up words`);
+      for (const pw of u.pseudo) {
+        const r = decodeWord(pw.w, u.id, lex, pw.split || null);
+        assert.ok(r.ok, `unit ${u.id}: "${pw.w}" is not decodable (${r.reason})`);
+        assert.ok(!real.has(pw.w), `"${pw.w}" is a curriculum word`);
+        assert.equal(pw.foils.length, 2);
+        assert.equal(new Set([pw.w, ...pw.foils]).size, 3, `"${pw.w}": foils must differ`);
+        for (const f of pw.foils) assert.equal(f.length >= pw.w.length - 1 && f.length <= pw.w.length + 1, true);
+      }
+    }
+  });
+
+  it('are unique across units', () => {
+    const all = units.flatMap(u => (u.pseudo || []).map(p => p.w));
+    assert.equal(new Set(all).size, all.length);
+  });
+});
+
+describe('ear-training sets', () => {
+  const taughtIn = (g) => units.find(u => (u.graphemes || []).includes(g))?.id;
+  it('use taught letters and real minimal pairs', () => {
+    const ids = new Set();
+    for (const set of PERCEPTION) {
+      assert.ok(!ids.has(set.id), `duplicate set ${set.id}`);
+      ids.add(set.id);
+      assert.ok(taughtIn(set.a) && taughtIn(set.b), `${set.id}: letters must be taught`);
+      assert.ok(set.pairs.length >= 7, `${set.id}: needs at least 7 pairs`);
+      const seen = new Set();
+      for (const [a, b] of set.pairs) {
+        assert.notEqual(a, b);
+        assert.ok(!seen.has(`${a}|${b}`), `${set.id}: duplicate pair ${a}/${b}`);
+        seen.add(`${a}|${b}`);
+        assert.match(a + b, /^[a-z]+$/, 'lowercase words only');
+        // Pairs that split into graphemes must differ exactly in the two sounds of the set (w = wh).
+        const c = contrastOf(a, b);
+        if (c) assert.ok((c.from === set.a || sameSound(c.from, set.a)) && (c.to === set.b || sameSound(c.to, set.b)), `${set.id}: ${a}/${b}`);
+      }
+    }
+  });
+
+  it('vowel sets use only short-vowel words', () => {
+    for (const set of PERCEPTION.filter(s => 'aeiou'.includes(s.a) && 'aeiou'.includes(s.b))) {
+      for (const [a, b] of set.pairs) assert.ok(contrastOf(a, b), `${set.id}: ${a}/${b} is not a one-letter contrast`);
+    }
+  });
+});
+
+describe('activity metadata', () => {
+  it('marks tracing as optional and only tracing', () => {
+    const optional = Object.entries(ACTIVITY_META).filter(([, m]) => m.optional).map(([k]) => k);
+    assert.deepEqual(optional, ['tracing']);
   });
 });

@@ -6,7 +6,9 @@ Reads tools/audio/clips.json (from build-manifest.mjs) and writes:
   audio/manifest.json               clips that exist, with duration (ms) and a content hash
   tools/audio/qa-report.json        automated quality checks
 
-Voices: f = af_heart (main), m = am_michael (second talker), fs = af_heart slowed to 0.8x.
+Voices: f = af_heart (main), m = am_michael (second talker), fs = af_heart slowed to 0.8x,
+f2 and m2 = extra talkers for ear training (chosen with compare-voices.py).
+Made-up words for the placement test ("p" clips) are synthesised from phonemes built from their letters.
 
 Isolated speech sounds ("ph" clips) cannot be synthesised directly (a lone consonant comes out
 as vowel-like noise), so each sound is cut out of whole words at acoustic landmarks (frication,
@@ -35,7 +37,8 @@ OUT = ROOT / 'audio'
 SR = 24000
 # voice id -> (Kokoro voice, tempo). Slow clips are normal speech time-stretched (pitch kept),
 # because Kokoro's own slow speed adds a short "uh" before the word.
-VOICES = {'f': ('af_heart', 1.0), 'm': ('am_michael', 1.0), 'fs': ('af_heart', 0.8)}
+VOICES = {'f': ('af_heart', 1.0), 'm': ('am_michael', 1.0), 'fs': ('af_heart', 0.8),
+          'f2': ('af_sarah', 1.0), 'm2': ('am_fenrir', 1.0)}
 PIPELINE_VERSION = '2'  # bump to force regeneration of everything
 
 # --- pronunciation fixes (misaki US phonemes) ----------------------------------------------
@@ -358,7 +361,14 @@ HOMOPHONES = {'I': {'i', 'eye', 'aye'}, 'a': {'a', 'uh'}, 'two': {'two', 'to', '
               'Ali': {'ali', 'ollie', 'olly', 'alley'}, 'Ken': {'ken'}, 'yes': {'yes', 'yeah'}, 'in': {'in', 'inn'},
               'sun': {'sun', 'son'}, 'not': {'not', 'knot'}, 'red': {'red', 'read'}, 'add': {'add', 'ad'},
               'bill': {'bill', 'bil'}, 'ink': {'ink', 'inc'}, 'him': {'him', 'hymn'}, 'tax': {'tax', 'tacks'},
-              'mom': {'mom', 'mum', 'mam'}, 'whale': {'whale', 'wail'}, 'quiz': {'quiz', 'quizz'}}
+              'mom': {'mom', 'mum', 'mam'}, 'whale': {'whale', 'wail'}, 'quiz': {'quiz', 'quizz'},
+              # ear-training words
+              'cot': {'cot', 'caught'}, 'led': {'led', 'lead'}, 'peck': {'peck', 'pec'}, 'mat': {'mat', 'matte'},
+              'vary': {'vary', 'very'}, 'wail': {'wail', 'whale'}, 'veil': {'veil', 'vale'}, 'yolk': {'yolk', 'yoke'},
+              'jell': {'jell', 'gel'}, 'wheel': {'wheel', 'well'}, 'while': {'while', 'wile'}, 'wine': {'wine', 'whine'},
+              'few': {'few', 'phew'}, 'cash': {'cash', 'cache'}, 'shoe': {'shoe', 'shoo'}, 'cheap': {'cheap', 'cheep'},
+              'rung': {'rung', 'wrung'}, 'son': {'son', 'sun'}, 'yacht': {'yacht', 'yot'}, 'yaw': {'yaw', 'yo'},
+              'pun': {'pun'}, 'ban': {'ban'}, 'kin': {'kin'}, 'pop': {'pop'}, 'vile': {'vile', 'vial'}}
 
 
 def norm_words(t):
@@ -458,7 +468,7 @@ def build_sounds(synth, checker, report):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--models', required=True, help='folder with kokoro-v1.0.onnx, voices-v1.0.bin, sherpa-onnx-whisper-small.en/')
-    ap.add_argument('--only', choices=['ph', 'ln', 'w', 's'], help='only (re)generate this kind of clip')
+    ap.add_argument('--only', choices=['ph', 'ln', 'w', 's', 'p'], help='only (re)generate this kind of clip')
     ap.add_argument('--force', action='store_true', help='regenerate even if unchanged')
     ap.add_argument('--recheck', action='store_true', help='only re-score the stored transcripts in qa-report.json')
     args = ap.parse_args()
@@ -515,7 +525,7 @@ def main():
         entry = {}
         for v in c['voices']:
             voice, speed = VOICES[v]
-            source = synth.phonemes(c['text'], c['kind'])
+            source = c['ipa'] if c['kind'] == 'p' else synth.phonemes(c['text'], c['kind'])
             h = sha('|'.join([PIPELINE_VERSION, c['key'], v, voice, str(speed) if speed == 1.0 else f'tempo{speed}', source]))
             path = OUT / v / c['kind'] / f"{c['slug']}.mp3"
             prev = prev_entry.get(v)
@@ -543,12 +553,16 @@ def main():
 
     asr = report['asr']
     report['asr_summary'] = {'checked': len(asr), 'failed': sorted(k for k, r in asr.items() if not r['ok'])}
+    # Ear-training tokens the recogniser did not hear as the right word are not used by the app:
+    # in perception training, one wrong token teaches the wrong category.
+    manifest['avoid'] = sorted(f"{c['key']}@{v}" for c in clips if 'f2' in c['voices'] for v in c['voices']
+                               if not asr.get(f"{c['key']}@{v}", {}).get('ok', True))
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(',', ':')) + '\n')
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=1, sort_keys=True) + '\n')
     accepted = sum(1 for s in report['sounds'].values() if s.get('accepted'))
     print(f"\nclips: {len(manifest['clips'])}; sounds accepted: {accepted}/{len(report['sounds'])}; "
-          f"ASR checked {len(asr)}, failed {len(report['asr_summary']['failed'])}")
+          f"ASR checked {len(asr)}, failed {len(report['asr_summary']['failed'])}; ear-training tokens avoided {len(manifest['avoid'])}")
     return 0
 
 

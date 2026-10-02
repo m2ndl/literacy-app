@@ -516,8 +516,16 @@
    "heard": "Back",
    "ok": true
   },
+  "w:back@f2": {
+   "heard": "Back",
+   "ok": true
+  },
   "w:back@m": {
    "heard": "back",
+   "ok": true
+  },
+  "w:back@m2": {
+   "heard": "Back",
    "ok": true
   },
   "w:backpack@f": {
@@ -532,7 +540,15 @@
    "heard": "bad",
    "ok": true
   },
+  "w:bad@f2": {
+   "heard": "bad",
+   "ok": true
+  },
   "w:bad@m": {
+   "heard": "bad",
+   "ok": true
+  },
+  "w:bad@m2": {
    "heard": "bad",
    "ok": true
   },
@@ -540,8 +556,48 @@
    "heard": "bag",
    "ok": true
   },
+  "w:bag@f2": {
+   "heard": "bag",
+   "ok": true
+  },
   "w:bag@m": {
    "heard": "bag",
+   "ok": true
+  },
+  "w:bag@m2": {
+   "heard": "bag",
+   "ok": true
+  },
+  "w:ban@f": {
+   "heard": "ban",
+   "ok": true
+  },
+  "w:ban@f2": {
+   "heard": "ban",
+   "ok": true
+  },
+  "w:ban@m": {
+   "heard": "BAN",
+   "ok": true
+  },
+  "w:ban@m2": {
+   "heard": "than",
+   "ok": false
+  },
+  "w:bang@f": {
+   "heard": "Bang",
+   "ok": true
+  },
+  "w:bang@f2": {
+   "heard": "BANG!",
+   "ok": true
+  },
+  "w:bang@m": {
+   "heard": "bang",
+   "ok": true
+  },
+  "w:bang@m2": {
+   "heard": "BANG!",
    "ok": true
   },
   "w:bank@f": {
@@ -551,6 +607,22 @@
   "w:bank@m": {
    "heard": "bank",
    "ok": true
+  },
+  "w:bat@f": {
+   "heard": "bat",
+   "ok": true
+  },
+  "w:bat@f2": {
+   "heard": "bat",
+   "ok": true
+  },
+  "w:bat@m": {
+   "heard": "bat",
+   "ok": true
+  },
+  "w:bat@m2": {
+   "heard": "that",
+   "ok": false
   },
   "w:bath@f": {
    "heard": "Bass",
@@ -568,11 +640,39 @@
    "heard": "bed",
    "ok": true
   },
+  "w:bed@f2": {
+   "heard": "bed",
+   "ok": true
+  },
   "w:bed@m": {
    "heard": "bed",
    "ok": true
   },
+  "w:bed@m2": {
+   "heard": "bed",
+   "ok": true
+  },
+  "w:beg@f": {
+   "heard": "BEG",
+   "ok": true
+  },
+  "w:beg@f2": {
+   "heard": "beg",
+   "ok": true
+  },
+  "w:beg@m": {
+   "heard": "BEG",
+   "ok": true
+  },
+  "w:beg@m2": {
+   "heard": "beg",
+   "ok": true
+  },
   "w:bell@f": {
+   "heard": "Bell",
+   "ok": true
+  },
+  "w:bell@f2": {
    "heard": "Bell",
    "ok": true
   },
@@ -580,7 +680,31 @@
    "heard": "Bell",
    "ok": true
   },
+  "w:bell@m2": {
+   "heard": "Bell",
+   "ok": true
+  },
+  "w:bet@f": {
+   "heard": "bat",
+   "ok": false
+  },
+  "w:bet@f2": {
+   "heard": "bet",
+   "ok": true
+  },
+  "w:bet@m": {
+   "heard": "bet",
+   "ok": true
+  },
+  "w:bet@m2": {
+   "heard": "that",
+   "ok": false
+  },
   "w:big@f": {
+   "heard": "Big",
+   "ok": true
+  },
+  "w:big@f2": {
    "heard": "Big",
    "ok": true
   },
@@ -588,11 +712,23 @@
    "heard": "BIG",
    "ok": true
   },
+  "w:big@m2": {
+   "heard": "Big.",
+   "ok": true
+  },
   "w:bill@f": {
    "heard": "bill",
    "ok": true
   },
+  "w:bill@f2": {
+   "heard": "Bill",
+   "ok": true
+  },
   "w:bill@m": {
+   "heard": "Bill",
+   "ok": true
+  },
+  "w:bill@m2": {
    "heard": "Bill",
    "ok": true
   },
@@ -600,9 +736,65 @@
    "heard": "Ben",
    "ok": false
   },
+  "w:bin@f2": {
+   "heard": "Ben",
+   "ok": false
+  },
   "w:bin@m": {
    "heard": "Ben",
    "ok": false
+  },
+  "w:bin@m2": {
+   "heard": "Ben",
+   "ok": false
+  },
+  "w:bit@f": {
+   "heard": "bit",
+   "ok": true
+  },
+  "w:bit@f2": {
+   "heard": "bit",
+   "ok": true
+  },
+  "w:bit@m": {
+   "heard": "bit",
+   "ok": true
+  },
+  "w:bit@m2": {
+   "heard": "bit",
+   "ok": true
+  },
+  "w:black@f": {
+   "heard": "black",
+   "ok": true
+  },
+  "w:black@f2": {
+   "heard": "Black",
+   "ok": true
+  },
+  "w:black@m": {
+   "heard": "black",
+   "ok": true
+  },
+  "w:black@m2": {
+   "heard": "black",
+   "ok": true
+  },
+  "w:block@f": {
+   "heard": "black",
+   "ok": false
+  },
+  "w:block@f2": {
+   "heard": "block",
+   "ok": true
+  },
+  "w:block@m": {
+   "heard": "block",
+   "ok": true
+  },
+  "w:block@m2": {
+   "heard": "block",
+   "ok": true
   },
   "w:boss@f": {
    "heard": "boss",
@@ -624,8 +816,32 @@
    "heard": "bug",
    "ok": true
   },
+  "w:bug@f2": {
+   "heard": "Bug",
+   "ok": true
+  },
   "w:bug@m": {
    "heard": "bug",
+   "ok": true
+  },
+  "w:bug@m2": {
+   "heard": "Buggy",
+   "ok": false
+  },
+  "w:bun@f": {
+   "heard": "BUNS",
+   "ok": false
+  },
+  "w:bun@f2": {
+   "heard": "Bun",
+   "ok": true
+  },
+  "w:bun@m": {
+   "heard": "bun",
+   "ok": true
+  },
+  "w:bun@m2": {
+   "heard": "BUN",
    "ok": true
   },
   "w:bus@f": {
@@ -656,7 +872,15 @@
    "heard": "cab",
    "ok": true
   },
+  "w:cab@f2": {
+   "heard": "cab",
+   "ok": true
+  },
   "w:cab@m": {
+   "heard": "cab",
+   "ok": true
+  },
+  "w:cab@m2": {
    "heard": "cab",
    "ok": true
   },
@@ -680,19 +904,39 @@
    "heard": "cap",
    "ok": true
   },
+  "w:cap@f2": {
+   "heard": "cap",
+   "ok": true
+  },
   "w:cap@m": {
    "heard": "CAP",
+   "ok": true
+  },
+  "w:cap@m2": {
+   "heard": "cap",
    "ok": true
   },
   "w:cash@f": {
    "heard": "cash",
    "ok": true
   },
+  "w:cash@f2": {
+   "heard": "gash",
+   "ok": false
+  },
   "w:cash@m": {
    "heard": "gash",
    "ok": false
   },
+  "w:cash@m2": {
+   "heard": "cache",
+   "ok": true
+  },
   "w:cat@f": {
+   "heard": "cat",
+   "ok": true
+  },
+  "w:cat@f2": {
    "heard": "cat",
    "ok": true
   },
@@ -700,8 +944,40 @@
    "heard": "cat",
    "ok": true
   },
+  "w:cat@m2": {
+   "heard": "cat",
+   "ok": true
+  },
+  "w:catch@f": {
+   "heard": "cat",
+   "ok": false
+  },
+  "w:catch@f2": {
+   "heard": "Catch!",
+   "ok": true
+  },
+  "w:catch@m": {
+   "heard": "catch",
+   "ok": true
+  },
+  "w:catch@m2": {
+   "heard": "catch",
+   "ok": true
+  },
   "w:chair@f": {
    "heard": "chair",
+   "ok": true
+  },
+  "w:chair@f2": {
+   "heard": "chair",
+   "ok": true
+  },
+  "w:chair@m": {
+   "heard": "chair",
+   "ok": true
+  },
+  "w:chair@m2": {
+   "heard": "Chair",
    "ok": true
   },
   "w:chat@f": {
@@ -711,6 +987,38 @@
   "w:chat@m": {
    "heard": "Chat",
    "ok": true
+  },
+  "w:cheap@f": {
+   "heard": "Cheap.",
+   "ok": true
+  },
+  "w:cheap@f2": {
+   "heard": "Jeep",
+   "ok": false
+  },
+  "w:cheap@m": {
+   "heard": "cheap",
+   "ok": true
+  },
+  "w:cheap@m2": {
+   "heard": "Jib",
+   "ok": false
+  },
+  "w:cheat@f": {
+   "heard": "Cheat.",
+   "ok": true
+  },
+  "w:cheat@f2": {
+   "heard": "JIT",
+   "ok": false
+  },
+  "w:cheat@m": {
+   "heard": "Cheat.",
+   "ok": true
+  },
+  "w:cheat@m2": {
+   "heard": "jeed",
+   "ok": false
   },
   "w:check@f": {
    "heard": "Check",
@@ -728,6 +1036,22 @@
    "heard": "jazz",
    "ok": false
   },
+  "w:chew@f": {
+   "heard": "Choo",
+   "ok": false
+  },
+  "w:chew@f2": {
+   "heard": "Zhu",
+   "ok": false
+  },
+  "w:chew@m": {
+   "heard": "Jew",
+   "ok": false
+  },
+  "w:chew@m2": {
+   "heard": "Jill",
+   "ok": false
+  },
   "w:chin@f": {
    "heard": "Chen",
    "ok": false
@@ -740,16 +1064,32 @@
    "heard": "Chibi",
    "ok": false
   },
+  "w:chip@f2": {
+   "heard": "chip",
+   "ok": true
+  },
   "w:chip@m": {
    "heard": "Jip.",
+   "ok": false
+  },
+  "w:chip@m2": {
+   "heard": "Jimbo",
    "ok": false
   },
   "w:chop@f": {
    "heard": "Chop",
    "ok": true
   },
+  "w:chop@f2": {
+   "heard": "Jop",
+   "ok": false
+  },
   "w:chop@m": {
    "heard": "Jop",
+   "ok": false
+  },
+  "w:chop@m2": {
+   "heard": "job",
    "ok": false
   },
   "w:come@f": {
@@ -764,20 +1104,84 @@
    "heard": "Comic",
    "ok": true
   },
+  "w:cop@f": {
+   "heard": "COP",
+   "ok": true
+  },
+  "w:cop@f2": {
+   "heard": "Cup",
+   "ok": false
+  },
+  "w:cop@m": {
+   "heard": "cop cop",
+   "ok": false
+  },
+  "w:cop@m2": {
+   "heard": "cup",
+   "ok": false
+  },
+  "w:cot@f": {
+   "heard": "Cut",
+   "ok": false
+  },
+  "w:cot@f2": {
+   "heard": "Cut",
+   "ok": false
+  },
+  "w:cot@m": {
+   "heard": "Caught",
+   "ok": true
+  },
+  "w:cot@m2": {
+   "heard": "cut",
+   "ok": false
+  },
+  "w:cub@f": {
+   "heard": "Kabi",
+   "ok": false
+  },
+  "w:cub@f2": {
+   "heard": "Cub.",
+   "ok": true
+  },
+  "w:cub@m": {
+   "heard": "Cub",
+   "ok": true
+  },
+  "w:cub@m2": {
+   "heard": "Kabi",
+   "ok": false
+  },
   "w:cup@f": {
    "heard": "copy",
    "ok": false
+  },
+  "w:cup@f2": {
+   "heard": "Cup",
+   "ok": true
   },
   "w:cup@m": {
    "heard": "Cup",
    "ok": true
   },
+  "w:cup@m2": {
+   "heard": "cub",
+   "ok": false
+  },
   "w:cut@f": {
+   "heard": "Cut",
+   "ok": true
+  },
+  "w:cut@f2": {
    "heard": "Cut",
    "ok": true
   },
   "w:cut@m": {
    "heard": "cut",
+   "ok": true
+  },
+  "w:cut@m2": {
+   "heard": "Cut",
    "ok": true
   },
   "w:dad@f": {
@@ -824,13 +1228,53 @@
    "heard": "DASHED",
    "ok": false
   },
+  "w:dish@f2": {
+   "heard": "dish",
+   "ok": true
+  },
   "w:dish@m": {
    "heard": "dish",
+   "ok": true
+  },
+  "w:dish@m2": {
+   "heard": "dish",
+   "ok": true
+  },
+  "w:ditch@f": {
+   "heard": "ditch",
+   "ok": true
+  },
+  "w:ditch@f2": {
+   "heard": "ditch",
+   "ok": true
+  },
+  "w:ditch@m": {
+   "heard": "ditch",
+   "ok": true
+  },
+  "w:ditch@m2": {
+   "heard": "Ditch.",
    "ok": true
   },
   "w:do@f": {
    "heard": "Do",
    "ok": true
+  },
+  "w:dock@f": {
+   "heard": "Doc",
+   "ok": false
+  },
+  "w:dock@f2": {
+   "heard": "Doc",
+   "ok": false
+  },
+  "w:dock@m": {
+   "heard": "dock",
+   "ok": true
+  },
+  "w:dock@m2": {
+   "heard": "duck",
+   "ok": false
   },
   "w:dog@f": {
    "heard": "dog",
@@ -852,6 +1296,22 @@
    "heard": ". . . . . . . . .",
    "ok": false
   },
+  "w:duck@f": {
+   "heard": "dock",
+   "ok": false
+  },
+  "w:duck@f2": {
+   "heard": "Duck",
+   "ok": true
+  },
+  "w:duck@m": {
+   "heard": "duck",
+   "ok": true
+  },
+  "w:duck@m2": {
+   "heard": "Duck",
+   "ok": true
+  },
   "w:egg@f": {
    "heard": "egg",
    "ok": true
@@ -860,7 +1320,27 @@
    "heard": "Egg",
    "ok": true
   },
+  "w:fail@f": {
+   "heard": "Fail",
+   "ok": true
+  },
+  "w:fail@f2": {
+   "heard": "FAIL",
+   "ok": true
+  },
+  "w:fail@m": {
+   "heard": "fail",
+   "ok": true
+  },
+  "w:fail@m2": {
+   "heard": "fail",
+   "ok": true
+  },
   "w:fan@f": {
+   "heard": "fan",
+   "ok": true
+  },
+  "w:fan@f2": {
    "heard": "fan",
    "ok": true
   },
@@ -868,7 +1348,79 @@
    "heard": "fan",
    "ok": true
   },
+  "w:fan@m2": {
+   "heard": "fan",
+   "ok": true
+  },
+  "w:fang@f": {
+   "heard": "Fang",
+   "ok": true
+  },
+  "w:fang@f2": {
+   "heard": "Fang",
+   "ok": true
+  },
+  "w:fang@m": {
+   "heard": "Fang",
+   "ok": true
+  },
+  "w:fang@m2": {
+   "heard": "Fang",
+   "ok": true
+  },
+  "w:fast@f": {
+   "heard": "Vast",
+   "ok": false
+  },
+  "w:fast@f2": {
+   "heard": "Vast.",
+   "ok": false
+  },
+  "w:fast@m": {
+   "heard": "Vast",
+   "ok": false
+  },
+  "w:fast@m2": {
+   "heard": "fast",
+   "ok": true
+  },
+  "w:fat@f": {
+   "heard": "VAT",
+   "ok": false
+  },
+  "w:fat@f2": {
+   "heard": "VAT",
+   "ok": false
+  },
+  "w:fat@m": {
+   "heard": "VAD",
+   "ok": false
+  },
+  "w:fat@m2": {
+   "heard": "fat fat",
+   "ok": false
+  },
+  "w:fault@f": {
+   "heard": "Vault",
+   "ok": false
+  },
+  "w:fault@f2": {
+   "heard": "Vault",
+   "ok": false
+  },
+  "w:fault@m": {
+   "heard": "Vault",
+   "ok": false
+  },
+  "w:fault@m2": {
+   "heard": "Vault",
+   "ok": false
+  },
   "w:fell@f": {
+   "heard": "fell",
+   "ok": true
+  },
+  "w:fell@f2": {
    "heard": "fell",
    "ok": true
   },
@@ -876,13 +1428,73 @@
    "heard": "VEL",
    "ok": false
   },
+  "w:fell@m2": {
+   "heard": "fell",
+   "ok": true
+  },
+  "w:ferry@f": {
+   "heard": "Fairy",
+   "ok": false
+  },
+  "w:ferry@f2": {
+   "heard": "Fairy",
+   "ok": false
+  },
+  "w:ferry@m": {
+   "heard": "Fairey",
+   "ok": false
+  },
+  "w:ferry@m2": {
+   "heard": "very",
+   "ok": false
+  },
+  "w:few@f": {
+   "heard": "Phew",
+   "ok": true
+  },
+  "w:few@f2": {
+   "heard": "Phew.",
+   "ok": true
+  },
+  "w:few@m": {
+   "heard": "view",
+   "ok": false
+  },
+  "w:few@m2": {
+   "heard": "view",
+   "ok": false
+  },
   "w:fill@f": {
    "heard": "fill",
    "ok": true
   },
+  "w:fill@f2": {
+   "heard": "Phil",
+   "ok": false
+  },
   "w:fill@m": {
    "heard": "Film",
    "ok": false
+  },
+  "w:fill@m2": {
+   "heard": "fill",
+   "ok": true
+  },
+  "w:fine@f": {
+   "heard": "Fine.",
+   "ok": true
+  },
+  "w:fine@f2": {
+   "heard": "Fine.",
+   "ok": true
+  },
+  "w:fine@m": {
+   "heard": "Fine",
+   "ok": true
+  },
+  "w:fine@m2": {
+   "heard": "Fine.",
+   "ok": true
   },
   "w:fish@f": {
    "heard": "VISH",
@@ -920,7 +1532,15 @@
    "heard": "fun",
    "ok": true
   },
+  "w:fun@f2": {
+   "heard": "fun",
+   "ok": true
+  },
   "w:fun@m": {
+   "heard": "fun",
+   "ok": true
+  },
+  "w:fun@m2": {
    "heard": "fun",
    "ok": true
   },
@@ -992,9 +1612,17 @@
    "heard": "hat",
    "ok": true
   },
+  "w:hat@f2": {
+   "heard": "hat",
+   "ok": true
+  },
   "w:hat@m": {
    "heard": "head",
    "ok": false
+  },
+  "w:hat@m2": {
+   "heard": "hat",
+   "ok": true
   },
   "w:have@f": {
    "heard": "halves",
@@ -1028,9 +1656,33 @@
    "heard": "hot",
    "ok": true
   },
+  "w:hot@f2": {
+   "heard": "hot",
+   "ok": true
+  },
   "w:hot@m": {
    "heard": "hot",
    "ok": true
+  },
+  "w:hot@m2": {
+   "heard": "hot",
+   "ok": true
+  },
+  "w:hut@f": {
+   "heard": "HUT",
+   "ok": true
+  },
+  "w:hut@f2": {
+   "heard": "HUT",
+   "ok": true
+  },
+  "w:hut@m": {
+   "heard": "/hd/",
+   "ok": false
+  },
+  "w:hut@m2": {
+   "heard": "Hadi",
+   "ok": false
   },
   "w:i@f": {
    "heard": "I",
@@ -1092,16 +1744,80 @@
    "heard": "Jam",
    "ok": true
   },
+  "w:jam@f2": {
+   "heard": "Jam",
+   "ok": true
+  },
   "w:jam@m": {
    "heard": "Jam",
+   "ok": true
+  },
+  "w:jam@m2": {
+   "heard": "Jam",
+   "ok": true
+  },
+  "w:jaw@f": {
+   "heard": "jaw",
+   "ok": true
+  },
+  "w:jaw@f2": {
+   "heard": "JAW",
+   "ok": true
+  },
+  "w:jaw@m": {
+   "heard": "jaw",
+   "ok": true
+  },
+  "w:jaw@m2": {
+   "heard": "Jeon",
+   "ok": false
+  },
+  "w:jeer@f": {
+   "heard": "jeer",
+   "ok": true
+  },
+  "w:jeer@f2": {
+   "heard": "jeer",
+   "ok": true
+  },
+  "w:jeer@m": {
+   "heard": "Jia",
+   "ok": false
+  },
+  "w:jeer@m2": {
+   "heard": "jeer",
+   "ok": true
+  },
+  "w:jell@f": {
+   "heard": "gel",
+   "ok": true
+  },
+  "w:jell@f2": {
+   "heard": "gel",
+   "ok": true
+  },
+  "w:jell@m": {
+   "heard": "gel",
+   "ok": true
+  },
+  "w:jell@m2": {
+   "heard": "gel",
    "ok": true
   },
   "w:jet@f": {
    "heard": "jet",
    "ok": true
   },
+  "w:jet@f2": {
+   "heard": "jet",
+   "ok": true
+  },
   "w:jet@m": {
    "heard": "JET",
+   "ok": true
+  },
+  "w:jet@m2": {
+   "heard": "jet",
    "ok": true
   },
   "w:job@f": {
@@ -1118,6 +1834,38 @@
   },
   "w:jog@m": {
    "heard": "Jog",
+   "ok": true
+  },
+  "w:joke@f": {
+   "heard": "Joke",
+   "ok": true
+  },
+  "w:joke@f2": {
+   "heard": "joke",
+   "ok": true
+  },
+  "w:joke@m": {
+   "heard": "joke",
+   "ok": true
+  },
+  "w:joke@m2": {
+   "heard": "Joke",
+   "ok": true
+  },
+  "w:jot@f": {
+   "heard": "Jot",
+   "ok": true
+  },
+  "w:jot@f2": {
+   "heard": "Jot",
+   "ok": true
+  },
+  "w:jot@m": {
+   "heard": "John",
+   "ok": false
+  },
+  "w:jot@m2": {
+   "heard": "Jot",
    "ok": true
   },
   "w:ken@f": {
@@ -1144,11 +1892,35 @@
    "heard": "kid",
    "ok": true
   },
+  "w:kin@f": {
+   "heard": "kin",
+   "ok": true
+  },
+  "w:kin@f2": {
+   "heard": "Ken.",
+   "ok": false
+  },
+  "w:kin@m": {
+   "heard": "Kin",
+   "ok": true
+  },
+  "w:kin@m2": {
+   "heard": "kin",
+   "ok": true
+  },
   "w:king@f": {
    "heard": "King",
    "ok": true
   },
+  "w:king@f2": {
+   "heard": "King",
+   "ok": true
+  },
   "w:king@m": {
+   "heard": "King",
+   "ok": true
+  },
+  "w:king@m2": {
    "heard": "King",
    "ok": true
   },
@@ -1168,12 +1940,92 @@
    "heard": "lab",
    "ok": true
   },
+  "w:lack@f": {
+   "heard": "lack",
+   "ok": true
+  },
+  "w:lack@f2": {
+   "heard": "lack",
+   "ok": true
+  },
+  "w:lack@m": {
+   "heard": "lack",
+   "ok": true
+  },
+  "w:lack@m2": {
+   "heard": "lack",
+   "ok": true
+  },
+  "w:lad@f": {
+   "heard": "LAD",
+   "ok": true
+  },
+  "w:lad@f2": {
+   "heard": "LAD",
+   "ok": true
+  },
+  "w:lad@m": {
+   "heard": "LAD",
+   "ok": true
+  },
+  "w:lad@m2": {
+   "heard": "led",
+   "ok": false
+  },
   "w:laptop@f": {
    "heard": "laptop",
    "ok": true
   },
   "w:laptop@m": {
    "heard": "laptop",
+   "ok": true
+  },
+  "w:leaf@f": {
+   "heard": "Aleith",
+   "ok": false
+  },
+  "w:leaf@f2": {
+   "heard": "leaf",
+   "ok": true
+  },
+  "w:leaf@m": {
+   "heard": "leaf",
+   "ok": true
+  },
+  "w:leaf@m2": {
+   "heard": "Leaf",
+   "ok": true
+  },
+  "w:leave@f": {
+   "heard": "Leave",
+   "ok": true
+  },
+  "w:leave@f2": {
+   "heard": "Leave",
+   "ok": true
+  },
+  "w:leave@m": {
+   "heard": "Leave",
+   "ok": true
+  },
+  "w:leave@m2": {
+   "heard": "Leave.",
+   "ok": true
+  },
+  "w:led@f": {
+   "heard": "Let it",
+   "ok": false
+  },
+  "w:led@f2": {
+   "heard": "Lead",
+   "ok": true
+  },
+  "w:led@m": {
+   "heard": "Lead",
+   "ok": true
+  },
+  "w:led@m2": {
+   "heard": "Lead",
    "ok": true
   },
   "w:leg@f": {
@@ -1200,6 +2052,22 @@
    "heard": "let",
    "ok": true
   },
+  "w:lid@f": {
+   "heard": "Lid",
+   "ok": true
+  },
+  "w:lid@f2": {
+   "heard": "Lid",
+   "ok": true
+  },
+  "w:lid@m": {
+   "heard": "Lid",
+   "ok": true
+  },
+  "w:lid@m2": {
+   "heard": "lid",
+   "ok": true
+  },
   "w:like@f": {
    "heard": "LIKE",
    "ok": true
@@ -1224,9 +2092,17 @@
    "heard": "lock",
    "ok": true
   },
+  "w:lock@f2": {
+   "heard": "Luck",
+   "ok": false
+  },
   "w:lock@m": {
    "heard": "lock",
    "ok": true
+  },
+  "w:lock@m2": {
+   "heard": "Luck",
+   "ok": false
   },
   "w:long@f": {
    "heard": "LANG",
@@ -1248,15 +2124,31 @@
    "heard": "Luck",
    "ok": true
   },
+  "w:luck@f2": {
+   "heard": "Luck",
+   "ok": true
+  },
   "w:luck@m": {
    "heard": "Luck",
    "ok": true
+  },
+  "w:luck@m2": {
+   "heard": "lucky",
+   "ok": false
   },
   "w:mad@f": {
    "heard": "Mad",
    "ok": true
   },
+  "w:mad@f2": {
+   "heard": "mad",
+   "ok": true
+  },
   "w:mad@m": {
+   "heard": "mad",
+   "ok": true
+  },
+  "w:mad@m2": {
    "heard": "mad",
    "ok": true
   },
@@ -1264,11 +2156,23 @@
    "heard": "MAN",
    "ok": true
   },
+  "w:man@f2": {
+   "heard": "MAN",
+   "ok": true
+  },
   "w:man@m": {
    "heard": "MAN",
    "ok": true
   },
+  "w:man@m2": {
+   "heard": "man",
+   "ok": true
+  },
   "w:map@f": {
+   "heard": "map",
+   "ok": true
+  },
+  "w:map@f2": {
    "heard": "map",
    "ok": true
   },
@@ -1276,13 +2180,57 @@
    "heard": "map",
    "ok": true
   },
+  "w:map@m2": {
+   "heard": "map",
+   "ok": true
+  },
+  "w:mash@f": {
+   "heard": "Mash.",
+   "ok": true
+  },
+  "w:mash@f2": {
+   "heard": "MASH",
+   "ok": true
+  },
+  "w:mash@m": {
+   "heard": "MASH",
+   "ok": true
+  },
+  "w:mash@m2": {
+   "heard": "MASH",
+   "ok": true
+  },
   "w:mat@f": {
+   "heard": "Matt",
+   "ok": false
+  },
+  "w:mat@f2": {
    "heard": "Matt",
    "ok": false
   },
   "w:mat@m": {
    "heard": "Matt",
    "ok": false
+  },
+  "w:mat@m2": {
+   "heard": "Matt",
+   "ok": false
+  },
+  "w:match@f": {
+   "heard": "Matt",
+   "ok": false
+  },
+  "w:match@f2": {
+   "heard": "match",
+   "ok": true
+  },
+  "w:match@m": {
+   "heard": "match",
+   "ok": true
+  },
+  "w:match@m2": {
+   "heard": "match",
+   "ok": true
   },
   "w:math@f": {
    "heard": "Math",
@@ -1304,7 +2252,15 @@
    "heard": "Men",
    "ok": true
   },
+  "w:men@f2": {
+   "heard": "Men",
+   "ok": true
+  },
   "w:men@m": {
+   "heard": "men",
+   "ok": true
+  },
+  "w:men@m2": {
    "heard": "men",
    "ok": true
   },
@@ -1320,7 +2276,15 @@
    "heard": "Matt",
    "ok": false
   },
+  "w:met@f2": {
+   "heard": "met",
+   "ok": true
+  },
   "w:met@m": {
+   "heard": "met",
+   "ok": true
+  },
+  "w:met@m2": {
    "heard": "met",
    "ok": true
   },
@@ -1340,6 +2304,22 @@
    "heard": "Mix",
    "ok": true
   },
+  "w:mob@f": {
+   "heard": "mob",
+   "ok": true
+  },
+  "w:mob@f2": {
+   "heard": "mob",
+   "ok": true
+  },
+  "w:mob@m": {
+   "heard": "Mob",
+   "ok": true
+  },
+  "w:mob@m2": {
+   "heard": "Mod",
+   "ok": false
+  },
   "w:mom@f": {
    "heard": "Mom",
    "ok": true
@@ -1352,9 +2332,17 @@
    "heard": "mop",
    "ok": true
   },
+  "w:mop@f2": {
+   "heard": "mop",
+   "ok": true
+  },
   "w:mop@m": {
    "heard": "mop mop",
    "ok": false
+  },
+  "w:mop@m2": {
+   "heard": "mop",
+   "ok": true
   },
   "w:much@f": {
    "heard": "much",
@@ -1362,6 +2350,22 @@
   },
   "w:much@m": {
    "heard": "much",
+   "ok": true
+  },
+  "w:mud@f": {
+   "heard": "Mud",
+   "ok": true
+  },
+  "w:mud@f2": {
+   "heard": "Mud",
+   "ok": true
+  },
+  "w:mud@m": {
+   "heard": "mud",
+   "ok": true
+  },
+  "w:mud@m2": {
+   "heard": "mud",
    "ok": true
   },
   "w:muffin@f": {
@@ -1420,8 +2424,32 @@
    "heard": "Not",
    "ok": true
   },
+  "w:not@f2": {
+   "heard": "Not",
+   "ok": true
+  },
   "w:not@m": {
    "heard": "not",
+   "ok": true
+  },
+  "w:not@m2": {
+   "heard": "not",
+   "ok": true
+  },
+  "w:nut@f": {
+   "heard": "not",
+   "ok": false
+  },
+  "w:nut@f2": {
+   "heard": "nut",
+   "ok": true
+  },
+  "w:nut@m": {
+   "heard": "not",
+   "ok": false
+  },
+  "w:nut@m2": {
+   "heard": "nut",
    "ok": true
   },
   "w:octopus@f": {
@@ -1468,7 +2496,15 @@
    "heard": "pack",
    "ok": true
   },
+  "w:pack@f2": {
+   "heard": "pack",
+   "ok": true
+  },
   "w:pack@m": {
+   "heard": "pack",
+   "ok": true
+  },
+  "w:pack@m2": {
    "heard": "pack",
    "ok": true
   },
@@ -1476,7 +2512,15 @@
    "heard": "pan",
    "ok": true
   },
+  "w:pan@f2": {
+   "heard": "Pan",
+   "ok": true
+  },
   "w:pan@m": {
+   "heard": "pan",
+   "ok": true
+  },
+  "w:pan@m2": {
    "heard": "pan",
    "ok": true
   },
@@ -1496,6 +2540,22 @@
    "heard": "pass",
    "ok": true
   },
+  "w:pat@f": {
+   "heard": "Pat",
+   "ok": true
+  },
+  "w:pat@f2": {
+   "heard": "pet",
+   "ok": false
+  },
+  "w:pat@m": {
+   "heard": "Pat",
+   "ok": true
+  },
+  "w:pat@m2": {
+   "heard": "pat",
+   "ok": true
+  },
   "w:path@f": {
    "heard": "Pass",
    "ok": false
@@ -1504,7 +2564,43 @@
    "heard": "path",
    "ok": true
   },
+  "w:peck@f": {
+   "heard": "Packet",
+   "ok": false
+  },
+  "w:peck@f2": {
+   "heard": "PEC",
+   "ok": true
+  },
+  "w:peck@m": {
+   "heard": "PEC",
+   "ok": true
+  },
+  "w:peck@m2": {
+   "heard": "Peggy",
+   "ok": false
+  },
+  "w:peg@f": {
+   "heard": "peg",
+   "ok": true
+  },
+  "w:peg@f2": {
+   "heard": "PEG",
+   "ok": true
+  },
+  "w:peg@m": {
+   "heard": "PEG",
+   "ok": true
+  },
+  "w:peg@m2": {
+   "heard": "Peggy",
+   "ok": false
+  },
   "w:pen@f": {
+   "heard": "pen",
+   "ok": true
+  },
+  "w:pen@f2": {
    "heard": "pen",
    "ok": true
   },
@@ -1512,7 +2608,15 @@
    "heard": "pen",
    "ok": true
   },
+  "w:pen@m2": {
+   "heard": "pen",
+   "ok": true
+  },
   "w:pet@f": {
+   "heard": "pet",
+   "ok": true
+  },
+  "w:pet@f2": {
    "heard": "pet",
    "ok": true
   },
@@ -1520,13 +2624,25 @@
    "heard": "pet",
    "ok": true
   },
+  "w:pet@m2": {
+   "heard": "pet",
+   "ok": true
+  },
   "w:pick@f": {
    "heard": "PECE",
    "ok": false
   },
+  "w:pick@f2": {
+   "heard": "Pick",
+   "ok": true
+  },
   "w:pick@m": {
    "heard": "Pick",
    "ok": true
+  },
+  "w:pick@m2": {
+   "heard": "PICKY",
+   "ok": false
   },
   "w:picnic@f": {
    "heard": "Picnect",
@@ -1536,12 +2652,52 @@
    "heard": "Picnic",
    "ok": true
   },
+  "w:pig@f": {
+   "heard": "pig",
+   "ok": true
+  },
+  "w:pig@f2": {
+   "heard": "Pig.",
+   "ok": true
+  },
+  "w:pig@m": {
+   "heard": "PEG.",
+   "ok": false
+  },
+  "w:pig@m2": {
+   "heard": "pig",
+   "ok": true
+  },
   "w:pin@f": {
+   "heard": "pin",
+   "ok": true
+  },
+  "w:pin@f2": {
    "heard": "pin",
    "ok": true
   },
   "w:pin@m": {
    "heard": "pin",
+   "ok": true
+  },
+  "w:pin@m2": {
+   "heard": "pin",
+   "ok": true
+  },
+  "w:ping@f": {
+   "heard": "Ping",
+   "ok": true
+  },
+  "w:ping@f2": {
+   "heard": "Ping",
+   "ok": true
+  },
+  "w:ping@m": {
+   "heard": "ping",
+   "ok": true
+  },
+  "w:ping@m2": {
+   "heard": "ping",
    "ok": true
   },
   "w:pink@f": {
@@ -1552,11 +2708,51 @@
    "heard": "pink",
    "ok": true
   },
+  "w:pit@f": {
+   "heard": "Pit",
+   "ok": true
+  },
+  "w:pit@f2": {
+   "heard": "Pit",
+   "ok": true
+  },
+  "w:pit@m": {
+   "heard": "Pit",
+   "ok": true
+  },
+  "w:pit@m2": {
+   "heard": "Pit",
+   "ok": true
+  },
+  "w:pop@f": {
+   "heard": "Poppet.",
+   "ok": false
+  },
+  "w:pop@f2": {
+   "heard": "POP!",
+   "ok": true
+  },
+  "w:pop@m": {
+   "heard": "POP",
+   "ok": true
+  },
+  "w:pop@m2": {
+   "heard": "pop",
+   "ok": true
+  },
   "w:pot@f": {
    "heard": "pot",
    "ok": true
   },
+  "w:pot@f2": {
+   "heard": "pot",
+   "ok": true
+  },
   "w:pot@m": {
+   "heard": "pot",
+   "ok": true
+  },
+  "w:pot@m2": {
    "heard": "pot",
    "ok": true
   },
@@ -1567,6 +2763,38 @@
   "w:public@m": {
    "heard": "Public",
    "ok": true
+  },
+  "w:pun@f": {
+   "heard": "pun",
+   "ok": true
+  },
+  "w:pun@f2": {
+   "heard": "pun",
+   "ok": true
+  },
+  "w:pun@m": {
+   "heard": "pun",
+   "ok": true
+  },
+  "w:pun@m2": {
+   "heard": "pang",
+   "ok": false
+  },
+  "w:pup@f": {
+   "heard": "Poppy",
+   "ok": false
+  },
+  "w:pup@f2": {
+   "heard": "PUP",
+   "ok": true
+  },
+  "w:pup@m": {
+   "heard": "pop",
+   "ok": false
+  },
+  "w:pup@m2": {
+   "heard": "PUBBY",
+   "ok": false
   },
   "w:queen@f": {
    "heard": "Queen",
@@ -1596,6 +2824,54 @@
    "heard": "Quiz",
    "ok": true
   },
+  "w:rack@f": {
+   "heard": "rack",
+   "ok": true
+  },
+  "w:rack@f2": {
+   "heard": "Wreck",
+   "ok": false
+  },
+  "w:rack@m": {
+   "heard": "rack",
+   "ok": true
+  },
+  "w:rack@m2": {
+   "heard": "rack",
+   "ok": true
+  },
+  "w:ran@f": {
+   "heard": "Ran",
+   "ok": true
+  },
+  "w:ran@f2": {
+   "heard": "RAN",
+   "ok": true
+  },
+  "w:ran@m": {
+   "heard": "ran",
+   "ok": true
+  },
+  "w:ran@m2": {
+   "heard": "RAN",
+   "ok": true
+  },
+  "w:rang@f": {
+   "heard": "Rang",
+   "ok": true
+  },
+  "w:rang@f2": {
+   "heard": "Rang",
+   "ok": true
+  },
+  "w:rang@m": {
+   "heard": "rang",
+   "ok": true
+  },
+  "w:rang@m2": {
+   "heard": "Rang",
+   "ok": true
+  },
   "w:red@f": {
    "heard": "Red",
    "ok": true
@@ -1603,6 +2879,22 @@
   "w:red@m": {
    "heard": "red",
    "ok": true
+  },
+  "w:rib@f": {
+   "heard": "Ribby",
+   "ok": false
+  },
+  "w:rib@f2": {
+   "heard": "Rib",
+   "ok": true
+  },
+  "w:rib@m": {
+   "heard": "rib",
+   "ok": true
+  },
+  "w:rib@m2": {
+   "heard": "Ribber",
+   "ok": false
   },
   "w:rich@f": {
    "heard": "rich",
@@ -1620,12 +2912,116 @@
    "heard": "ring",
    "ok": true
   },
+  "w:rip@f": {
+   "heard": "RIP",
+   "ok": true
+  },
+  "w:rip@f2": {
+   "heard": "RIP",
+   "ok": true
+  },
+  "w:rip@m": {
+   "heard": "RIP",
+   "ok": true
+  },
+  "w:rip@m2": {
+   "heard": "RIP",
+   "ok": true
+  },
+  "w:rob@f": {
+   "heard": "Rob",
+   "ok": true
+  },
+  "w:rob@f2": {
+   "heard": "rub",
+   "ok": false
+  },
+  "w:rob@m": {
+   "heard": "Rob",
+   "ok": true
+  },
+  "w:rob@m2": {
+   "heard": "R.O.B.",
+   "ok": true
+  },
+  "w:rock@f": {
+   "heard": "rock",
+   "ok": true
+  },
+  "w:rock@f2": {
+   "heard": "rock",
+   "ok": true
+  },
+  "w:rock@m": {
+   "heard": "rock",
+   "ok": true
+  },
+  "w:rock@m2": {
+   "heard": "rock",
+   "ok": true
+  },
+  "w:rot@f": {
+   "heard": "rot",
+   "ok": true
+  },
+  "w:rot@f2": {
+   "heard": "rot",
+   "ok": true
+  },
+  "w:rot@m": {
+   "heard": "rot",
+   "ok": true
+  },
+  "w:rot@m2": {
+   "heard": "rot",
+   "ok": true
+  },
+  "w:rub@f": {
+   "heard": "Robbie",
+   "ok": false
+  },
+  "w:rub@f2": {
+   "heard": "Rub",
+   "ok": true
+  },
+  "w:rub@m": {
+   "heard": "Rub",
+   "ok": true
+  },
+  "w:rub@m2": {
+   "heard": "Robbie",
+   "ok": false
+  },
   "w:run@f": {
    "heard": "Run",
    "ok": true
   },
+  "w:run@f2": {
+   "heard": "Runned",
+   "ok": false
+  },
   "w:run@m": {
    "heard": "Run",
+   "ok": true
+  },
+  "w:run@m2": {
+   "heard": "Run",
+   "ok": true
+  },
+  "w:rung@f": {
+   "heard": "Rung",
+   "ok": true
+  },
+  "w:rung@f2": {
+   "heard": "RUNGED",
+   "ok": false
+  },
+  "w:rung@m": {
+   "heard": "wrong",
+   "ok": false
+  },
+  "w:rung@m2": {
+   "heard": "wrung",
    "ok": true
   },
   "w:rush@f": {
@@ -1636,12 +3032,60 @@
    "heard": "rush",
    "ok": true
   },
+  "w:rut@f": {
+   "heard": "rut",
+   "ok": true
+  },
+  "w:rut@f2": {
+   "heard": "rut",
+   "ok": true
+  },
+  "w:rut@m": {
+   "heard": "rut",
+   "ok": true
+  },
+  "w:rut@m2": {
+   "heard": "rut",
+   "ok": true
+  },
+  "w:sack@f": {
+   "heard": "SAC",
+   "ok": false
+  },
+  "w:sack@f2": {
+   "heard": "SAC",
+   "ok": false
+  },
+  "w:sack@m": {
+   "heard": "The Sack",
+   "ok": true
+  },
+  "w:sack@m2": {
+   "heard": "Zach",
+   "ok": false
+  },
   "w:sad@f": {
    "heard": "sad",
    "ok": true
   },
   "w:sad@m": {
    "heard": "sad",
+   "ok": true
+  },
+  "w:safe@f": {
+   "heard": "safe",
+   "ok": true
+  },
+  "w:safe@f2": {
+   "heard": "safe",
+   "ok": true
+  },
+  "w:safe@m": {
+   "heard": "safe",
+   "ok": true
+  },
+  "w:safe@m2": {
+   "heard": "safe",
    "ok": true
   },
   "w:said@f": {
@@ -1652,6 +3096,22 @@
    "heard": "Sam",
    "ok": true
   },
+  "w:sand@f": {
+   "heard": "Sand",
+   "ok": true
+  },
+  "w:sand@f2": {
+   "heard": "Sand",
+   "ok": true
+  },
+  "w:sand@m": {
+   "heard": "Sand",
+   "ok": true
+  },
+  "w:sand@m2": {
+   "heard": "Sand",
+   "ok": true
+  },
   "w:sara@f": {
    "heard": "SARA",
    "ok": true
@@ -1660,8 +3120,32 @@
    "heard": "Sad",
    "ok": false
   },
+  "w:sat@f2": {
+   "heard": "SAT",
+   "ok": true
+  },
   "w:sat@m": {
    "heard": "sat",
+   "ok": true
+  },
+  "w:sat@m2": {
+   "heard": "zat",
+   "ok": false
+  },
+  "w:save@f": {
+   "heard": "Save",
+   "ok": true
+  },
+  "w:save@f2": {
+   "heard": "Save",
+   "ok": true
+  },
+  "w:save@m": {
+   "heard": "save",
+   "ok": true
+  },
+  "w:save@m2": {
+   "heard": "Save",
    "ok": true
   },
   "w:sell@f": {
@@ -1672,7 +3156,27 @@
    "heard": "cell",
    "ok": false
   },
+  "w:send@f": {
+   "heard": "SANDER",
+   "ok": false
+  },
+  "w:send@f2": {
+   "heard": "send",
+   "ok": true
+  },
+  "w:send@m": {
+   "heard": "send",
+   "ok": true
+  },
+  "w:send@m2": {
+   "heard": "Send",
+   "ok": true
+  },
   "w:set@f": {
+   "heard": "set",
+   "ok": true
+  },
+  "w:set@f2": {
    "heard": "set",
    "ok": true
   },
@@ -1680,11 +3184,67 @@
    "heard": "What's that?",
    "ok": false
   },
+  "w:set@m2": {
+   "heard": "set",
+   "ok": true
+  },
+  "w:share@f": {
+   "heard": "share",
+   "ok": true
+  },
+  "w:share@f2": {
+   "heard": "share",
+   "ok": true
+  },
+  "w:share@m": {
+   "heard": "share",
+   "ok": true
+  },
+  "w:share@m2": {
+   "heard": "share",
+   "ok": true
+  },
   "w:she@f": {
    "heard": "She",
    "ok": true
   },
+  "w:sheep@f": {
+   "heard": "sheep",
+   "ok": true
+  },
+  "w:sheep@f2": {
+   "heard": "sheep",
+   "ok": true
+  },
+  "w:sheep@m": {
+   "heard": "sheep",
+   "ok": true
+  },
+  "w:sheep@m2": {
+   "heard": "Jeep",
+   "ok": false
+  },
+  "w:sheet@f": {
+   "heard": "Shit.",
+   "ok": false
+  },
+  "w:sheet@f2": {
+   "heard": "A sheet.",
+   "ok": true
+  },
+  "w:sheet@m": {
+   "heard": "Sheed",
+   "ok": false
+  },
+  "w:sheet@m2": {
+   "heard": "Cheat",
+   "ok": false
+  },
   "w:ship@f": {
+   "heard": "ship",
+   "ok": true
+  },
+  "w:ship@f2": {
    "heard": "ship",
    "ok": true
   },
@@ -1692,21 +3252,73 @@
    "heard": "The ship.",
    "ok": true
   },
+  "w:ship@m2": {
+   "heard": "shib",
+   "ok": false
+  },
+  "w:shoe@f": {
+   "heard": "shu",
+   "ok": false
+  },
+  "w:shoe@f2": {
+   "heard": "shu",
+   "ok": false
+  },
+  "w:shoe@m": {
+   "heard": "",
+   "ok": false
+  },
+  "w:shoe@m2": {
+   "heard": "Zhou",
+   "ok": false
+  },
   "w:shop@f": {
    "heard": "shop",
    "ok": true
   },
+  "w:shop@f2": {
+   "heard": "sharp",
+   "ok": false
+  },
   "w:shop@m": {
    "heard": "shop",
+   "ok": true
+  },
+  "w:shop@m2": {
+   "heard": "Chomp",
+   "ok": false
+  },
+  "w:shot@f": {
+   "heard": "shot",
+   "ok": true
+  },
+  "w:shot@f2": {
+   "heard": "Shot",
+   "ok": true
+  },
+  "w:shot@m": {
+   "heard": "shot",
+   "ok": true
+  },
+  "w:shot@m2": {
+   "heard": "shot",
    "ok": true
   },
   "w:shut@f": {
    "heard": "Shut",
    "ok": true
   },
+  "w:shut@f2": {
+   "heard": "shot",
+   "ok": false
+  },
   "w:shut@m": {
    "heard": "SHUN",
    "ok": false
+  },
+  "w:shut@m2": {
+   "heard": "shut",
+   "ok": true
   },
   "w:sick@f": {
    "heard": "SEGA",
@@ -1716,13 +3328,37 @@
    "heard": "Sick.",
    "ok": true
   },
+  "w:sin@f": {
+   "heard": "Sin",
+   "ok": true
+  },
+  "w:sin@f2": {
+   "heard": "Sin",
+   "ok": true
+  },
+  "w:sin@m": {
+   "heard": "sin",
+   "ok": true
+  },
+  "w:sin@m2": {
+   "heard": "zin",
+   "ok": false
+  },
   "w:sing@f": {
+   "heard": "sing",
+   "ok": true
+  },
+  "w:sing@f2": {
    "heard": "sing",
    "ok": true
   },
   "w:sing@m": {
    "heard": "sing",
    "ok": true
+  },
+  "w:sing@m2": {
+   "heard": "zing",
+   "ok": false
   },
   "w:sink@f": {
    "heard": "Sink",
@@ -1744,8 +3380,16 @@
    "heard": "Z",
    "ok": false
   },
+  "w:sit@f2": {
+   "heard": "Sit",
+   "ok": true
+  },
   "w:sit@m": {
    "heard": "Zid",
+   "ok": false
+  },
+  "w:sit@m2": {
+   "heard": "zip",
    "ok": false
   },
   "w:six@f": {
@@ -1764,8 +3408,16 @@
    "heard": "sock",
    "ok": true
   },
+  "w:sock@f2": {
+   "heard": "Suck",
+   "ok": false
+  },
   "w:sock@m": {
    "heard": "SOG",
+   "ok": false
+  },
+  "w:sock@m2": {
+   "heard": "Suck",
    "ok": false
   },
   "w:solid@f": {
@@ -1800,9 +3452,33 @@
    "heard": "Sun",
    "ok": true
   },
+  "w:sun@f2": {
+   "heard": "Sun",
+   "ok": true
+  },
   "w:sun@m": {
    "heard": "Sun",
    "ok": true
+  },
+  "w:sun@m2": {
+   "heard": "Sun",
+   "ok": true
+  },
+  "w:sung@f": {
+   "heard": "sung",
+   "ok": true
+  },
+  "w:sung@f2": {
+   "heard": "sung",
+   "ok": true
+  },
+  "w:sung@m": {
+   "heard": "sung",
+   "ok": true
+  },
+  "w:sung@m2": {
+   "heard": "",
+   "ok": false
   },
   "w:sunset@f": {
    "heard": "sunset",
@@ -1812,6 +3488,38 @@
    "heard": "Sunset",
    "ok": true
   },
+  "w:tab@f": {
+   "heard": "Tab",
+   "ok": true
+  },
+  "w:tab@f2": {
+   "heard": "Tab",
+   "ok": true
+  },
+  "w:tab@m": {
+   "heard": "Tab",
+   "ok": true
+  },
+  "w:tab@m2": {
+   "heard": "tab",
+   "ok": true
+  },
+  "w:tack@f": {
+   "heard": "Tack",
+   "ok": true
+  },
+  "w:tack@f2": {
+   "heard": "Tuck",
+   "ok": false
+  },
+  "w:tack@m": {
+   "heard": "Tack",
+   "ok": true
+  },
+  "w:tack@m2": {
+   "heard": "DAG",
+   "ok": false
+  },
   "w:tag@f": {
    "heard": "tag",
    "ok": true
@@ -1820,13 +3528,37 @@
    "heard": "tag",
    "ok": true
   },
+  "w:tan@f": {
+   "heard": "tan",
+   "ok": true
+  },
+  "w:tan@f2": {
+   "heard": "10",
+   "ok": false
+  },
+  "w:tan@m": {
+   "heard": "tan",
+   "ok": true
+  },
+  "w:tan@m2": {
+   "heard": "tan",
+   "ok": true
+  },
   "w:tap@f": {
+   "heard": "Tap",
+   "ok": true
+  },
+  "w:tap@f2": {
    "heard": "Tap",
    "ok": true
   },
   "w:tap@m": {
    "heard": "Tap",
    "ok": true
+  },
+  "w:tap@m2": {
+   "heard": "DAB",
+   "ok": false
   },
   "w:tax@f": {
    "heard": "tax",
@@ -1852,7 +3584,15 @@
    "heard": "10",
    "ok": true
   },
+  "w:ten@f2": {
+   "heard": "10",
+   "ok": true
+  },
   "w:ten@m": {
+   "heard": "10",
+   "ok": true
+  },
+  "w:ten@m2": {
    "heard": "10",
    "ok": true
   },
@@ -1920,7 +3660,15 @@
    "heard": "thin",
    "ok": true
   },
+  "w:thin@f2": {
+   "heard": "Sten",
+   "ok": false
+  },
   "w:thin@m": {
+   "heard": "thin",
+   "ok": true
+  },
+  "w:thin@m2": {
    "heard": "thin",
    "ok": true
   },
@@ -1928,7 +3676,15 @@
    "heard": "Thing",
    "ok": true
   },
+  "w:thing@f2": {
+   "heard": "Sting",
+   "ok": false
+  },
   "w:thing@m": {
+   "heard": "thing",
+   "ok": true
+  },
+  "w:thing@m2": {
    "heard": "thing",
    "ok": true
   },
@@ -1956,9 +3712,17 @@
    "heard": "10",
    "ok": false
   },
+  "w:tin@f2": {
+   "heard": "tin",
+   "ok": true
+  },
   "w:tin@m": {
    "heard": "10.",
    "ok": false
+  },
+  "w:tin@m2": {
+   "heard": "tin",
+   "ok": true
   },
   "w:tip@f": {
    "heard": "Tippe",
@@ -1980,7 +3744,15 @@
    "heard": "Top",
    "ok": true
   },
+  "w:top@f2": {
+   "heard": "Top",
+   "ok": true
+  },
   "w:top@m": {
+   "heard": "top",
+   "ok": true
+  },
+  "w:top@m2": {
    "heard": "top",
    "ok": true
   },
@@ -1991,6 +3763,22 @@
   "w:topic@m": {
    "heard": "Topic",
    "ok": true
+  },
+  "w:tuck@f": {
+   "heard": "Taka",
+   "ok": false
+  },
+  "w:tuck@f2": {
+   "heard": "Tuck",
+   "ok": true
+  },
+  "w:tuck@m": {
+   "heard": "dog",
+   "ok": false
+  },
+  "w:tuck@m2": {
+   "heard": "tug",
+   "ok": false
   },
   "w:two@f": {
    "heard": "to",
@@ -2028,23 +3816,307 @@
    "heard": "Van",
    "ok": true
   },
+  "w:van@f2": {
+   "heard": "Van",
+   "ok": true
+  },
   "w:van@m": {
    "heard": "Van",
    "ok": true
   },
+  "w:van@m2": {
+   "heard": "than",
+   "ok": false
+  },
+  "w:vary@f": {
+   "heard": "very",
+   "ok": true
+  },
+  "w:vary@f2": {
+   "heard": "Very",
+   "ok": true
+  },
+  "w:vary@m": {
+   "heard": "very",
+   "ok": true
+  },
+  "w:vary@m2": {
+   "heard": "very",
+   "ok": true
+  },
+  "w:vast@f": {
+   "heard": "Vast",
+   "ok": true
+  },
+  "w:vast@f2": {
+   "heard": "Vast",
+   "ok": true
+  },
+  "w:vast@m": {
+   "heard": "vast",
+   "ok": true
+  },
+  "w:vast@m2": {
+   "heard": "Vast",
+   "ok": true
+  },
+  "w:vat@f": {
+   "heard": "that",
+   "ok": false
+  },
+  "w:vat@f2": {
+   "heard": "that",
+   "ok": false
+  },
+  "w:vat@m": {
+   "heard": "that",
+   "ok": false
+  },
+  "w:vat@m2": {
+   "heard": "that",
+   "ok": false
+  },
+  "w:vault@f": {
+   "heard": "Vault",
+   "ok": true
+  },
+  "w:vault@f2": {
+   "heard": "Vault",
+   "ok": true
+  },
+  "w:vault@m": {
+   "heard": "vault",
+   "ok": true
+  },
+  "w:vault@m2": {
+   "heard": "Vault",
+   "ok": true
+  },
+  "w:veal@f": {
+   "heard": "veal",
+   "ok": true
+  },
+  "w:veal@f2": {
+   "heard": "veal",
+   "ok": true
+  },
+  "w:veal@m": {
+   "heard": "veal",
+   "ok": true
+  },
+  "w:veal@m2": {
+   "heard": "Feel",
+   "ok": false
+  },
+  "w:veil@f": {
+   "heard": "veil",
+   "ok": true
+  },
+  "w:veil@f2": {
+   "heard": "veil",
+   "ok": true
+  },
+  "w:veil@m": {
+   "heard": "veil",
+   "ok": true
+  },
+  "w:veil@m2": {
+   "heard": "Veil",
+   "ok": true
+  },
+  "w:vent@f": {
+   "heard": "vent",
+   "ok": true
+  },
+  "w:vent@f2": {
+   "heard": "vent",
+   "ok": true
+  },
+  "w:vent@m": {
+   "heard": "vent",
+   "ok": true
+  },
+  "w:vent@m2": {
+   "heard": "vent",
+   "ok": true
+  },
+  "w:very@f": {
+   "heard": "very",
+   "ok": true
+  },
+  "w:very@f2": {
+   "heard": "Very",
+   "ok": true
+  },
+  "w:very@m": {
+   "heard": "very",
+   "ok": true
+  },
+  "w:very@m2": {
+   "heard": "very",
+   "ok": true
+  },
+  "w:vest@f": {
+   "heard": "Vasti",
+   "ok": false
+  },
+  "w:vest@f2": {
+   "heard": "Vest",
+   "ok": true
+  },
+  "w:vest@m": {
+   "heard": "Western",
+   "ok": false
+  },
+  "w:vest@m2": {
+   "heard": "VESTI",
+   "ok": false
+  },
   "w:vet@f": {
    "heard": "VET",
+   "ok": true
+  },
+  "w:vet@f2": {
+   "heard": "vet",
    "ok": true
   },
   "w:vet@m": {
    "heard": "VEP",
    "ok": false
   },
+  "w:vet@m2": {
+   "heard": "that",
+   "ok": false
+  },
+  "w:view@f": {
+   "heard": "View",
+   "ok": true
+  },
+  "w:view@f2": {
+   "heard": "view",
+   "ok": true
+  },
+  "w:view@m": {
+   "heard": "view",
+   "ok": true
+  },
+  "w:view@m2": {
+   "heard": "view",
+   "ok": true
+  },
+  "w:vile@f": {
+   "heard": "Vile",
+   "ok": true
+  },
+  "w:vile@f2": {
+   "heard": "Vile",
+   "ok": true
+  },
+  "w:vile@m": {
+   "heard": "vial",
+   "ok": true
+  },
+  "w:vile@m2": {
+   "heard": "Vile",
+   "ok": true
+  },
+  "w:vine@f": {
+   "heard": "Vine",
+   "ok": true
+  },
+  "w:vine@f2": {
+   "heard": "vine",
+   "ok": true
+  },
+  "w:vine@m": {
+   "heard": "vine",
+   "ok": true
+  },
+  "w:vine@m2": {
+   "heard": "fine",
+   "ok": false
+  },
+  "w:vow@f": {
+   "heard": "thou",
+   "ok": false
+  },
+  "w:vow@f2": {
+   "heard": "VEL",
+   "ok": false
+  },
+  "w:vow@m": {
+   "heard": "vowel",
+   "ok": false
+  },
+  "w:vow@m2": {
+   "heard": "thou",
+   "ok": false
+  },
+  "w:wail@f": {
+   "heard": "Whale",
+   "ok": true
+  },
+  "w:wail@f2": {
+   "heard": "whale",
+   "ok": true
+  },
+  "w:wail@m": {
+   "heard": "whale",
+   "ok": true
+  },
+  "w:wail@m2": {
+   "heard": "whale",
+   "ok": true
+  },
+  "w:wary@f": {
+   "heard": "wary",
+   "ok": true
+  },
+  "w:wary@f2": {
+   "heard": "Warried",
+   "ok": false
+  },
+  "w:wary@m": {
+   "heard": "wary",
+   "ok": true
+  },
+  "w:wary@m2": {
+   "heard": "wary",
+   "ok": true
+  },
   "w:was@f": {
    "heard": "was",
    "ok": true
   },
+  "w:wash@f": {
+   "heard": "Wash",
+   "ok": true
+  },
+  "w:wash@f2": {
+   "heard": "Wash",
+   "ok": true
+  },
+  "w:wash@m": {
+   "heard": "wash",
+   "ok": true
+  },
+  "w:wash@m2": {
+   "heard": "wash",
+   "ok": true
+  },
   "w:watch@f": {
+   "heard": "watch",
+   "ok": true
+  },
+  "w:watch@f2": {
+   "heard": "Watch",
+   "ok": true
+  },
+  "w:watch@m": {
+   "heard": "watch",
+   "ok": true
+  },
+  "w:watch@m2": {
    "heard": "watch",
    "ok": true
   },
@@ -2064,15 +4136,59 @@
    "heard": "Well...",
    "ok": true
   },
+  "w:well@f2": {
+   "heard": "Well...",
+   "ok": true
+  },
   "w:well@m": {
    "heard": "Well.",
+   "ok": true
+  },
+  "w:well@m2": {
+   "heard": "Well...",
+   "ok": true
+  },
+  "w:went@f": {
+   "heard": "went",
+   "ok": true
+  },
+  "w:went@f2": {
+   "heard": "went",
+   "ok": true
+  },
+  "w:went@m": {
+   "heard": "went",
+   "ok": true
+  },
+  "w:went@m2": {
+   "heard": "went",
    "ok": true
   },
   "w:were@f": {
    "heard": "were",
    "ok": true
   },
+  "w:west@f": {
+   "heard": "West it",
+   "ok": false
+  },
+  "w:west@f2": {
+   "heard": "West.",
+   "ok": true
+  },
+  "w:west@m": {
+   "heard": "Western",
+   "ok": false
+  },
+  "w:west@m2": {
+   "heard": "West",
+   "ok": true
+  },
   "w:wet@f": {
+   "heard": "Wet",
+   "ok": true
+  },
+  "w:wet@f2": {
    "heard": "Wet",
    "ok": true
   },
@@ -2080,9 +4196,29 @@
    "heard": "Wet",
    "ok": true
   },
+  "w:wet@m2": {
+   "heard": "Wet",
+   "ok": true
+  },
   "w:what@f": {
    "heard": "What?",
    "ok": true
+  },
+  "w:wheel@f": {
+   "heard": "wheel",
+   "ok": true
+  },
+  "w:wheel@f2": {
+   "heard": "wheel",
+   "ok": true
+  },
+  "w:wheel@m": {
+   "heard": "wheel",
+   "ok": true
+  },
+  "w:wheel@m2": {
+   "heard": "We are.",
+   "ok": false
   },
   "w:when@f": {
    "heard": "when",
@@ -2104,6 +4240,22 @@
    "heard": "Witch",
    "ok": true
   },
+  "w:while@f": {
+   "heard": "while",
+   "ok": true
+  },
+  "w:while@f2": {
+   "heard": "while",
+   "ok": true
+  },
+  "w:while@m": {
+   "heard": "while",
+   "ok": true
+  },
+  "w:while@m2": {
+   "heard": "wild",
+   "ok": false
+  },
   "w:who@f": {
    "heard": "Who?",
    "ok": true
@@ -2112,7 +4264,15 @@
    "heard": "Will",
    "ok": true
   },
+  "w:will@f2": {
+   "heard": "Will",
+   "ok": true
+  },
   "w:will@m": {
+   "heard": "will",
+   "ok": true
+  },
+  "w:will@m2": {
    "heard": "will",
    "ok": true
   },
@@ -2120,16 +4280,48 @@
    "heard": "When",
    "ok": false
   },
+  "w:win@f2": {
+   "heard": "win",
+   "ok": true
+  },
   "w:win@m": {
    "heard": "win",
+   "ok": true
+  },
+  "w:win@m2": {
+   "heard": "win",
+   "ok": true
+  },
+  "w:wine@f": {
+   "heard": "wine",
+   "ok": true
+  },
+  "w:wine@f2": {
+   "heard": "Wine",
+   "ok": true
+  },
+  "w:wine@m": {
+   "heard": "wine",
+   "ok": true
+  },
+  "w:wine@m2": {
+   "heard": "wine",
    "ok": true
   },
   "w:wing@f": {
    "heard": "Wing",
    "ok": true
   },
+  "w:wing@f2": {
+   "heard": "wing",
+   "ok": true
+  },
   "w:wing@m": {
    "heard": "Wing",
+   "ok": true
+  },
+  "w:wing@m2": {
+   "heard": "wing",
    "ok": true
   },
   "w:wish@f": {
@@ -2156,11 +4348,99 @@
    "heard": "within",
    "ok": true
   },
+  "w:wow@f": {
+   "heard": "Wow!",
+   "ok": true
+  },
+  "w:wow@f2": {
+   "heard": "Well...",
+   "ok": false
+  },
+  "w:wow@m": {
+   "heard": "Wow",
+   "ok": true
+  },
+  "w:wow@m2": {
+   "heard": "Well",
+   "ok": false
+  },
+  "w:yacht@f": {
+   "heard": "yacht",
+   "ok": true
+  },
+  "w:yacht@f2": {
+   "heard": "yacht",
+   "ok": true
+  },
+  "w:yacht@m": {
+   "heard": "Yacht",
+   "ok": true
+  },
+  "w:yacht@m2": {
+   "heard": "yacht",
+   "ok": true
+  },
+  "w:yam@f": {
+   "heard": "YAM",
+   "ok": true
+  },
+  "w:yam@f2": {
+   "heard": "yam",
+   "ok": true
+  },
+  "w:yam@m": {
+   "heard": "yam",
+   "ok": true
+  },
+  "w:yam@m2": {
+   "heard": "yam",
+   "ok": true
+  },
+  "w:yaw@f": {
+   "heard": "Yeah",
+   "ok": false
+  },
+  "w:yaw@f2": {
+   "heard": "Yo",
+   "ok": true
+  },
+  "w:yaw@m": {
+   "heard": "You go home.",
+   "ok": false
+  },
+  "w:yaw@m2": {
+   "heard": "Yeah",
+   "ok": false
+  },
+  "w:year@f": {
+   "heard": "year",
+   "ok": true
+  },
+  "w:year@f2": {
+   "heard": "year",
+   "ok": true
+  },
+  "w:year@m": {
+   "heard": "year",
+   "ok": true
+  },
+  "w:year@m2": {
+   "heard": "year",
+   "ok": true
+  },
   "w:yell@f": {
    "heard": "Yell",
    "ok": true
   },
+  "w:yell@f2": {
+   "heard": "Yell",
+   "ok": true
+  },
   "w:yell@m": {
+   "heard": "Yell",
+   "ok": true
+  },
+  "w:yell@m2": {
    "heard": "Yell",
    "ok": true
   },
@@ -2176,8 +4456,32 @@
    "heard": "Yet",
    "ok": true
   },
+  "w:yet@f2": {
+   "heard": "Yet.",
+   "ok": true
+  },
   "w:yet@m": {
    "heard": "Yet.",
+   "ok": true
+  },
+  "w:yet@m2": {
+   "heard": "yet",
+   "ok": true
+  },
+  "w:yolk@f": {
+   "heard": "yoke",
+   "ok": true
+  },
+  "w:yolk@f2": {
+   "heard": "Yoke",
+   "ok": true
+  },
+  "w:yolk@m": {
+   "heard": "yoke",
+   "ok": true
+  },
+  "w:yolk@m2": {
+   "heard": "Yoke",
    "ok": true
   },
   "w:you@f": {
@@ -2210,7 +4514,7 @@
   }
  },
  "asr_summary": {
-  "checked": 552,
+  "checked": 1128,
   "failed": [
    "s:ali-has-a-fan@f",
    "s:ali-has-a-red-cab@f",
@@ -2233,23 +4537,76 @@
    "w:are@f",
    "w:at@f",
    "w:at@m",
+   "w:ban@m2",
+   "w:bat@m2",
    "w:bath@f",
    "w:be@f",
+   "w:bet@f",
+   "w:bet@m2",
    "w:bin@f",
+   "w:bin@f2",
    "w:bin@m",
+   "w:bin@m2",
+   "w:block@f",
+   "w:bug@m2",
+   "w:bun@f",
+   "w:cash@f2",
    "w:cash@m",
+   "w:catch@f",
+   "w:cheap@f2",
+   "w:cheap@m2",
+   "w:cheat@f2",
+   "w:cheat@m2",
    "w:chess@f",
    "w:chess@m",
+   "w:chew@f",
+   "w:chew@f2",
+   "w:chew@m",
+   "w:chew@m2",
    "w:chin@f",
    "w:chip@f",
    "w:chip@m",
+   "w:chip@m2",
+   "w:chop@f2",
    "w:chop@m",
+   "w:chop@m2",
+   "w:cop@f2",
+   "w:cop@m",
+   "w:cop@m2",
+   "w:cot@f",
+   "w:cot@f2",
+   "w:cot@m2",
+   "w:cub@f",
+   "w:cub@m2",
    "w:cup@f",
+   "w:cup@m2",
    "w:did@f",
    "w:did@m",
    "w:dish@f",
+   "w:dock@f",
+   "w:dock@f2",
+   "w:dock@m2",
    "w:dot@m",
+   "w:duck@f",
+   "w:fast@f",
+   "w:fast@f2",
+   "w:fast@m",
+   "w:fat@f",
+   "w:fat@f2",
+   "w:fat@m",
+   "w:fat@m2",
+   "w:fault@f",
+   "w:fault@f2",
+   "w:fault@m",
+   "w:fault@m2",
    "w:fell@m",
+   "w:ferry@f",
+   "w:ferry@f2",
+   "w:ferry@m",
+   "w:ferry@m2",
+   "w:few@m",
+   "w:few@m2",
+   "w:fill@f2",
    "w:fill@m",
    "w:fish@f",
    "w:fish@m",
@@ -2261,61 +4618,156 @@
    "w:hat@m",
    "w:have@f",
    "w:he@f",
+   "w:hut@m",
+   "w:hut@m2",
+   "w:jaw@m2",
+   "w:jeer@m",
+   "w:jot@m",
    "w:ken@f",
    "w:key@f",
+   "w:kin@f2",
    "w:kit@f",
    "w:kit@m",
+   "w:lad@m2",
+   "w:leaf@f",
+   "w:led@f",
    "w:lip@f",
+   "w:lock@f2",
+   "w:lock@m2",
    "w:long@f",
    "w:lot@f",
+   "w:luck@m2",
    "w:mat@f",
+   "w:mat@f2",
    "w:mat@m",
+   "w:mat@m2",
+   "w:match@f",
    "w:met@f",
+   "w:mob@m2",
    "w:mop@m",
    "w:neck@f",
    "w:no@f",
    "w:nose@f",
+   "w:nut@f",
+   "w:nut@m",
    "w:off@f",
    "w:off@m",
    "w:or@f",
+   "w:pat@f2",
    "w:path@f",
+   "w:peck@f",
+   "w:peck@m2",
+   "w:peg@m2",
    "w:pick@f",
+   "w:pick@m2",
    "w:picnic@f",
+   "w:pig@m",
+   "w:pop@f",
+   "w:pun@m2",
+   "w:pup@f",
+   "w:pup@m",
+   "w:pup@m2",
    "w:quick@f",
    "w:quit@m",
+   "w:rack@f2",
+   "w:rib@f",
+   "w:rib@m2",
+   "w:rob@f2",
+   "w:rub@f",
+   "w:rub@m2",
+   "w:run@f2",
+   "w:rung@f2",
+   "w:rung@m",
+   "w:sack@f",
+   "w:sack@f2",
+   "w:sack@m2",
    "w:sat@f",
+   "w:sat@m2",
    "w:sell@f",
    "w:sell@m",
+   "w:send@f",
    "w:set@m",
+   "w:sheep@m2",
+   "w:sheet@f",
+   "w:sheet@m",
+   "w:sheet@m2",
+   "w:ship@m2",
+   "w:shoe@f",
+   "w:shoe@f2",
+   "w:shoe@m",
+   "w:shoe@m2",
+   "w:shop@f2",
+   "w:shop@m2",
+   "w:shut@f2",
    "w:shut@m",
    "w:sick@f",
+   "w:sin@m2",
+   "w:sing@m2",
    "w:sink@m",
    "w:sip@f",
    "w:sip@m",
    "w:sit@f",
    "w:sit@m",
+   "w:sit@m2",
    "w:six@f",
+   "w:sock@f2",
    "w:sock@m",
+   "w:sock@m2",
    "w:some@f",
+   "w:sung@m2",
+   "w:tack@f2",
+   "w:tack@m2",
+   "w:tan@f2",
+   "w:tap@m2",
    "w:tax@m",
    "w:tennis@m",
    "w:thank@m",
    "w:the@f",
    "w:they@f",
+   "w:thin@f2",
+   "w:thing@f2",
    "w:three@f",
    "w:tin@f",
    "w:tin@m",
    "w:tip@f",
    "w:to@f",
+   "w:tuck@f",
+   "w:tuck@m",
+   "w:tuck@m2",
    "w:up@m",
+   "w:van@m2",
+   "w:vat@f",
+   "w:vat@f2",
+   "w:vat@m",
+   "w:vat@m2",
+   "w:veal@m2",
+   "w:vest@f",
+   "w:vest@m",
+   "w:vest@m2",
    "w:vet@m",
+   "w:vet@m2",
+   "w:vine@m2",
+   "w:vow@f",
+   "w:vow@f2",
+   "w:vow@m",
+   "w:vow@m2",
+   "w:wary@f2",
+   "w:west@f",
+   "w:west@m",
+   "w:wheel@m2",
    "w:which@f",
+   "w:while@m2",
    "w:win@f",
    "w:within@f",
+   "w:wow@f2",
+   "w:wow@m2",
+   "w:yaw@f",
+   "w:yaw@m",
+   "w:yaw@m2",
    "w:you@f"
   ]
  },
- "files": 302,
+ "files": 11,
  "pipeline": "2",
  "sounds": {
   "aa": {

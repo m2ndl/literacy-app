@@ -62,7 +62,11 @@ export const ACTIVITY_META = {
   'meaning':           { title: 'ما معنى الكلمة؟',         desc: 'اقرأ الكلمة واختر معناها بالعربية.',                  icon: '💡' },
   'first-last-sound':  { title: 'الصوت الأول والأخير',     desc: 'حدّد الصوت في أول الكلمة أو في آخرها.',              icon: '🎯' },
   'complete-sentence': { title: 'أكمل الجملة',             desc: 'استمع إلى الجملة واختر الكلمة الناقصة.',             icon: '📝' },
-  'read-text':         { title: 'اقرأ وافهم',              desc: 'اقرأ نصًا قصيرًا وأجب بـ «نعم» أو «لا».',             icon: '📖' }
+  'read-text':         { title: 'اقرأ وافهم',              desc: 'اقرأ نصًا قصيرًا وأجب بـ «نعم» أو «لا».',             icon: '📖' },
+  'tracing':           { title: 'اكتب الحرف',              desc: 'شاهد كيف يُكتب الحرف، ثم تتبّعه بإصبعك، ثم اكتبه وحدك.', icon: '✏️', optional: true },
+  'dictation':         { title: 'إملاء',                   desc: 'استمع إلى الكلمة واكتبها بلوحة المفاتيح الإنجليزية.',  icon: '⌨️' },
+  'heart-words':       { title: 'كلمات القلب',             desc: 'استمع واختر الكتابة الصحيحة لكلمة شائعة.',            icon: '♥' },
+  'sentence-build':    { title: 'رتّب الجملة',             desc: 'رتّب الكلمات لتكوّن جملة إنجليزية صحيحة.',            icon: '🔀' }
 };
 
 // Arabic feedback hints: first by the exact pair of graphemes confused (sorted, joined by |),
@@ -103,13 +107,20 @@ export const HINTS = {
   }
 };
 
-const LETTER_UNIT = ['sound-match', 'capital-match', 'which-word', 'word-build', 'missing-letter', 'meaning', 'first-last-sound', 'complete-sentence'];
-const DIGRAPH_UNIT = ['sound-match', 'which-word', 'word-build', 'missing-letter', 'meaning', 'first-last-sound', 'complete-sentence'];
+// Order: hear and recognise -> build and write -> meaning -> sentences.
+const LETTER_UNIT = ['sound-match', 'capital-match', 'tracing', 'which-word', 'first-last-sound', 'word-build', 'missing-letter',
+  'dictation', 'meaning', 'heart-words', 'complete-sentence', 'sentence-build'];
+const DIGRAPH_UNIT = ['sound-match', 'which-word', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
+  'heart-words', 'complete-sentence', 'sentence-build'];
+// Unit 1 has too few sentences of three or more words for "sentence order".
+const FIRST_UNIT = LETTER_UNIT.filter(a => a !== 'sentence-build');
 
 // Word fields: w = word, ar = Arabic meaning, emoji (concrete nouns only),
 // group = near-synonyms that must not be offered as each other's distractors,
 // split = syllables of a two-syllable word.
 // Heart words: mark puts the "tricky" part in [brackets].
+// pseudo = made-up "brand names" for the placement test (decodable, not English words); each has two
+// spoken foils: a vowel misreading and a consonant misreading.
 export const units = [
   {
     id: 1,
@@ -135,6 +146,7 @@ export const units = [
       { w: 'is', ar: 'يكون (هو / هي)', mark: 'i[s]' }
     ],
     contrasts: [['sat', 'sit'], ['tap', 'tip'], ['pan', 'pin']],
+    pseudo: [{ w: 'nis', foils: ['nas', 'niz'] }, { w: 'nin', foils: ['nan', 'nim'] }, { w: 'tis', foils: ['tas', 'dis'] }],
     sentences: [
       { text: 'It is a pin.', missing: 'pin', ar: 'إنه دبّوس.' },
       { text: 'It is a tip.', missing: 'tip', ar: 'إنها نصيحة.' },
@@ -150,7 +162,7 @@ export const units = [
       'اضغط على الحرف لتسمع صوته، واضغط «اسم الحرف» لتسمع اسمه. في القراءة نستخدم الصوت لا الاسم.',
       'p صوت جديد: مثل «ب» لكن بلا اهتزاز في الحنجرة، ومع نفخة هواء.'
     ],
-    activities: LETTER_UNIT
+    activities: FIRST_UNIT
   },
   {
     id: 2,
@@ -189,6 +201,7 @@ export const units = [
     ],
     names: [{ w: 'Sam', ar: 'سام' }, { w: 'Tom', ar: 'توم' }],
     contrasts: [['top', 'tap', 'tip'], ['mop', 'map'], ['dig', 'dog'], ['did', 'dad'], ['map', 'nap']],
+    pseudo: [{ w: 'nid', foils: ['ned', 'nit'] }, { w: 'mip', foils: ['mep', 'nip'] }, { w: 'tid', foils: ['tod', 'did'] }, { w: 'mog', foils: ['mag', 'mok'] }],
     sentences: [
       { text: 'I am Sam.', missing: 'am', ar: 'أنا سام.' },
       { text: 'Sam got a map.', missing: 'map', ar: 'حصل سام على خريطة.' },
@@ -241,6 +254,7 @@ export const units = [
     ],
     names: [{ w: 'Ken', ar: 'كِن' }],
     contrasts: [['pen', 'pin', 'pan'], ['ten', 'tin'], ['men', 'man'], ['pet', 'pot'], ['set', 'sit', 'sat'], ['net', 'not']],
+    pseudo: [{ w: 'kep', foils: ['kip', 'keb'] }, { w: 'dack', foils: ['deck', 'tack'] }, { w: 'kem', foils: ['kim', 'gem'] }, { w: 'ked', foils: ['kid', 'ket'] }],
     sentences: [
       { text: 'It is ten to ten.', missing: 'ten', ar: 'الساعة العاشرة إلا عشر دقائق.' },
       { text: 'I can get a pen.', missing: 'pen', ar: 'أستطيع أن أحصل على قلم.' },
@@ -296,6 +310,7 @@ export const units = [
     ],
     names: [{ w: 'Ali', ar: 'علي' }],
     contrasts: [['pin', 'bin'], ['pack', 'back'], ['cap', 'cab'], ['cup', 'cap'], ['cut', 'cat'], ['hot', 'hat', 'hit'], ['bag', 'big', 'bug'], ['bad', 'dad'], ['big', 'dig']],
+    pseudo: [{ w: 'hib', foils: ['heb', 'hid'] }, { w: 'bup', foils: ['bop', 'pup'] }, { w: 'rab', foils: ['rub', 'rad'] }, { w: 'nug', foils: ['nog', 'nuk'] }],
     sentences: [
       { text: 'The bus is red.', missing: 'red', ar: 'الحافلة حمراء.' },
       { text: 'I can run.', missing: 'run', ar: 'أستطيع أن أجري.' },
@@ -358,6 +373,7 @@ export const units = [
     ],
     names: [{ w: 'Sara', ar: 'سارة' }],
     contrasts: [['fan', 'pan'], ['fun', 'fan'], ['miss', 'mess'], ['bell', 'bill'], ['fill', 'fell'], ['lock', 'luck'], ['add', 'odd'], ['let', 'lot']],
+    pseudo: [{ w: 'fep', foils: ['fip', 'vep'] }, { w: 'lig', foils: ['lag', 'lik'] }, { w: 'duss', foils: ['dass', 'tuss'] }, { w: 'loff', foils: ['luff', 'lov'] }],
     sentences: [
       { text: 'Do not miss the bus!', missing: 'miss', ar: 'لا تفوّت الحافلة!' },
       { text: 'I can pass.', missing: 'pass', ar: 'أستطيع أن أنجح.' },
@@ -414,6 +430,7 @@ export const units = [
     ],
     names: [{ w: 'Max', ar: 'ماكس' }],
     contrasts: [['fan', 'van'], ['vet', 'wet'], ['jet', 'yet'], ['quit', 'kit'], ['quick', 'kick'], ['mix', 'miss'], ['zip', 'sip'], ['buzz', 'bus'], ['fix', 'fit']],
+    pseudo: [{ w: 'jub', foils: ['jib', 'yub'] }, { w: 'vap', foils: ['vip', 'fap'] }, { w: 'zep', foils: ['zip', 'sep'] }, { w: 'wex', foils: ['wix', 'vex'] }],
     sentences: [
       { text: 'What is in the box?', missing: 'box', ar: 'ماذا يوجد في الصندوق؟' },
       { text: 'Yes, I can fix it.', missing: 'fix', ar: 'نعم، أستطيع إصلاحه.' },
@@ -475,6 +492,7 @@ export const units = [
       { w: 'she', ar: 'هي', mark: 'sh[e]' }
     ],
     contrasts: [['ship', 'chip'], ['shop', 'chop'], ['sip', 'ship'], ['thin', 'tin'], ['thick', 'sick'], ['path', 'pass'], ['math', 'mat'], ['then', 'ten'], ['chin', 'thin']],
+    pseudo: [{ w: 'shap', foils: ['shep', 'chap'] }, { w: 'chim', foils: ['chem', 'shim'] }, { w: 'kesh', foils: ['kish', 'kech'] }, { w: 'chot', foils: ['chut', 'shot'] }],
     sentences: [
       { text: 'This is my math lab.', missing: 'math', ar: 'هذا مختبر الرياضيات الخاص بي.' },
       { text: 'I will check the chat.', missing: 'chat', ar: 'سأراجع الدردشة.' },
@@ -524,6 +542,7 @@ export const units = [
       { w: 'were', ar: 'كانوا / كنتم', mark: 'w[ere]' }
     ],
     contrasts: [['thin', 'thing'], ['win', 'wing'], ['sing', 'sink'], ['thing', 'think'], ['pin', 'pink']],
+    pseudo: [{ w: 'whep', foils: ['whap', 'wheb'] }, { w: 'ponk', foils: ['pink', 'pong'] }, { w: 'fing', foils: ['fang', 'fin'] }, { w: 'hink', foils: ['hunk', 'hing'] }],
     sentences: [
       { text: 'When is the quiz?', missing: 'when', ar: 'متى الاختبار القصير؟' },
       { text: 'Thank you!', missing: 'thank', ar: 'شكرًا لك!' },
@@ -579,6 +598,7 @@ export const units = [
       { w: 'from', ar: 'من', mark: 'fr[o]m' }
     ],
     contrasts: [['pin', 'pen', 'pan'], ['cut', 'cat'], ['ship', 'chip'], ['thin', 'thing'], ['fan', 'van'], ['vet', 'wet'], ['jet', 'yet']],
+    pseudo: [{ w: 'tobnap', split: 'tob|nap', foils: ['tubnap', 'tobnab'] }, { w: 'sumtip', split: 'sum|tip', foils: ['samtip', 'sumdip'] }, { w: 'pimbat', split: 'pim|bat', foils: ['pembat', 'bimbat'] }, { w: 'ludmeg', split: 'lud|meg', foils: ['ladmeg', 'lutmeg'] }],
     sentences: [
       { text: 'My laptop is in my backpack.', missing: 'laptop', ar: 'حاسوبي المحمول في حقيبة ظهري.' },
       { text: 'I like tennis.', missing: 'tennis', ar: 'أحبّ التنس.' },
@@ -594,7 +614,7 @@ export const units = [
       'الكلمة الطويلة تتكوّن من مقاطع، وفي كل مقطع حرف علة واحد: lap | top, sun | set.',
       'اقرأ كل مقطع وحده، ثم اجمعهما بسرعة.'
     ],
-    activities: ['which-word', 'word-build', 'missing-letter', 'meaning', 'complete-sentence']
+    activities: ['which-word', 'word-build', 'missing-letter', 'dictation', 'meaning', 'heart-words', 'complete-sentence', 'sentence-build']
   },
   {
     id: 10,
@@ -685,8 +705,27 @@ export const units = [
       'ثم استمع إليه وتابع الكلمات بعينك.',
       'ثم اقرأه مرة أخرى بسرعة أكبر.'
     ],
-    activities: ['which-word', 'meaning', 'complete-sentence', 'read-text']
+    activities: ['which-word', 'dictation', 'meaning', 'heart-words', 'complete-sentence', 'sentence-build', 'read-text']
   }
+];
+
+// Ear training (high-variability phonetic training, HVPT): sounds that Arabic speakers find hard to
+// tell apart. Each word is heard in four voices; the learner chooses the letter they hear and then sees
+// the word. Pairs are minimal pairs [word with a, word with b]; they are heard, not read, so they may use
+// spellings not taught yet. A set opens once both letters have been taught. Clips that the speech
+// recogniser does not hear correctly are skipped (audio/manifest.json "avoid").
+export const PERCEPTION = [
+  { id: 'a-o', a: 'a', b: 'o', pairs: [['cat', 'cot'], ['hat', 'hot'], ['map', 'mop'], ['tap', 'top'], ['sack', 'sock'], ['pat', 'pot'], ['cap', 'cop'], ['rack', 'rock'], ['black', 'block'], ['lack', 'lock']] },
+  { id: 'i-e', a: 'i', b: 'e', pairs: [['pin', 'pen'], ['tin', 'ten'], ['sit', 'set'], ['pit', 'pet'], ['pick', 'peck'], ['pig', 'peg'], ['bit', 'bet'], ['lid', 'led'], ['fill', 'fell'], ['bill', 'bell'], ['will', 'well'], ['big', 'beg']] },
+  { id: 'e-a', a: 'e', b: 'a', pairs: [['pen', 'pan'], ['men', 'man'], ['ten', 'tan'], ['set', 'sat'], ['met', 'mat'], ['pet', 'pat'], ['bed', 'bad'], ['beg', 'bag'], ['peck', 'pack'], ['led', 'lad'], ['send', 'sand']] },
+  { id: 'a-u', a: 'a', b: 'u', pairs: [['cap', 'cup'], ['cat', 'cut'], ['bag', 'bug'], ['ran', 'run'], ['hat', 'hut'], ['fan', 'fun'], ['mad', 'mud'], ['cab', 'cub'], ['ban', 'bun'], ['lack', 'luck'], ['tack', 'tuck']] },
+  { id: 'o-u', a: 'o', b: 'u', pairs: [['cot', 'cut'], ['hot', 'hut'], ['cop', 'cup'], ['dock', 'duck'], ['lock', 'luck'], ['not', 'nut'], ['rob', 'rub'], ['shot', 'shut'], ['rot', 'rut'], ['pop', 'pup']] },
+  { id: 'p-b', a: 'p', b: 'b', pairs: [['pin', 'bin'], ['pat', 'bat'], ['pack', 'back'], ['cap', 'cab'], ['pig', 'big'], ['pet', 'bet'], ['pun', 'bun'], ['mop', 'mob'], ['tap', 'tab'], ['rip', 'rib'], ['pan', 'ban'], ['pit', 'bit']] },
+  { id: 'f-v', a: 'f', b: 'v', pairs: [['fan', 'van'], ['fat', 'vat'], ['fine', 'vine'], ['fast', 'vast'], ['few', 'view'], ['safe', 'save'], ['leaf', 'leave'], ['fail', 'veil'], ['ferry', 'very'], ['fault', 'vault']] },
+  { id: 'v-w', a: 'v', b: 'w', pairs: [['vet', 'wet'], ['vest', 'west'], ['vine', 'wine'], ['vent', 'went'], ['vow', 'wow'], ['vary', 'wary'], ['veil', 'wail'], ['vile', 'while'], ['veal', 'wheel']] },
+  { id: 'j-y', a: 'j', b: 'y', pairs: [['jet', 'yet'], ['jam', 'yam'], ['jell', 'yell'], ['joke', 'yolk'], ['jeer', 'year'], ['jot', 'yacht'], ['jaw', 'yaw']] },
+  { id: 'sh-ch', a: 'sh', b: 'ch', pairs: [['ship', 'chip'], ['shop', 'chop'], ['sheep', 'cheap'], ['shoe', 'chew'], ['share', 'chair'], ['wash', 'watch'], ['cash', 'catch'], ['dish', 'ditch'], ['mash', 'match'], ['sheet', 'cheat']] },
+  { id: 'n-ng', a: 'n', b: 'ng', pairs: [['thin', 'thing'], ['win', 'wing'], ['sin', 'sing'], ['ban', 'bang'], ['ran', 'rang'], ['run', 'rung'], ['kin', 'king'], ['sun', 'sung'], ['fan', 'fang'], ['pin', 'ping']] }
 ];
 
 // Backwards-compatible container used by the app.

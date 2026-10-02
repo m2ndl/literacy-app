@@ -72,12 +72,33 @@ export function clipKey(kind, text) {
   return kind === 'ph' || kind === 'ln' ? `${kind}:${text}` : `${kind}:${slugify(text)}`;
 }
 
+// Misaki (Kokoro) phoneme symbols for affricates.
+const KOKORO_IPA = { 'dʒ': 'ʤ', 'tʃ': 'ʧ' };
+
+/**
+ * Phonemes for a made-up word, from its graphemes (used to synthesise placement "brand names").
+ * Stress on the first syllable; the second syllable keeps a full vowel (secondary stress).
+ */
+export function toPhonemes(word, gpc, split = null) {
+  const syllables = split ? split.split('|') : [word];
+  return syllables.map((syl, i) => {
+    const gs = segment(syl);
+    if (!gs) throw new Error(`cannot segment "${syl}"`);
+    return gs.map(g => {
+      const ipa = KOKORO_IPA[gpc[g].ipa] || gpc[g].ipa;
+      return isVowel(g) ? (i === 0 ? 'ˈ' : 'ˌ') + ipa : ipa;
+    }).join('');
+  }).join('');
+}
+
 /**
  * Every audio clip the curriculum needs, with the voices to render.
- * Voices: f = main (female), m = second talker (male), fs = main voice, slow.
+ * Voices: f = main (female), m = second talker (male), fs = main voice, slow;
+ * f2 and m2 = extra talkers for ear training (perception sets).
+ * Kinds: ph = speech sound, ln = letter name, w = word, s = sentence, p = made-up word (from phonemes).
  * Returns [{ key, kind, text, voices, ipa? }], sorted by key, no duplicates.
  */
-export function requiredClips(units, gpc, alphabet) {
+export function requiredClips(units, gpc, alphabet, perception = []) {
   const clips = new Map();
   const add = (kind, text, voices, extra = {}) => {
     const key = clipKey(kind, text);
@@ -104,8 +125,18 @@ export function requiredClips(units, gpc, alphabet) {
     (u.names || []).forEach(n => add('w', n.w, ['f']));
     (u.sentences || []).forEach(s => add('s', s.text, ['f', 'fs']));
     (u.texts || []).forEach(t => [...t.sentences, ...t.questions].forEach(s => add('s', s.text, ['f', 'fs'])));
+    (u.pseudo || []).forEach(pw => [pw.w, ...pw.foils].forEach(w => {
+      add('p', w, ['f'], { ipa: toPhonemes(w, gpc, pw.split ? splitLike(w, pw.split) : null) });
+    }));
   });
+  perception.forEach(set => set.pairs.flat().forEach(w => add('w', w, ['f', 'm', 'f2', 'm2'])));
   return [...clips.values()].sort((a, b) => a.key.localeCompare(b.key));
+}
+
+/** Split a foil like its target ("tobnab" like "tob|nap" -> "tob|nab"). */
+function splitLike(word, split) {
+  const n = split.indexOf('|');
+  return `${word.slice(0, n)}|${word.slice(n)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -178,12 +209,12 @@ function spellingRulesOk(word) {
 
 /**
  * Is a plain lowercase word decodable at a unit using taught graphemes only?
- * Two-syllable words must be known to the lexicon with a split ("lap|top").
+ * Two-syllable words must be known to the lexicon with a split ("lap|top"), or the split is given.
  */
-export function decodeWord(word, unitId, lex) {
+export function decodeWord(word, unitId, lex, split = null) {
   if (BLOCKLIST.has(word)) return { ok: false, reason: 'irregular spelling' };
   if (!spellingRulesOk(word)) return { ok: false, reason: 'spelling rule not taught yet (soft c/g or w+a)' };
-  const known = lex.words.get(word);
+  const known = split ? { split } : lex.words.get(word);
   if (known && known.split) {
     if (!introducedBy(lex.rules, 'two-syllable', unitId, lex)) return { ok: false, reason: 'two-syllable words not taught yet' };
     const parts = known.split.split('|');
@@ -263,7 +294,7 @@ export function contrastOf(a, b) {
 }
 
 // Graphemes that spell the same sound: never offer one as a distractor for the other.
-const SAME_SOUND = [['c', 'k', 'ck'], ['f', 'ff'], ['l', 'll'], ['s', 'ss'], ['z', 'zz'], ['w', 'wh'], ['p', 'pp'], ['d', 'dd'], ['g', 'gg']];
+const SAME_SOUND = [['ch', 'tch'], ['c', 'k', 'ck'], ['f', 'ff'], ['l', 'll'], ['s', 'ss'], ['z', 'zz'], ['w', 'wh'], ['p', 'pp'], ['d', 'dd'], ['g', 'gg']];
 // Sounds Arabic speakers tend to confuse (listening).
 export const SOUND_CONFUSIONS = [
   ['p', 'b'], ['f', 'v'], ['w', 'v'], ['j', 'y'], ['t', 'd'], ['k', 'g'], ['c', 'g'], ['s', 'z'],
@@ -361,4 +392,62 @@ export function pickBlank(graphemes, rng = Math.random, vowelBias = 0.6) {
   const useVowel = vowels.length && (!consonants.length || rng() < vowelBias);
   const from = useVowel ? vowels : consonants;
   return from[Math.floor(rng() * from.length)];
+}
+
+// ---------------------------------------------------------------------------
+// Spelling feedback (dictation)
+// ---------------------------------------------------------------------------
+/** Graphemes of any typed string (longest match; unknown letters stay single). */
+function graphemesOfTyped(text) {
+  const out = [];
+  let i = 0;
+  while (i < text.length) {
+    const g = INVENTORY.find(c => text.startsWith(c, i)) || text[i];
+    out.push(g);
+    i += g.length;
+  }
+  return out;
+}
+
+/**
+ * Compare a typed spelling with the target, grapheme by grapheme (edit-distance alignment).
+ * Returns { ok, correct: number of target graphemes spelled right, total, ops: [{ op, target, typed }],
+ *           confusion: { target, chosen } when exactly one grapheme was swapped for another }.
+ * op is 'ok' | 'sub' | 'miss' (target grapheme left out) | 'extra' (typed grapheme not in the target).
+ */
+export function compareSpelling(target, typed, targetGraphemes = null) {
+  const t = targetGraphemes || graphemesOfTyped(target);
+  const u = graphemesOfTyped(String(typed).toLowerCase());
+  const n = t.length;
+  const m = u.length;
+  const d = Array.from({ length: n + 1 }, (_, i) => Array.from({ length: m + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (t[i - 1] === u[j - 1] ? 0 : 1));
+    }
+  }
+  const ops = [];
+  let i = n;
+  let j = m;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && d[i][j] === d[i - 1][j - 1] + (t[i - 1] === u[j - 1] ? 0 : 1)) {
+      ops.unshift({ op: t[i - 1] === u[j - 1] ? 'ok' : 'sub', target: t[i - 1], typed: u[j - 1] });
+      i--; j--;
+    } else if (i > 0 && d[i][j] === d[i - 1][j] + 1) {
+      ops.unshift({ op: 'miss', target: t[i - 1], typed: '' });
+      i--;
+    } else {
+      ops.unshift({ op: 'extra', target: '', typed: u[j - 1] });
+      j--;
+    }
+  }
+  const subs = ops.filter(o => o.op === 'sub');
+  const ok = ops.every(o => o.op === 'ok');
+  return {
+    ok,
+    correct: ops.filter(o => o.op === 'ok').length,
+    total: n,
+    ops,
+    confusion: !ok && subs.length === 1 && ops.every(o => o.op === 'ok' || o.op === 'sub') ? { target: subs[0].target, chosen: subs[0].typed } : null
+  };
 }
