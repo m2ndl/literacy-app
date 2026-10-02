@@ -299,7 +299,7 @@ export const stage3to5 = [
     pseudo: [
       { w: 'blemped', ipa: 'blˈɛmpt', foils: [{ w: 'blimped', ipa: 'blˈɪmpt' }, { w: 'blempid', ipa: 'blˈɛmpɪd' }] },
       { w: 'drisked', ipa: 'dɹˈɪskt', foils: [{ w: 'drasked', ipa: 'dɹˈæskt' }, { w: 'driskid', ipa: 'dɹˈɪskɪd' }] },
-      { w: 'snobbing', ipa: 'snˈɑbɪŋ', foils: [{ w: 'snubbing', ipa: 'snˈʌbɪŋ' }, { w: 'snobeng', ipa: 'snˈɑbɛŋ' }] },
+      { w: 'snobbing', ipa: 'snˈɑbɪŋ', foils: [{ w: 'snubbing', ipa: 'snˈʌbɪŋ' }, { w: 'snobing', ipa: 'snˈObɪŋ' }] },
       { w: 'glonted', ipa: 'ɡlˈɑntɪd', foils: [{ w: 'glanted', ipa: 'ɡlˈæntɪd' }, { w: 'glontt', ipa: 'ɡlˈɑnt' }] }
     ],
     sentences: [
@@ -705,7 +705,7 @@ export const stage3to5 = [
       { w: 'warm', ar: 'دافئ', mark: 'w[ar]m' }
     ],
     contrasts: [['at', 'art'], ['am', 'arm'], ['had', 'hard'], ['shut', 'short', 'shirt'], ['ten', 'turn']],
-    pseudo: [{ w: 'charp', foils: ['chap', 'sharp'] }, { w: 'glurp', foils: ['glop', 'clurp'] }, { w: 'borm', foils: ['bam', 'dorm'] },
+    pseudo: [{ w: 'chorp', foils: ['chop', 'shorp'] }, { w: 'glurp', foils: ['glop', 'clurp'] }, { w: 'borm', foils: ['bam', 'dorm'] },
       { w: 'smirt', foils: ['smit', 'snirt'] }],
     sentences: [
       { text: 'Her shirt is short.', missing: 'shirt', ar: 'قميصها قصير.' },
@@ -785,7 +785,7 @@ export const stage3to5 = [
       { w: 'son', ar: 'ابن', mark: 's[o]n' }
     ],
     contrasts: [['tin', 'town'], ['saw', 'say'], ['out', 'at'], ['mouth', 'math']],
-    pseudo: [{ w: 'floud', foils: ['flod', 'froud'] }, { w: 'proin', foils: ['pran', 'broin'] }, { w: 'smawk', foils: ['smock', 'snawk'] },
+    pseudo: [{ w: 'floud', foils: ['flod', 'froud'] }, { w: 'proin', foils: ['pran', 'broin'] }, { w: 'smawk', foils: [{ w: 'smowk', ipa: 'smˈWk' }, 'snawk'] },
       { w: 'bloy', foils: ['blay', 'gloy'] }],
     sentences: [
       { text: 'How are you now?', missing: 'now', ar: 'كيف حالك الآن؟' },
@@ -868,7 +868,7 @@ export const stage3to5 = [
         sentences: [
           { text: 'Sara is in a book club.', ar: 'سارة في نادٍ للقراءة.' },
           { text: 'The club meets in room nine each week.', ar: 'يجتمع النادي في الغرفة تسعة كل أسبوع.' },
-          { text: 'This week, they read a short book.', ar: 'هذا الأسبوع، يقرؤون كتابًا قصيرًا.' },
+          { text: 'This week, the club reads a short book.', ar: 'هذا الأسبوع، يقرأ النادي كتابًا قصيرًا.' },
           { text: 'Sara reads it two times.', ar: 'تقرؤه سارة مرتين.' },
           { text: 'Then she speaks to the group.', ar: 'ثم تتحدّث إلى المجموعة.' },
           { text: 'They all enjoy the talk.', ar: 'يستمتع الجميع بالحديث.' }
@@ -981,7 +981,7 @@ export const stage3to5 = [
     ],
     contrasts: [['nice', 'nine'], ['place', 'plate'], ['rice', 'ride']],
     pseudo: [{ w: 'pomic', split: 'po|mic', foils: ['pom|mic', 'po|mig'] }, { w: 'tilby', split: 'til|by', foils: ['tal|by', 'til|py'] },
-      { w: 'cimp', foils: ['semp', 'kimp'] }, { w: 'mople', split: 'mo|ple', foils: [{ w: 'mopple', ipa: 'mˈɑpəl' }, { w: 'moble', ipa: 'mˈObəl' }] }],
+      { w: 'cimp', foils: ['semp', 'kimp'] }, { w: 'mople', split: 'mo|ple', foils: [{ w: 'mopple', ipa: 'mˈɑpəl' }, { w: 'mofle', ipa: 'mˈOfəl' }] }],
     sentences: [
       { text: 'Open the email.', missing: 'email', ar: 'افتح البريد الإلكتروني.' },
       { text: 'I am a student.', missing: 'student', ar: 'أنا طالب.' },

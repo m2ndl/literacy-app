@@ -102,6 +102,7 @@ describe('generated audio', () => {
         bytes += statSync(new URL(`../audio/${v}/${key.slice(0, i)}/${key.slice(i + 1)}.mp3`, import.meta.url)).size;
       }
     }
-    assert.ok(bytes < 12 * 1024 * 1024, `audio is ${(bytes / 1048576).toFixed(1)} MB`);
+    // 24 units at about 0.7 MB each. Clips are cached as the learner reaches them, never all at once.
+    assert.ok(bytes < 20 * 1024 * 1024, `audio is ${(bytes / 1048576).toFixed(1)} MB`);
   });
 });

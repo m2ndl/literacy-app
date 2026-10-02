@@ -1,27 +1,207 @@
 {
  "asr": {
+  "s:a-big-storm-hit-the-town@f": {
+   "heard": "A big storm hit the town.",
+   "ok": true
+  },
+  "s:a-man-with-a-yellow-coat-stops-his-van@f": {
+   "heard": "A man with a yellow coat stops his van.",
+   "ok": true
+  },
   "s:add-it-to-the-bill@f": {
    "heard": "Add it to the bill.",
+   "ok": true
+  },
+  "s:after-class-sara-and-her-friend-go-to-the-mall@f": {
+   "heard": "After class, Sara and her friend go to the mall.",
+   "ok": true
+  },
+  "s:after-the-test-the-class-has-a-party-in-the-hall@f": {
+   "heard": "After the test, the class has a party in the hall.",
+   "ok": true
+  },
+  "s:ali-and-his-brother-sat-by-the-window@f": {
+   "heard": "Ollie and his brother sat by the window.",
+   "ok": false
+  },
+  "s:ali-and-sara-are-in-a-math-class@f": {
+   "heard": "Ali and Sara are in a math class.",
+   "ok": true
+  },
+  "s:ali-checks-the-list-and-the-old-tests@f": {
+   "heard": "Ollie checks the list and the old tests.",
+   "ok": false
+  },
+  "s:ali-gets-a-cool-drink-and-a-muffin@f": {
+   "heard": "Ollie gets a cool drink and a muffin.",
+   "ok": false
+  },
+  "s:ali-gets-a-snack-for-sara@f": {
+   "heard": "Ollie gets a snack for Sara.",
+   "ok": false
+  },
+  "s:ali-gives-the-talk@f": {
+   "heard": "Ali gives the talk.",
    "ok": true
   },
   "s:ali-has-a-fan@f": {
    "heard": "Ollie has a fan.",
    "ok": false
   },
+  "s:ali-has-a-math-test-next@f": {
+   "heard": "Ollie has a math test next.",
+   "ok": false
+  },
+  "s:ali-has-a-plan@f": {
+   "heard": "Ali has a plan.",
+   "ok": true
+  },
   "s:ali-has-a-red-cab@f": {
    "heard": "Ollie has a red cab.",
    "ok": false
   },
+  "s:ali-has-a-snack-in-his-bag@f": {
+   "heard": "Ollie has a snack in his bag.",
+   "ok": false
+  },
+  "s:ali-has-a-snack@f": {
+   "heard": "Ollie has a snack.",
+   "ok": false
+  },
+  "s:ali-has-a-test-in-math@f": {
+   "heard": "Ollie has a test in math.",
+   "ok": false
+  },
+  "s:ali-has-his-phone@f": {
+   "heard": "Ali has his phone.",
+   "ok": true
+  },
+  "s:ali-helped-me@f": {
+   "heard": "Ollie helped me.",
+   "ok": false
+  },
+  "s:ali-is-late-for-class@f": {
+   "heard": "Ali is late for class.",
+   "ok": true
+  },
+  "s:ali-is-quick-and-he-gets-ten-out-of-ten@f": {
+   "heard": "Ali is quick and he gets 10 out of 10.",
+   "ok": true
+  },
+  "s:ali-is-sad-and-he-needs-to-sleep@f": {
+   "heard": "Ollie is sad and he needs to sleep.",
+   "ok": false
+  },
+  "s:ali-is-unhappy-because-he-left-his-phone-at-home@f": {
+   "heard": "Ali is unhappy because he left his phone at home.",
+   "ok": true
+  },
+  "s:ali-is-upset-at-the-end@f": {
+   "heard": "Ali is upset at the end.",
+   "ok": true
+  },
+  "s:ali-needs-to-win-this-week@f": {
+   "heard": "Ali needs to win this week.",
+   "ok": true
+  },
+  "s:ali-plays-on-a-math-team@f": {
+   "heard": "Ollie plays on a math team.",
+   "ok": false
+  },
+  "s:ali-plays-on-the-tennis-team@f": {
+   "heard": "Ollie plays on the tennis team.",
+   "ok": false
+  },
+  "s:ali-rides-the-bus@f": {
+   "heard": "Ollie rides the bus.",
+   "ok": false
+  },
+  "s:ali-sat-with-his-mother@f": {
+   "heard": "Ollie sat with his mother.",
+   "ok": false
+  },
+  "s:and-they-will-still-help-each-other@f": {
+   "heard": "And they will still help each other.",
+   "ok": true
+  },
+  "s:ask-the-man-at-the-desk@f": {
+   "heard": "Ask the man at the desk.",
+   "ok": true
+  },
+  "s:ask-the-teacher-a-question@f": {
+   "heard": "Ask the teacher a question.",
+   "ok": true
+  },
+  "s:at-noon-ali-and-ken-look-for-food@f": {
+   "heard": "At noon, Ollie and Ken look for food.",
+   "ok": false
+  },
+  "s:at-six-they-call-a-cab-to-go-home@f": {
+   "heard": "At six, they call a cab to go home.",
+   "ok": true
+  },
+  "s:at-the-end-all-the-people-clap-for-her@f": {
+   "heard": "At the end, all the people clap for her.",
+   "ok": true
+  },
+  "s:at-the-end-he-is-not-upset@f": {
+   "heard": "At the end, he is not upset.",
+   "ok": true
+  },
+  "s:bus-stop@f": {
+   "heard": "Bus stop.",
+   "ok": true
+  },
+  "s:but-they-will-still-meet-at-the-bus-stop-each-day@f": {
+   "heard": "But they will still meet at the bus stop each day.",
+   "ok": true
+  },
+  "s:call-me-at-noon@f": {
+   "heard": "Call me at noons.",
+   "ok": false
+  },
+  "s:call-me-on-my-phone@f": {
+   "heard": "Call me on my phone.",
+   "ok": true
+  },
   "s:can-you-pick-a-pen@f": {
    "heard": "Can you pick a pen?",
+   "ok": true
+  },
+  "s:can-you-spell-it@f": {
+   "heard": "Can you spell it?",
    "ok": true
   },
   "s:check-the-index@f": {
    "heard": "Check the index.",
    "ok": true
   },
+  "s:check-the-settings@f": {
+   "heard": "Check the settings.",
+   "ok": true
+  },
+  "s:clean-the-bowl-with-soap@f": {
+   "heard": "Clean the bowl with soap.",
+   "ok": true
+  },
+  "s:close-the-file@f": {
+   "heard": "Close the file.",
+   "ok": true
+  },
+  "s:close-the-window@f": {
+   "heard": "Close the window.",
+   "ok": true
+  },
+  "s:closed@f": {
+   "heard": "closed",
+   "ok": true
+  },
   "s:come-to-the-picnic@f": {
    "heard": "Come to the picnic.",
+   "ok": true
+  },
+  "s:count-to-ten@f": {
+   "heard": "count to 10",
    "ok": true
   },
   "s:dip-it-in-the-pot@f": {
@@ -36,12 +216,44 @@
    "heard": "Do not panic.",
    "ok": true
   },
+  "s:do-not-slip@f": {
+   "heard": "Do not slip.",
+   "ok": true
+  },
   "s:do-not-yell@f": {
    "heard": "Do not yell.",
    "ok": true
   },
+  "s:drink-a-glass-of-water@f": {
+   "heard": "Drink a glass of water.",
+   "ok": true
+  },
+  "s:exit@f": {
+   "heard": "exit",
+   "ok": true
+  },
+  "s:fill-in-the-form-slowly@f": {
+   "heard": "Fill in the form slowly.",
+   "ok": true
+  },
+  "s:fill-in-the-form@f": {
+   "heard": "Fill in the form.",
+   "ok": true
+  },
   "s:fill-the-cup@f": {
    "heard": "Fill the cup.",
+   "ok": true
+  },
+  "s:first-aid@f": {
+   "heard": "First aid",
+   "ok": true
+  },
+  "s:follow-the-road@f": {
+   "heard": "Follow the road.",
+   "ok": true
+  },
+  "s:free@f": {
+   "heard": "Free",
    "ok": true
   },
   "s:get-me-a-cap@f": {
@@ -52,20 +264,152 @@
    "heard": "Get up.",
    "ok": true
   },
+  "s:go-down-to-the-hall@f": {
+   "heard": "Go down to the hall.",
+   "ok": true
+  },
+  "s:go-right-then-left@f": {
+   "heard": "Go right then left.",
+   "ok": true
+  },
   "s:go-to-the-top@f": {
    "heard": "Go to the top.",
+   "ok": true
+  },
+  "s:grab-the-flag@f": {
+   "heard": "Grab the flag.",
+   "ok": true
+  },
+  "s:he-asks-sara-to-help-him@f": {
+   "heard": "He asks Sara to help him.",
+   "ok": true
+  },
+  "s:he-cooks-and-cleans-and-he-takes-the-cash@f": {
+   "heard": "He cooks and cleans, and he takes the cash.",
+   "ok": true
+  },
+  "s:he-did-his-best@f": {
+   "heard": "He did his best.",
    "ok": true
   },
   "s:he-has-a-big-bag@f": {
    "heard": "He has a big bag.",
    "ok": true
   },
+  "s:he-is-helpful-and-kind@f": {
+   "heard": "He is helpful and kind.",
+   "ok": true
+  },
+  "s:he-is-on-a-trip-with-the-tennis-club@f": {
+   "heard": "He is on a trip with the tennis club.",
+   "ok": true
+  },
   "s:he-is-sick@f": {
    "heard": "He is sick.",
    "ok": true
   },
+  "s:he-is-singing-a-song@f": {
+   "heard": "He is singing a song.",
+   "ok": true
+  },
+  "s:he-is-the-biggest-player@f": {
+   "heard": "He is the biggest player.",
+   "ok": true
+  },
+  "s:he-is-upset@f": {
+   "heard": "He is upset.",
+   "ok": true
+  },
+  "s:he-plays-well-but-the-team-does-not-win@f": {
+   "heard": "He plays well, but the team does not win.",
+   "ok": true
+  },
+  "s:he-rides-his-bike-fast@f": {
+   "heard": "He rides his bike fast.",
+   "ok": true
+  },
+  "s:he-wants-to-save-for-a-car@f": {
+   "heard": "He wants to save for a car.",
+   "ok": true
+  },
+  "s:he-wants-to-sit-with-his-friend-ken@f": {
+   "heard": "He wants to sit with his friend Ken.",
+   "ok": true
+  },
+  "s:he-works-at-night@f": {
+   "heard": "He works at night.",
+   "ok": true
+  },
+  "s:help-me-with-the-test@f": {
+   "heard": "Help me with the test.",
+   "ok": true
+  },
+  "s:her-first-name-is-nora@f": {
+   "heard": "Her first name is Nora.",
+   "ok": true
+  },
+  "s:her-first-name-is-sara@f": {
+   "heard": "Her first name is Sara.",
+   "ok": true
+  },
+  "s:her-friend-buys-a-small-toy-for-her-brother@f": {
+   "heard": "Her friend buys a small toy for her brother.",
+   "ok": true
+  },
+  "s:her-last-name-is-hassan@f": {
+   "heard": "Her last name is Hassan.",
+   "ok": true
+  },
+  "s:her-phone-number-is-on-the-form@f": {
+   "heard": "Her phone number is on the form.",
+   "ok": true
+  },
+  "s:her-shirt-is-short@f": {
+   "heard": "Her shirt is short.",
+   "ok": true
+  },
   "s:his-bag-is-on-the-bus@f": {
    "heard": "His bag is on the bus.",
+   "ok": true
+  },
+  "s:his-first-name-is-ali@f": {
+   "heard": "His first name is Ollie.",
+   "ok": false
+  },
+  "s:his-major-is-art@f": {
+   "heard": "His major is art.",
+   "ok": true
+  },
+  "s:his-major-is-math@f": {
+   "heard": "His major is math.",
+   "ok": true
+  },
+  "s:his-student-number-is-4410235@f": {
+   "heard": "His student number is 4,410,235.",
+   "ok": true
+  },
+  "s:how-are-you-now@f": {
+   "heard": "How are you now?",
+   "ok": true
+  },
+  "s:how-does-sara-speak@f": {
+   "heard": "How does Sara speak?",
+   "ok": true
+  },
+  "s:how-many-pages-does-sara-read@f": {
+   "heard": "How many pages does Sara read?",
+   "ok": true
+  },
+  "s:i-am-a-student@f": {
+   "heard": "I am a student.",
+   "ok": true
+  },
+  "s:i-am-in-class@f": {
+   "heard": "I am in class.",
+   "ok": true
+  },
+  "s:i-am-late@f": {
+   "heard": "I am late.",
    "ok": true
   },
   "s:i-am-sam@f": {
@@ -92,8 +436,20 @@
    "heard": "I can run.",
    "ok": true
   },
+  "s:i-can-swim@f": {
+   "heard": "I can swim.",
+   "ok": true
+  },
+  "s:i-found-my-card@f": {
+   "heard": "I found my card.",
+   "ok": true
+  },
   "s:i-have-a-lab-at-ten@f": {
    "heard": "I have a lab at 10.",
+   "ok": true
+  },
+  "s:i-have-a-question-for-the-teacher@f": {
+   "heard": "I have a question for the teacher.",
    "ok": true
   },
   "s:i-have-a-quiz-at-six@f": {
@@ -104,20 +460,52 @@
    "heard": "I have a quiz at 10.",
    "ok": true
   },
+  "s:i-hope-you-pass@f": {
+   "heard": "I hope you pass.",
+   "ok": true
+  },
   "s:i-like-tennis@f": {
    "heard": "I like tennis.",
+   "ok": true
+  },
+  "s:i-must-print-it@f": {
+   "heard": "I must print it.",
    "ok": true
   },
   "s:i-nap@f": {
    "heard": "iNAP",
    "ok": false
   },
+  "s:i-need-a-few-tools@f": {
+   "heard": "I need a few tools.",
+   "ok": true
+  },
+  "s:i-need-to-sleep@f": {
+   "heard": "I need to sleep.",
+   "ok": true
+  },
+  "s:i-passed-the-test@f": {
+   "heard": "I pass the test.",
+   "ok": false
+  },
   "s:i-sat@f": {
    "heard": "I sat",
    "ok": true
   },
+  "s:i-sent-the-text@f": {
+   "heard": "I send the text.",
+   "ok": false
+  },
   "s:i-sit@f": {
    "heard": "I sit.",
+   "ok": true
+  },
+  "s:i-smell-fish@f": {
+   "heard": "I smell fish.",
+   "ok": true
+  },
+  "s:i-study-on-monday@f": {
+   "heard": "I study on Monday.",
    "ok": true
   },
   "s:i-think-it-is-long@f": {
@@ -126,6 +514,10 @@
   },
   "s:i-think-the-quiz-is-long@f": {
    "heard": "I think the quiz is long.",
+   "ok": true
+  },
+  "s:i-went-to-the-bank@f": {
+   "heard": "I went to the bank.",
    "ok": true
   },
   "s:i-will-check-the-chat@f": {
@@ -140,36 +532,88 @@
    "heard": "I will pass.",
    "ok": true
   },
+  "s:i-will-wait-here@f": {
+   "heard": "I will wait here.",
+   "ok": true
+  },
   "s:i-wish-you-luck@f": {
    "heard": "I wish you luck.",
+   "ok": true
+  },
+  "s:in-class-he-cannot-find-a-pen@f": {
+   "heard": "In class, he cannot find a pen.",
+   "ok": true
+  },
+  "s:in@f": {
+   "heard": "in",
+   "ok": true
+  },
+  "s:information@f": {
+   "heard": "Information",
    "ok": true
   },
   "s:is-it-big@f": {
    "heard": "Is it big?",
    "ok": true
   },
+  "s:is-it-true@f": {
+   "heard": "Is it true?",
+   "ok": true
+  },
+  "s:is-it-your-turn@f": {
+   "heard": "Is it your turn?",
+   "ok": true
+  },
   "s:is-the-app-on-or-off@f": {
    "heard": "Is the app on or off?",
+   "ok": true
+  },
+  "s:it-is-a-big-mall-with-a-lot-of-shops@f": {
+   "heard": "It is a big mall with a lot of shops.",
    "ok": true
   },
   "s:it-is-a-big-red-bus@f": {
    "heard": "It is a big red bus.",
    "ok": true
   },
+  "s:it-is-a-cold-night@f": {
+   "heard": "It is a cold night.",
+   "ok": true
+  },
   "s:it-is-a-lot-of-fun@f": {
    "heard": "It is a lot of fun.",
+   "ok": true
+  },
+  "s:it-is-a-nice-place@f": {
+   "heard": "It is a nice place.",
    "ok": true
   },
   "s:it-is-a-pin@f": {
    "heard": "It is a pen.",
    "ok": false
   },
+  "s:it-is-a-short-wait@f": {
+   "heard": "It is a short wait.",
+   "ok": true
+  },
+  "s:it-is-a-strong-plant@f": {
+   "heard": "It is a strong plant.",
+   "ok": true
+  },
   "s:it-is-a-tip@f": {
    "heard": "It is a TEP.",
    "ok": false
   },
+  "s:it-is-five-to-nine@f": {
+   "heard": "It is 5 to 9.",
+   "ok": false
+  },
   "s:it-is-from-the-admin@f": {
    "heard": "It is from the admin.",
+   "ok": true
+  },
+  "s:it-is-hard-but-he-likes-it@f": {
+   "heard": "It is hard, but he likes it.",
    "ok": true
   },
   "s:it-is-in-a-tin@f": {
@@ -180,6 +624,14 @@
    "heard": "It is in the lab.",
    "ok": true
   },
+  "s:it-is-ken-and-his-dad@f": {
+   "heard": "It is Ken and his dad.",
+   "ok": true
+  },
+  "s:it-is-not-far@f": {
+   "heard": "It is not far.",
+   "ok": true
+  },
   "s:it-is-not-on@f": {
    "heard": "It is not on.",
    "ok": true
@@ -188,20 +640,136 @@
    "heard": "It is red.",
    "ok": true
   },
+  "s:it-is-still-hot@f": {
+   "heard": "It is still hot.",
+   "ok": true
+  },
   "s:it-is-ten-to-ten@f": {
    "heard": "It is 10 to 10.",
+   "ok": true
+  },
+  "s:it-is-the-first-day-of-the-term@f": {
+   "heard": "It is the first day of the term.",
+   "ok": true
+  },
+  "s:it-is-the-first-week-of-the-term@f": {
+   "heard": "It is the first week of the term.",
+   "ok": true
+  },
+  "s:it-is-the-last-day-of-the-term@f": {
+   "heard": "It is the last day of the term.",
+   "ok": true
+  },
+  "s:it-is-the-last-week-of-the-term@f": {
+   "heard": "It is the last week of the term.",
+   "ok": true
+  },
+  "s:it-is-time-to-go@f": {
+   "heard": "It is time to go.",
    "ok": true
   },
   "s:it-was-a-bad-bug@f": {
    "heard": "It was a bad bug.",
    "ok": true
   },
+  "s:join-the-art-club@f": {
+   "heard": "Join the art club.",
+   "ok": true
+  },
+  "s:keep-it-clean@f": {
+   "heard": "Keep it clean.",
+   "ok": true
+  },
+  "s:keep-right@f": {
+   "heard": "Keep right.",
+   "ok": true
+  },
+  "s:ken-checked-the-lab-and-ali-checked-the-shop@f": {
+   "heard": "Ken check the lab and Ollie check the shop.",
+   "ok": false
+  },
+  "s:ken-checked-the-shop@f": {
+   "heard": "Can check the shop.",
+   "ok": false
+  },
+  "s:ken-gets-a-big-hot-dog@f": {
+   "heard": "Ken gets a big hot dog.",
+   "ok": true
+  },
+  "s:ken-gets-a-muffin@f": {
+   "heard": "Ken gets a muffin.",
+   "ok": true
+  },
+  "s:ken-has-a-job-at-a-bank@f": {
+   "heard": "Ken has a job at a bank.",
+   "ok": true
+  },
+  "s:ken-has-a-job-at-a-food-truck@f": {
+   "heard": "Ken has a job at a food truck.",
+   "ok": true
+  },
+  "s:ken-is-in-the-class@f": {
+   "heard": "Ken is in the class.",
+   "ok": true
+  },
+  "s:ken-is-not-in-class@f": {
+   "heard": "Ken is not in class.",
+   "ok": true
+  },
+  "s:ken-is-on-a-trip@f": {
+   "heard": "Ken is on a trip.",
+   "ok": true
+  },
+  "s:ken-likes-the-job@f": {
+   "heard": "Ken likes the job.",
+   "ok": true
+  },
   "s:ken-met-ten-men@f": {
    "heard": "Ken met 10 men.",
    "ok": true
   },
+  "s:last-night-a-big-storm-hit-the-town@f": {
+   "heard": "Last night, a big storm hit the town.",
+   "ok": true
+  },
+  "s:library@f": {
+   "heard": "Library",
+   "ok": true
+  },
+  "s:listen-and-answer@f": {
+   "heard": "Listen and answer.",
+   "ok": true
+  },
+  "s:look-at-the-moon@f": {
+   "heard": "Look at the moon.",
+   "ok": true
+  },
+  "s:lost-and-found@f": {
+   "heard": "Lost and found",
+   "ok": true
+  },
   "s:max-is-not-back-yet@f": {
    "heard": "Max is not back yet.",
+   "ok": true
+  },
+  "s:mr-hassan-gives-him-the-quiz-on-paper@f": {
+   "heard": "Mr. Hassan gives him the quiz on paper.",
+   "ok": true
+  },
+  "s:mr-hassan-is-the-math-teacher@f": {
+   "heard": "Mr. Hassan is the math teacher.",
+   "ok": true
+  },
+  "s:mr-hassan-thanks-all-the-students@f": {
+   "heard": "Mr. Hassan thanks all the students.",
+   "ok": true
+  },
+  "s:my-coat-is-yellow@f": {
+   "heard": "My coat is yellow.",
+   "ok": true
+  },
+  "s:my-friend-has-a-red-truck@f": {
+   "heard": "My friend has a red truck.",
    "ok": true
   },
   "s:my-laptop-is-in-it@f": {
@@ -220,8 +788,108 @@
    "heard": "My pens are in it.",
    "ok": true
   },
+  "s:next-term-sara-will-study-art-and-ali-will-study-math@f": {
+   "heard": "Next term, Sara will study art, and Ollie will study math.",
+   "ok": false
+  },
+  "s:no-entry@f": {
+   "heard": "No entry",
+   "ok": true
+  },
+  "s:no-food@f": {
+   "heard": "No food.",
+   "ok": true
+  },
+  "s:no-parking@f": {
+   "heard": "No parking.",
+   "ok": true
+  },
+  "s:no-smoking@f": {
+   "heard": "No smoking.",
+   "ok": true
+  },
+  "s:on-monday-sara-is-at-the-library@f": {
+   "heard": "On Monday, Sara is at the library.",
+   "ok": true
+  },
+  "s:on-sunday-he-gives-the-class-a-quiz-on-the-app@f": {
+   "heard": "On Sunday, he gives the class a quiz on the app.",
+   "ok": true
+  },
+  "s:on-thursday-they-both-feel-good@f": {
+   "heard": "On Thursday, they both feel good.",
+   "ok": true
+  },
+  "s:open-the-email@f": {
+   "heard": "Open the email.",
+   "ok": true
+  },
+  "s:open@f": {
+   "heard": "Open",
+   "ok": true
+  },
+  "s:out@f": {
+   "heard": "Out",
+   "ok": true
+  },
+  "s:pay-here@f": {
+   "heard": "Pay here.",
+   "ok": true
+  },
+  "s:pay-with-cash@f": {
+   "heard": "Pay with cash.",
+   "ok": true
+  },
+  "s:press-the-red-dot@f": {
+   "heard": "Press the red dot.",
+   "ok": true
+  },
+  "s:pull@f": {
+   "heard": "Paulie",
+   "ok": false
+  },
+  "s:push@f": {
+   "heard": "Pushing",
+   "ok": false
+  },
+  "s:put-the-list-on-the-desk@f": {
+   "heard": "Put the list on the desk.",
+   "ok": true
+  },
+  "s:put-the-paper-on-the-table@f": {
+   "heard": "Put the paper on the table.",
+   "ok": true
+  },
+  "s:put-the-snack-in-my-bag@f": {
+   "heard": "Put the snack in my bag.",
+   "ok": true
+  },
   "s:quick-get-on-the-bus@f": {
    "heard": "Quick get on the bus.",
+   "ok": true
+  },
+  "s:quiet-please@f": {
+   "heard": "Quiet please.",
+   "ok": true
+  },
+  "s:read-it-then-speak@f": {
+   "heard": "Read it then speak.",
+   "ok": true
+  },
+  "s:read-page-twenty@f": {
+   "heard": "Read page 20.",
+   "ok": false
+  },
+  "s:read-the-graph-quickly@f": {
+   "heard": "Read the graph quickly.",
+   "ok": true
+  },
+  "s:restroom@f": {
+   "heard": "Restroom",
+   "ok": true
+  },
+  "s:sale@f": {
+   "heard": "Sale",
    "ok": true
   },
   "s:sam-and-ali-get-on-it@f": {
@@ -244,24 +912,192 @@
    "heard": "Sam has a muffin in his bag.",
    "ok": true
   },
+  "s:sara-and-ali-are-at-the-bus-stop@f": {
+   "heard": "Saren Ali are at the bus stop.",
+   "ok": false
+  },
+  "s:sara-and-ali-are-busy@f": {
+   "heard": "Sara and Ali are busy.",
+   "ok": true
+  },
+  "s:sara-and-ali-will-be-in-the-same-class@f": {
+   "heard": "Sara and Ali will be in the same class.",
+   "ok": true
+  },
+  "s:sara-buys-a-brown-coat@f": {
+   "heard": "Sara buys a brown coat.",
+   "ok": true
+  },
+  "s:sara-buys-a-coat@f": {
+   "heard": "Sara Bizekote",
+   "ok": false
+  },
+  "s:sara-can-smell-it@f": {
+   "heard": "Sara can smell it.",
+   "ok": true
+  },
+  "s:sara-fills-in-a-form@f": {
+   "heard": "SARA fills in a form.",
+   "ok": true
+  },
+  "s:sara-finds-a-table-in-the-middle@f": {
+   "heard": "Sara finds a table in the middle.",
+   "ok": true
+  },
+  "s:sara-gets-a-ride-home-in-the-dry-van@f": {
+   "heard": "Sara gets a ride home in the dry van.",
+   "ok": true
+  },
+  "s:sara-gets-a-snack-for-ali@f": {
+   "heard": "Sara gets a snack for Ali.",
+   "ok": true
+  },
+  "s:sara-gives-a-short-talk-in-english@f": {
+   "heard": "SARA gives a short talk in English.",
+   "ok": true
+  },
+  "s:sara-gives-him-a-pen-and-a-smile@f": {
+   "heard": "Sara gives him a pen and a smile.",
+   "ok": true
+  },
+  "s:sara-has-a-coat@f": {
+   "heard": "Sara has a coat.",
+   "ok": true
+  },
+  "s:sara-has-a-test-on-sunday@f": {
+   "heard": "SARAH has a test on Sunday.",
+   "ok": false
+  },
   "s:sara-has-cash@f": {
    "heard": "Sara his cash",
    "ok": false
   },
+  "s:sara-has-no-coat@f": {
+   "heard": "Sara has no coat.",
+   "ok": true
+  },
+  "s:sara-has-to-fill-in-a-form@f": {
+   "heard": "Sara has to fill in a form.",
+   "ok": true
+  },
   "s:sara-is-at-the-bank@f": {
    "heard": "Sara is at the bank.",
+   "ok": true
+  },
+  "s:sara-is-at-the-library-on-monday@f": {
+   "heard": "Sara is at the library on Monday.",
    "ok": true
   },
   "s:sara-is-at-the-shop@f": {
    "heard": "Sara is at the shop.",
    "ok": true
   },
+  "s:sara-is-in-a-book-club@f": {
+   "heard": "SARA is in a book club.",
+   "ok": true
+  },
+  "s:sara-is-the-third-person-in-the-line@f": {
+   "heard": "Sara is the third person in the line.",
+   "ok": true
+  },
   "s:sara-is-well@f": {
    "heard": "Sara is well.",
    "ok": true
   },
+  "s:sara-lost-the-backpack@f": {
+   "heard": "Sara lost the backpack.",
+   "ok": true
+  },
+  "s:sara-reads-it-two-times@f": {
+   "heard": "SARA reads it two times.",
+   "ok": true
+  },
+  "s:sara-reads-the-book-one-time@f": {
+   "heard": "Sara reads the book one time.",
+   "ok": true
+  },
+  "s:sara-reads-the-notes-and-ali-asks-her-questions@f": {
+   "heard": "Sara reads the notes, and Ali asks her questions.",
+   "ok": true
+  },
+  "s:sara-says-ali-will-win-next-week@f": {
+   "heard": "Sara says Ali will win next week.",
+   "ok": true
+  },
+  "s:sara-says-next-week-you-will-win@f": {
+   "heard": "Sara says, \"Next week you will win.\"",
+   "ok": true
+  },
+  "s:sara-sends-ali-a-list@f": {
+   "heard": "Sara sends Alia list.",
+   "ok": false
+  },
+  "s:sara-sends-him-a-list@f": {
+   "heard": "Sara sent him a list.",
+   "ok": false
+  },
+  "s:sara-thanked-him-a-lot@f": {
+   "heard": "Sara thanked him a lot.",
+   "ok": true
+  },
+  "s:sara-waits-for-the-bus-by-the-road@f": {
+   "heard": "Sara waits for the bus by the road.",
+   "ok": true
+  },
+  "s:sara-will-study-art@f": {
+   "heard": "Sara will study art.",
+   "ok": true
+  },
+  "s:scan-it-with-the-app@f": {
+   "heard": "Scan it with the app.",
+   "ok": true
+  },
+  "s:see-you-next-week@f": {
+   "heard": "See you next week.",
+   "ok": true
+  },
+  "s:see-you-soon@f": {
+   "heard": "See you soon.",
+   "ok": true
+  },
+  "s:see-you-tomorrow@f": {
+   "heard": "See you tomorrow.",
+   "ok": true
+  },
+  "s:send-me-a-photo@f": {
+   "heard": "Send me a photo.",
+   "ok": true
+  },
+  "s:send-me-a-text@f": {
+   "heard": "Send me a text.",
+   "ok": true
+  },
+  "s:send-me-an-email-after-class@f": {
+   "heard": "Send me an email after class.",
+   "ok": true
+  },
+  "s:she-asked-ali-and-ken-to-help@f": {
+   "heard": "She asked Ali and Ken to help.",
+   "ok": true
+  },
+  "s:she-asked-for-help@f": {
+   "heard": "She asked for help.",
+   "ok": true
+  },
+  "s:she-checked-the-bus-and-the-class@f": {
+   "heard": "She checked the bus and the class.",
+   "ok": true
+  },
+  "s:she-cooks-a-good-dish@f": {
+   "heard": "She cooks a good dish.",
+   "ok": true
+  },
   "s:she-gets-a-fish-and-some-chips@f": {
    "heard": "She gets a fish and some chips.",
+   "ok": true
+  },
+  "s:she-has-a-test-on-friday@f": {
+   "heard": "She has a test on Friday.",
    "ok": true
   },
   "s:she-has-cash@f": {
@@ -272,12 +1108,68 @@
    "heard": "She has two jobs.",
    "ok": true
   },
+  "s:she-is-a-little-upset-but-she-smiles-and-speaks-slowly@f": {
+   "heard": "She is a little upset, but she smiles and speaks slowly.",
+   "ok": true
+  },
+  "s:she-is-a-smart-girl@f": {
+   "heard": "She is a smart girl.",
+   "ok": true
+  },
+  "s:she-puts-her-name-and-her-number-on-the-form@f": {
+   "heard": "She puts her name and her number on the form.",
+   "ok": true
+  },
+  "s:she-reads-twenty-pages@f": {
+   "heard": "She reads 20 pages.",
+   "ok": false
+  },
+  "s:show-me-the-way@f": {
+   "heard": "Show me the way.",
+   "ok": true
+  },
   "s:sing-a-song@f": {
    "heard": "sing a song",
    "ok": true
   },
+  "s:skip-the-step@f": {
+   "heard": "Skip the step.",
+   "ok": true
+  },
+  "s:smile-it-is-a-joke@f": {
+   "heard": "Smile it is a joke.",
+   "ok": true
+  },
   "s:some-habits-are-bad@f": {
    "heard": "Some habits are bad.",
+   "ok": true
+  },
+  "s:soon-it-is-time-to-go-back-to-class@f": {
+   "heard": "Soon, it is time to go back to class.",
+   "ok": true
+  },
+  "s:sorry-i-am-late@f": {
+   "heard": "Sorry I am late.",
+   "ok": true
+  },
+  "s:staff-only@f": {
+   "heard": "Staff only.",
+   "ok": true
+  },
+  "s:start-after-the-storm@f": {
+   "heard": "Start after the storm.",
+   "ok": true
+  },
+  "s:stop-and-look@f": {
+   "heard": "Stop and look.",
+   "ok": true
+  },
+  "s:stop-at-the-bus-stop@f": {
+   "heard": "Stop at the bus stop.",
+   "ok": true
+  },
+  "s:stop@f": {
+   "heard": "Stop.",
    "ok": true
   },
   "s:submit-it-at-six@f": {
@@ -300,6 +1192,22 @@
    "heard": "That is my cash.",
    "ok": true
   },
+  "s:the-app-is-free@f": {
+   "heard": "The app is free.",
+   "ok": true
+  },
+  "s:the-baby-is-happy@f": {
+   "heard": "The baby is happy.",
+   "ok": true
+  },
+  "s:the-baby-smiles-at-sara@f": {
+   "heard": "The baby smiles at Sara.",
+   "ok": true
+  },
+  "s:the-backpack-was-at-the-shop@f": {
+   "heard": "The backpack was at the shop.",
+   "ok": true
+  },
   "s:the-bag-is-not-big@f": {
    "heard": "The bag is not big.",
    "ok": true
@@ -312,6 +1220,10 @@
    "heard": "The bank is shot.",
    "ok": false
   },
+  "s:the-boy-is-tall@f": {
+   "heard": "The boy is tall.",
+   "ok": true
+  },
   "s:the-bus-is-at-six@f": {
    "heard": "The bus is at 6.",
    "ok": true
@@ -320,12 +1232,60 @@
    "heard": "The bus is at 10.",
    "ok": true
   },
+  "s:the-bus-is-at-the-station@f": {
+   "heard": "The bus is at the station.",
+   "ok": true
+  },
   "s:the-bus-is-hot-but-ali-has-a-fan@f": {
    "heard": "The bus is hot, but Ali has a fan.",
    "ok": true
   },
+  "s:the-bus-is-not-at-the-stop-yet@f": {
+   "heard": "The bus is not at the stop yet.",
+   "ok": true
+  },
   "s:the-bus-is-red@f": {
    "heard": "The bus is red.",
+   "ok": true
+  },
+  "s:the-card-is-for-the-lab-and-the-art-club@f": {
+   "heard": "The card is for the lab and the art club.",
+   "ok": true
+  },
+  "s:the-class-ended-at-six@f": {
+   "heard": "The class ended at 6.",
+   "ok": true
+  },
+  "s:the-class-ends-at-10-30@f": {
+   "heard": "The class ends at 1030.",
+   "ok": false
+  },
+  "s:the-class-has-a-big-black-clock@f": {
+   "heard": "The class has a big black clock.",
+   "ok": true
+  },
+  "s:the-class-is-fun@f": {
+   "heard": "The class is fun.",
+   "ok": true
+  },
+  "s:the-class-is-in-room-six@f": {
+   "heard": "The class is in Room 6.",
+   "ok": true
+  },
+  "s:the-clock-is-black@f": {
+   "heard": "The clock is black.",
+   "ok": true
+  },
+  "s:the-club-meets-in-room-nine-each-week@f": {
+   "heard": "The club meets in Room 9 each week.",
+   "ok": false
+  },
+  "s:the-club-meets-in-room-nine@f": {
+   "heard": "The club meets in Room 9.",
+   "ok": false
+  },
+  "s:the-coach-is-slow@f": {
+   "heard": "The coach is slow.",
    "ok": true
   },
   "s:the-cup-is-hot@f": {
@@ -336,6 +1296,34 @@
    "heard": "The dog is on the mat.",
    "ok": true
   },
+  "s:the-exit-is-on-the-left@f": {
+   "heard": "The exit is on the left.",
+   "ok": true
+  },
+  "s:the-first-test-is-hard@f": {
+   "heard": "The first test is hard.",
+   "ok": true
+  },
+  "s:the-food-is-cheap@f": {
+   "heard": "The food is cheap.",
+   "ok": true
+  },
+  "s:the-food-is-good-and-it-is-cheap@f": {
+   "heard": "The food is good and it is cheap.",
+   "ok": true
+  },
+  "s:the-food-is-good@f": {
+   "heard": "The food is good.",
+   "ok": true
+  },
+  "s:the-food-truck-is-by-the-pool@f": {
+   "heard": "The food truck is by the pool.",
+   "ok": true
+  },
+  "s:the-jet-landed@f": {
+   "heard": "The jet landed.",
+   "ok": true
+  },
   "s:the-kid-is-sick@f": {
    "heard": "The kid is sick.",
    "ok": true
@@ -344,8 +1332,36 @@
    "heard": "The laptop is in the bag.",
    "ok": true
   },
+  "s:the-library-is-a-nice-place-to-study@f": {
+   "heard": "The library is a nice place to study.",
+   "ok": true
+  },
+  "s:the-library-is-open-on-sunday@f": {
+   "heard": "The library is open on Sunday.",
+   "ok": true
+  },
+  "s:the-light-is-bright@f": {
+   "heard": "The light is bright.",
+   "ok": true
+  },
+  "s:the-mall-is-in-the-north-of-town@f": {
+   "heard": "The mall is in the north of town.",
+   "ok": true
+  },
+  "s:the-mall-is-in-the-south-of-town@f": {
+   "heard": "The mall is in the south of town.",
+   "ok": true
+  },
   "s:the-muffin-is-in-the-van@f": {
    "heard": "The muffin is in the van.",
+   "ok": true
+  },
+  "s:the-party-is-in-the-hall@f": {
+   "heard": "The party is in the hall.",
+   "ok": true
+  },
+  "s:the-plane-is-late@f": {
+   "heard": "The plane is late.",
    "ok": true
   },
   "s:the-quiz-is-at-six@f": {
@@ -364,6 +1380,10 @@
    "heard": "The quizzes were long.",
    "ok": true
   },
+  "s:the-rain-was-loud-and-the-lights-went-out@f": {
+   "heard": "The rain was loud and the lights went out.",
+   "ok": true
+  },
   "s:the-shop-is-shut-at-six@f": {
    "heard": "The shop is shut at 6.",
    "ok": true
@@ -376,6 +1396,50 @@
    "heard": "The shop is shut.",
    "ok": true
   },
+  "s:the-sound-is-too-loud@f": {
+   "heard": "The sound is too loud.",
+   "ok": true
+  },
+  "s:the-station-is-in-the-center-of-the-city@f": {
+   "heard": "The station is in the center of the city.",
+   "ok": true
+  },
+  "s:the-storm-is-far@f": {
+   "heard": "The storm is far.",
+   "ok": true
+  },
+  "s:the-team-does-not-win@f": {
+   "heard": "The team does not win.",
+   "ok": true
+  },
+  "s:the-team-meets-each-week@f": {
+   "heard": "The team meets each week.",
+   "ok": true
+  },
+  "s:the-test-is-next@f": {
+   "heard": "The test is next.",
+   "ok": true
+  },
+  "s:the-trip-is-fun@f": {
+   "heard": "The trip is fun.",
+   "ok": true
+  },
+  "s:the-van-is-stuck-in-the-mud@f": {
+   "heard": "The van is stuck in the mud.",
+   "ok": true
+  },
+  "s:then-a-student-with-a-baby-sits-by-her@f": {
+   "heard": "Then a student with a baby sits by her.",
+   "ok": true
+  },
+  "s:then-ali-makes-a-note-get-up-on-time@f": {
+   "heard": "Then Ollie makes a note, \"Get up on time.\"",
+   "ok": false
+  },
+  "s:then-ali-yelled-to-sara@f": {
+   "heard": "Then Ali yelled to Sara.",
+   "ok": true
+  },
   "s:then-i-sat-with-them@f": {
    "heard": "Then I sat with them.",
    "ok": true
@@ -384,16 +1448,76 @@
    "heard": "Then I will go to the shop.",
    "ok": true
   },
+  "s:then-it-rains@f": {
+   "heard": "Then it rains.",
+   "ok": true
+  },
+  "s:then-she-gets-a-card-with-her-name-on-it@f": {
+   "heard": "Then she gets a card with her name on it.",
+   "ok": true
+  },
   "s:then-she-said-thank-you@f": {
    "heard": "Then she said, \"Thank you.\"",
+   "ok": true
+  },
+  "s:then-she-speaks-to-the-group@f": {
+   "heard": "Then she speaks to the group.",
+   "ok": true
+  },
+  "s:then-the-bus-stops-and-sara-and-ali-get-on@f": {
+   "heard": "Then the bus stops and Sara and Ollie get on.",
+   "ok": false
+  },
+  "s:then-the-storm-stopped-and-the-boys-went-to-sleep@f": {
+   "heard": "Then the storm stopped and the boys went asleep.",
+   "ok": false
+  },
+  "s:then-they-sit-down-and-enjoy-a-cool-drink@f": {
+   "heard": "Then they sit down and enjoy a cool drink.",
    "ok": true
   },
   "s:there-are-ten-pens@f": {
    "heard": "There are ten pens.",
    "ok": true
   },
+  "s:they-all-enjoy-the-talk@f": {
+   "heard": "They all enjoy the talk.",
+   "ok": true
+  },
   "s:they-are-in-the-shop@f": {
    "heard": "They are in the shop.",
+   "ok": true
+  },
+  "s:they-enjoy-the-talk@f": {
+   "heard": "They enjoy the talk.",
+   "ok": true
+  },
+  "s:they-have-a-big-test-on-thursday@f": {
+   "heard": "They have a big test on Thursday.",
+   "ok": true
+  },
+  "s:they-saw-the-storm-in-the-dark-sky@f": {
+   "heard": "They saw the storm in the dark sky.",
+   "ok": true
+  },
+  "s:they-sit-in-the-shade-of-a-tree@f": {
+   "heard": "They sit in the shade of a tree.",
+   "ok": true
+  },
+  "s:they-study-in-the-library-each-day@f": {
+   "heard": "They study in the library each day.",
+   "ok": true
+  },
+  "s:they-study-in-the-library@f": {
+   "heard": "They study in the library.",
+   "ok": true
+  },
+  "s:they-will-not-be-in-the-same-class@f": {
+   "heard": "They will not be in the same class.",
+   "ok": true
+  },
+  "s:this-app-is-useful@f": {
+   "heard": "This app is useful.",
    "ok": true
   },
   "s:this-is-my-bag@f": {
@@ -404,9 +1528,41 @@
    "heard": "This is my Math Lab.",
    "ok": true
   },
+  "s:this-week-the-club-reads-a-short-book@f": {
+   "heard": "This week, the club reads a short book.",
+   "ok": true
+  },
+  "s:this-week-they-read-a-short-book@f": {
+   "heard": "This week, they read a short book.",
+   "ok": true
+  },
   "s:tom-is-sad@f": {
    "heard": "Thomas Sad",
    "ok": false
+  },
+  "s:try-it-again@f": {
+   "heard": "Try it again.",
+   "ok": true
+  },
+  "s:turn-left-at-the-park@f": {
+   "heard": "Turn left at the park.",
+   "ok": true
+  },
+  "s:unlock-the-gate@f": {
+   "heard": "Unlock the gate.",
+   "ok": true
+  },
+  "s:use-the-code@f": {
+   "heard": "Use the code.",
+   "ok": true
+  },
+  "s:wait-for-the-train@f": {
+   "heard": "Wait for the train.",
+   "ok": true
+  },
+  "s:wait-here@f": {
+   "heard": "Wait here.",
+   "ok": true
   },
   "s:we-are-back@f": {
    "heard": "We're back.",
@@ -416,6 +1572,62 @@
    "heard": "We can set.",
    "ok": false
   },
+  "s:we-enjoy-the-mall@f": {
+   "heard": "We enjoy them all.",
+   "ok": false
+  },
+  "s:we-have-a-class-at-noon@f": {
+   "heard": "We have a class at noon.",
+   "ok": true
+  },
+  "s:we-have-a-plan@f": {
+   "heard": "We have a plan.",
+   "ok": true
+  },
+  "s:we-made-a-plan@f": {
+   "heard": "We made a plan.",
+   "ok": true
+  },
+  "s:we-need-more-time@f": {
+   "heard": "We need more time.",
+   "ok": true
+  },
+  "s:we-play-on-a-team@f": {
+   "heard": "We play on a team.",
+   "ok": true
+  },
+  "s:we-went-shopping@f": {
+   "heard": "We went shopping.",
+   "ok": true
+  },
+  "s:wet-paint@f": {
+   "heard": "Wet paint",
+   "ok": true
+  },
+  "s:what-does-ali-get-on-the-quiz@f": {
+   "heard": "What does Ollie get on the quiz?",
+   "ok": false
+  },
+  "s:what-does-her-friend-buy@f": {
+   "heard": "What does her friend buy?",
+   "ok": true
+  },
+  "s:what-does-it-mean@f": {
+   "heard": "What does it mean?",
+   "ok": true
+  },
+  "s:what-does-ken-want-to-save-for@f": {
+   "heard": "What does Ken want to save for?",
+   "ok": true
+  },
+  "s:what-does-sara-get@f": {
+   "heard": "What does Sara get?",
+   "ok": true
+  },
+  "s:what-does-sara-give-ali@f": {
+   "heard": "What does Sara give Ali?",
+   "ok": true
+  },
   "s:what-is-in-the-box@f": {
    "heard": "What is in the box?",
    "ok": true
@@ -424,20 +1636,64 @@
    "heard": "What is the topic?",
    "ok": true
   },
+  "s:what-is-your-age@f": {
+   "heard": "What is your age?",
+   "ok": true
+  },
+  "s:what-is-your-name@f": {
+   "heard": "What is your name?",
+   "ok": true
+  },
+  "s:what-is-your-number@f": {
+   "heard": "What is your number?",
+   "ok": true
+  },
+  "s:when-is-the-big-test@f": {
+   "heard": "When is the big test?",
+   "ok": true
+  },
   "s:when-is-the-quiz@f": {
    "heard": "When is the quiz?",
+   "ok": true
+  },
+  "s:where-is-the-restroom@f": {
+   "heard": "Where is the restroom?",
    "ok": true
   },
   "s:where-is-the-van@f": {
    "heard": "Where is the van?",
    "ok": true
   },
+  "s:where-was-the-backpack@f": {
+   "heard": "Where was the backpack?",
+   "ok": true
+  },
+  "s:where-will-they-meet@f": {
+   "heard": "Where will they meet?",
+   "ok": true
+  },
   "s:which-bus-is-it@f": {
    "heard": "Which bus is it?",
    "ok": true
   },
+  "s:who-has-a-snack@f": {
+   "heard": "Who has a snack?",
+   "ok": true
+  },
   "s:who-said-that@f": {
    "heard": "Who said that?",
+   "ok": true
+  },
+  "s:who-sat-by-the-window@f": {
+   "heard": "Who sat by the window?",
+   "ok": true
+  },
+  "s:who-stops-the-van@f": {
+   "heard": "Who stops the van?",
+   "ok": true
+  },
+  "s:why-do-you-cry@f": {
+   "heard": "Why do you cry?",
    "ok": true
   },
   "s:yes-i-can-fix-it@f": {
@@ -456,6 +1712,14 @@
    "heard": "and",
    "ok": false
   },
+  "w:action@f": {
+   "heard": "Action",
+   "ok": true
+  },
+  "w:action@m": {
+   "heard": "Action",
+   "ok": true
+  },
   "w:add@f": {
    "heard": "Add",
    "ok": true
@@ -472,8 +1736,36 @@
    "heard": "Admin",
    "ok": true
   },
+  "w:after@f": {
+   "heard": "After",
+   "ok": true
+  },
+  "w:after@m": {
+   "heard": "after",
+   "ok": true
+  },
+  "w:again@f": {
+   "heard": "again",
+   "ok": true
+  },
+  "w:age@f": {
+   "heard": "A",
+   "ok": false
+  },
+  "w:age@m": {
+   "heard": "laid",
+   "ok": false
+  },
   "w:ali@f": {
    "heard": "Ollie",
+   "ok": true
+  },
+  "w:all@f": {
+   "heard": "all",
+   "ok": true
+  },
+  "w:all@m": {
+   "heard": "all",
    "ok": true
   },
   "w:am@f": {
@@ -486,6 +1778,14 @@
   },
   "w:and@f": {
    "heard": "and",
+   "ok": true
+  },
+  "w:answer@f": {
+   "heard": "answer",
+   "ok": true
+  },
+  "w:any@f": {
+   "heard": "Any",
    "ok": true
   },
   "w:app@f": {
@@ -504,6 +1804,38 @@
    "heard": "R",
    "ok": false
   },
+  "w:arm@f": {
+   "heard": "Arm",
+   "ok": true
+  },
+  "w:arm@m": {
+   "heard": "arm",
+   "ok": true
+  },
+  "w:art@f": {
+   "heard": "art",
+   "ok": true
+  },
+  "w:art@m": {
+   "heard": "art",
+   "ok": true
+  },
+  "w:ask@f": {
+   "heard": "Ask",
+   "ok": true
+  },
+  "w:ask@m": {
+   "heard": "Ask",
+   "ok": true
+  },
+  "w:asked@f": {
+   "heard": "asked",
+   "ok": true
+  },
+  "w:asked@m": {
+   "heard": "Ask me.",
+   "ok": false
+  },
   "w:at@f": {
    "heard": "@",
    "ok": false
@@ -511,6 +1843,14 @@
   "w:at@m": {
    "heard": "What?",
    "ok": false
+  },
+  "w:baby@f": {
+   "heard": "Baby",
+   "ok": true
+  },
+  "w:baby@m": {
+   "heard": "baby",
+   "ok": true
   },
   "w:back@f": {
    "heard": "Back",
@@ -566,6 +1906,10 @@
   },
   "w:bag@m2": {
    "heard": "bag",
+   "ok": true
+  },
+  "w:ball@f": {
+   "heard": "ball",
    "ok": true
   },
   "w:ban@f": {
@@ -636,6 +1980,26 @@
    "heard": "B",
    "ok": false
   },
+  "w:beat@f": {
+   "heard": "Be it.",
+   "ok": false
+  },
+  "w:beat@f2": {
+   "heard": "beat",
+   "ok": true
+  },
+  "w:beat@m": {
+   "heard": "beat",
+   "ok": true
+  },
+  "w:beat@m2": {
+   "heard": "Be it.",
+   "ok": false
+  },
+  "w:because@f": {
+   "heard": "because",
+   "ok": true
+  },
   "w:bed@f": {
    "heard": "bed",
    "ok": true
@@ -684,6 +2048,14 @@
    "heard": "Bell",
    "ok": true
   },
+  "w:best@f": {
+   "heard": "Best",
+   "ok": true
+  },
+  "w:best@m": {
+   "heard": "Best",
+   "ok": true
+  },
   "w:bet@f": {
    "heard": "bat",
    "ok": false
@@ -714,6 +2086,18 @@
   },
   "w:big@m2": {
    "heard": "Big.",
+   "ok": true
+  },
+  "w:biggest@f": {
+   "heard": "Biggest",
+   "ok": true
+  },
+  "w:biggest@m": {
+   "heard": "biggest",
+   "ok": true
+  },
+  "w:bike@f": {
+   "heard": "bike",
    "ok": true
   },
   "w:bill@f": {
@@ -747,6 +2131,10 @@
   "w:bin@m2": {
    "heard": "Ben",
    "ok": false
+  },
+  "w:bird@f": {
+   "heard": "bird",
+   "ok": true
   },
   "w:bit@f": {
    "heard": "bit",
@@ -796,6 +2184,26 @@
    "heard": "block",
    "ok": true
   },
+  "w:blue@f": {
+   "heard": "Blue",
+   "ok": true
+  },
+  "w:boat@f": {
+   "heard": "boat",
+   "ok": true
+  },
+  "w:book@f": {
+   "heard": "Bucky",
+   "ok": false
+  },
+  "w:boot@f": {
+   "heard": "Boo it",
+   "ok": false
+  },
+  "w:boot@m": {
+   "heard": "boot",
+   "ok": true
+  },
   "w:boss@f": {
    "heard": "boss",
    "ok": true
@@ -804,12 +2212,60 @@
    "heard": "boss",
    "ok": true
   },
+  "w:both@f": {
+   "heard": "both",
+   "ok": true
+  },
+  "w:bowl@f": {
+   "heard": "bowl",
+   "ok": true
+  },
+  "w:bowl@m": {
+   "heard": "bow",
+   "ok": false
+  },
   "w:box@f": {
    "heard": "box",
    "ok": true
   },
   "w:box@m": {
    "heard": "box",
+   "ok": true
+  },
+  "w:boy@f": {
+   "heard": "boy",
+   "ok": true
+  },
+  "w:boy@m": {
+   "heard": "boy",
+   "ok": true
+  },
+  "w:brick@f": {
+   "heard": "Brekt",
+   "ok": false
+  },
+  "w:brick@m": {
+   "heard": "brick",
+   "ok": true
+  },
+  "w:bright@f": {
+   "heard": "Bright",
+   "ok": true
+  },
+  "w:bright@m": {
+   "heard": "Bright",
+   "ok": true
+  },
+  "w:brother@f": {
+   "heard": "Brother",
+   "ok": true
+  },
+  "w:brown@f": {
+   "heard": "Brown",
+   "ok": true
+  },
+  "w:brown@m": {
+   "heard": "brown",
    "ok": true
   },
   "w:bug@f": {
@@ -852,6 +2308,10 @@
    "heard": "bus",
    "ok": true
   },
+  "w:busy@f": {
+   "heard": "busy",
+   "ok": true
+  },
   "w:but@f": {
    "heard": "But",
    "ok": true
@@ -860,6 +2320,10 @@
    "heard": "BUT",
    "ok": true
   },
+  "w:buy@f": {
+   "heard": "Bye.",
+   "ok": false
+  },
   "w:buzz@f": {
    "heard": "buzz",
    "ok": true
@@ -867,6 +2331,14 @@
   "w:buzz@m": {
    "heard": "buzz",
    "ok": true
+  },
+  "w:by@f": {
+   "heard": "Bye.",
+   "ok": false
+  },
+  "w:by@m": {
+   "heard": "Bye",
+   "ok": false
   },
   "w:cab@f": {
    "heard": "cab",
@@ -882,6 +2354,18 @@
   },
   "w:cab@m2": {
    "heard": "cab",
+   "ok": true
+  },
+  "w:cake@f": {
+   "heard": "Take",
+   "ok": false
+  },
+  "w:call@f": {
+   "heard": "Call",
+   "ok": true
+  },
+  "w:call@m": {
+   "heard": "call",
    "ok": true
   },
   "w:can@f": {
@@ -915,6 +2399,18 @@
   "w:cap@m2": {
    "heard": "cap",
    "ok": true
+  },
+  "w:car@f": {
+   "heard": "car",
+   "ok": true
+  },
+  "w:card@f": {
+   "heard": "card card",
+   "ok": false
+  },
+  "w:card@m": {
+   "heard": "card card",
+   "ok": false
   },
   "w:cash@f": {
    "heard": "cash",
@@ -962,6 +2458,14 @@
   },
   "w:catch@m2": {
    "heard": "catch",
+   "ok": true
+  },
+  "w:center@f": {
+   "heard": "Center",
+   "ok": true
+  },
+  "w:center@m": {
+   "heard": "Center",
    "ok": true
   },
   "w:chair@f": {
@@ -1092,6 +2596,90 @@
    "heard": "job",
    "ok": false
   },
+  "w:city@f": {
+   "heard": "City",
+   "ok": true
+  },
+  "w:city@m": {
+   "heard": "City",
+   "ok": true
+  },
+  "w:class@f": {
+   "heard": "class",
+   "ok": true
+  },
+  "w:class@m": {
+   "heard": "class",
+   "ok": true
+  },
+  "w:clean@f": {
+   "heard": "Clean",
+   "ok": true
+  },
+  "w:clean@m": {
+   "heard": "Clean",
+   "ok": true
+  },
+  "w:clock@f": {
+   "heard": "clock",
+   "ok": true
+  },
+  "w:clock@m": {
+   "heard": "clock",
+   "ok": true
+  },
+  "w:close@f": {
+   "heard": "close",
+   "ok": true
+  },
+  "w:close@m": {
+   "heard": "close",
+   "ok": true
+  },
+  "w:cloud@f": {
+   "heard": "Cloud",
+   "ok": true
+  },
+  "w:club@f": {
+   "heard": "Clobby",
+   "ok": false
+  },
+  "w:club@m": {
+   "heard": "CLUB",
+   "ok": true
+  },
+  "w:coach@f": {
+   "heard": "coat",
+   "ok": false
+  },
+  "w:coach@m": {
+   "heard": "code",
+   "ok": false
+  },
+  "w:coat@f": {
+   "heard": "coat",
+   "ok": true
+  },
+  "w:coat@m": {
+   "heard": "code",
+   "ok": false
+  },
+  "w:code@f": {
+   "heard": "Code",
+   "ok": true
+  },
+  "w:code@m": {
+   "heard": "code",
+   "ok": true
+  },
+  "w:coin@f": {
+   "heard": "coin",
+   "ok": true
+  },
+  "w:cold@f": {
+   "heard": "cold cold",
+   "ok": false
+  },
   "w:come@f": {
    "heard": "Come",
    "ok": true
@@ -1102,6 +2690,22 @@
   },
   "w:comic@m": {
    "heard": "Comic",
+   "ok": true
+  },
+  "w:cook@f": {
+   "heard": "Cuck",
+   "ok": false
+  },
+  "w:cook@m": {
+   "heard": "cook",
+   "ok": true
+  },
+  "w:cool@f": {
+   "heard": "cool",
+   "ok": true
+  },
+  "w:cool@m": {
+   "heard": "cool",
    "ok": true
   },
   "w:cop@f": {
@@ -1136,6 +2740,38 @@
    "heard": "cut",
    "ok": false
   },
+  "w:could@f": {
+   "heard": "could",
+   "ok": true
+  },
+  "w:count@f": {
+   "heard": "count",
+   "ok": true
+  },
+  "w:count@m": {
+   "heard": "COUNT",
+   "ok": true
+  },
+  "w:cow@f": {
+   "heard": "cow",
+   "ok": true
+  },
+  "w:crab@f": {
+   "heard": "crab",
+   "ok": true
+  },
+  "w:crab@m": {
+   "heard": "crab",
+   "ok": true
+  },
+  "w:cry@f": {
+   "heard": "Cry",
+   "ok": true
+  },
+  "w:cry@m": {
+   "heard": "Cry",
+   "ok": true
+  },
   "w:cub@f": {
    "heard": "Kabi",
    "ok": false
@@ -1151,6 +2787,10 @@
   "w:cub@m2": {
    "heard": "Kabi",
    "ok": false
+  },
+  "w:cube@f": {
+   "heard": "cube",
+   "ok": true
   },
   "w:cup@f": {
    "heard": "copy",
@@ -1184,6 +2824,14 @@
    "heard": "Cut",
    "ok": true
   },
+  "w:cute@f": {
+   "heard": "Cute",
+   "ok": true
+  },
+  "w:cute@m": {
+   "heard": "Cued",
+   "ok": false
+  },
   "w:dad@f": {
    "heard": "Dad",
    "ok": true
@@ -1192,12 +2840,52 @@
    "heard": "dad",
    "ok": true
   },
+  "w:date@f": {
+   "heard": "Day it.",
+   "ok": false
+  },
+  "w:date@m": {
+   "heard": "Date",
+   "ok": true
+  },
+  "w:day@f": {
+   "heard": "day",
+   "ok": true
+  },
+  "w:day@m": {
+   "heard": "day",
+   "ok": true
+  },
+  "w:deep@f": {
+   "heard": "Deep",
+   "ok": true
+  },
+  "w:deep@f2": {
+   "heard": "Deep.",
+   "ok": true
+  },
+  "w:deep@m": {
+   "heard": "Deep.",
+   "ok": true
+  },
+  "w:deep@m2": {
+   "heard": "Deep.",
+   "ok": true
+  },
   "w:denim@f": {
    "heard": "denim",
    "ok": true
   },
   "w:denim@m": {
    "heard": "denim",
+   "ok": true
+  },
+  "w:desk@f": {
+   "heard": "Desk",
+   "ok": true
+  },
+  "w:desk@m": {
+   "heard": "Desk",
    "ok": true
   },
   "w:did@f": {
@@ -1220,9 +2908,17 @@
    "heard": "dip",
    "ok": true
   },
+  "w:dip@f2": {
+   "heard": "Dip",
+   "ok": true
+  },
   "w:dip@m": {
    "heard": "Dip",
    "ok": true
+  },
+  "w:dip@m2": {
+   "heard": "Dib",
+   "ok": false
   },
   "w:dish@f": {
    "heard": "DASHED",
@@ -1276,12 +2972,20 @@
    "heard": "duck",
    "ok": false
   },
+  "w:does@f": {
+   "heard": "does",
+   "ok": true
+  },
   "w:dog@f": {
    "heard": "dog",
    "ok": true
   },
   "w:dog@m": {
    "heard": "dog",
+   "ok": true
+  },
+  "w:done@f": {
+   "heard": "Done",
    "ok": true
   },
   "w:door@f": {
@@ -1295,6 +2999,74 @@
   "w:dot@m": {
    "heard": ". . . . . . . . .",
    "ok": false
+  },
+  "w:down@f": {
+   "heard": "down",
+   "ok": true
+  },
+  "w:down@m": {
+   "heard": "down",
+   "ok": true
+  },
+  "w:dr@f": {
+   "heard": "doctor",
+   "ok": false
+  },
+  "w:draw@f": {
+   "heard": "Draw",
+   "ok": true
+  },
+  "w:draw@m": {
+   "heard": "draw",
+   "ok": true
+  },
+  "w:dress@f": {
+   "heard": "Dress",
+   "ok": true
+  },
+  "w:dress@m": {
+   "heard": "dress",
+   "ok": true
+  },
+  "w:drew@f": {
+   "heard": "Drew",
+   "ok": true
+  },
+  "w:drew@m": {
+   "heard": "Drew",
+   "ok": true
+  },
+  "w:drink@f": {
+   "heard": "drink",
+   "ok": true
+  },
+  "w:drink@m": {
+   "heard": "drink",
+   "ok": true
+  },
+  "w:driver@f": {
+   "heard": "Driver",
+   "ok": true
+  },
+  "w:driver@m": {
+   "heard": "driver",
+   "ok": true
+  },
+  "w:drum@f": {
+   "heard": "drum",
+   "ok": true
+  },
+  "w:drum@m": {
+   "heard": "drum",
+   "ok": true
+  },
+  "w:dry@f": {
+   "heard": "Dry",
+   "ok": true
+  },
+  "w:dry@m": {
+   "heard": "Dry",
+   "ok": true
   },
   "w:duck@f": {
    "heard": "dock",
@@ -1312,6 +3084,14 @@
    "heard": "Duck",
    "ok": true
   },
+  "w:eat@f": {
+   "heard": "Eat",
+   "ok": true
+  },
+  "w:eat@m": {
+   "heard": "Eat",
+   "ok": true
+  },
   "w:egg@f": {
    "heard": "egg",
    "ok": true
@@ -1319,6 +3099,82 @@
   "w:egg@m": {
    "heard": "Egg",
    "ok": true
+  },
+  "w:eight@f": {
+   "heard": "8",
+   "ok": false
+  },
+  "w:email@f": {
+   "heard": "Email",
+   "ok": true
+  },
+  "w:email@m": {
+   "heard": "Email",
+   "ok": true
+  },
+  "w:end@f": {
+   "heard": "And...",
+   "ok": false
+  },
+  "w:end@m": {
+   "heard": "End",
+   "ok": true
+  },
+  "w:ended@f": {
+   "heard": "Ended",
+   "ok": true
+  },
+  "w:ended@m": {
+   "heard": "Ended",
+   "ok": true
+  },
+  "w:english@f": {
+   "heard": "English",
+   "ok": true
+  },
+  "w:enjoy@f": {
+   "heard": "Enjoy!",
+   "ok": true
+  },
+  "w:enjoy@m": {
+   "heard": "Enjoy!",
+   "ok": true
+  },
+  "w:enough@f": {
+   "heard": "Enough.",
+   "ok": true
+  },
+  "w:entry@f": {
+   "heard": "entry",
+   "ok": true
+  },
+  "w:entry@m": {
+   "heard": "entry",
+   "ok": true
+  },
+  "w:every@f": {
+   "heard": "Every",
+   "ok": true
+  },
+  "w:exit@f": {
+   "heard": "exit",
+   "ok": true
+  },
+  "w:exit@m": {
+   "heard": "Exit",
+   "ok": true
+  },
+  "w:eye@f": {
+   "heard": "I",
+   "ok": false
+  },
+  "w:face@f": {
+   "heard": "vase",
+   "ok": false
+  },
+  "w:face@m": {
+   "heard": "vase",
+   "ok": false
   },
   "w:fail@f": {
    "heard": "Fail",
@@ -1368,6 +3224,14 @@
    "heard": "Fang",
    "ok": true
   },
+  "w:far@f": {
+   "heard": "FAR",
+   "ok": true
+  },
+  "w:far@m": {
+   "heard": "FARN",
+   "ok": false
+  },
   "w:fast@f": {
    "heard": "Vast",
    "ok": false
@@ -1382,6 +3246,14 @@
   },
   "w:fast@m2": {
    "heard": "fast",
+   "ok": true
+  },
+  "w:faster@f": {
+   "heard": "faster",
+   "ok": true
+  },
+  "w:faster@m": {
+   "heard": "faster",
    "ok": true
   },
   "w:fat@f": {
@@ -1400,6 +3272,10 @@
    "heard": "fat fat",
    "ok": false
   },
+  "w:father@f": {
+   "heard": "Father",
+   "ok": true
+  },
   "w:fault@f": {
    "heard": "Vault",
    "ok": false
@@ -1416,6 +3292,38 @@
    "heard": "Vault",
    "ok": false
   },
+  "w:feel@f": {
+   "heard": "feel",
+   "ok": true
+  },
+  "w:feel@f2": {
+   "heard": "feel",
+   "ok": true
+  },
+  "w:feel@m": {
+   "heard": "feel",
+   "ok": true
+  },
+  "w:feel@m2": {
+   "heard": "Feel",
+   "ok": true
+  },
+  "w:feet@f": {
+   "heard": "Fiate",
+   "ok": false
+  },
+  "w:feet@f2": {
+   "heard": "VIT",
+   "ok": false
+  },
+  "w:feet@m": {
+   "heard": "VEED",
+   "ok": false
+  },
+  "w:feet@m2": {
+   "heard": "feet",
+   "ok": true
+  },
   "w:fell@f": {
    "heard": "fell",
    "ok": true
@@ -1430,6 +3338,10 @@
   },
   "w:fell@m2": {
    "heard": "fell",
+   "ok": true
+  },
+  "w:fern@f": {
+   "heard": "fern",
    "ok": true
   },
   "w:ferry@f": {
@@ -1464,6 +3376,14 @@
    "heard": "view",
    "ok": false
   },
+  "w:file@f": {
+   "heard": "File",
+   "ok": true
+  },
+  "w:file@m": {
+   "heard": "file",
+   "ok": true
+  },
   "w:fill@f": {
    "heard": "fill",
    "ok": true
@@ -1478,6 +3398,18 @@
   },
   "w:fill@m2": {
    "heard": "fill",
+   "ok": true
+  },
+  "w:filled@f": {
+   "heard": "Filled",
+   "ok": true
+  },
+  "w:filled@m": {
+   "heard": "Filled",
+   "ok": true
+  },
+  "w:find@f": {
+   "heard": "Find",
    "ok": true
   },
   "w:fine@f": {
@@ -1496,6 +3428,14 @@
    "heard": "Fine.",
    "ok": true
   },
+  "w:first@f": {
+   "heard": "versed",
+   "ok": false
+  },
+  "w:first@m": {
+   "heard": "versed",
+   "ok": false
+  },
   "w:fish@f": {
    "heard": "VISH",
    "ok": false
@@ -1508,8 +3448,24 @@
    "heard": "Fit",
    "ok": true
   },
+  "w:fit@f2": {
+   "heard": "VIT",
+   "ok": false
+  },
   "w:fit@m": {
    "heard": "vid",
+   "ok": false
+  },
+  "w:fit@m2": {
+   "heard": "Fed",
+   "ok": false
+  },
+  "w:five@f": {
+   "heard": "5.",
+   "ok": false
+  },
+  "w:five@m": {
+   "heard": "5.",
    "ok": false
   },
   "w:fix@f": {
@@ -1520,12 +3476,112 @@
    "heard": "VIX",
    "ok": false
   },
-  "w:for@f": {
-   "heard": "FAR",
+  "w:fixed@f": {
+   "heard": "VIXED",
    "ok": false
+  },
+  "w:fixed@m": {
+   "heard": "vixxed",
+   "ok": false
+  },
+  "w:flag@f": {
+   "heard": "flag",
+   "ok": true
+  },
+  "w:flag@m": {
+   "heard": "flag",
+   "ok": true
+  },
+  "w:flew@f": {
+   "heard": "flu",
+   "ok": false
+  },
+  "w:flew@m": {
+   "heard": "flu",
+   "ok": false
+  },
+  "w:fly@f": {
+   "heard": "fly",
+   "ok": true
+  },
+  "w:fly@m": {
+   "heard": "fly",
+   "ok": true
+  },
+  "w:follow@f": {
+   "heard": "file it",
+   "ok": false
+  },
+  "w:follow@m": {
+   "heard": "follow",
+   "ok": true
+  },
+  "w:food@f": {
+   "heard": "Food",
+   "ok": true
+  },
+  "w:food@m": {
+   "heard": "food",
+   "ok": true
+  },
+  "w:foot@f": {
+   "heard": "foot",
+   "ok": true
+  },
+  "w:foot@m": {
+   "heard": "foot",
+   "ok": true
+  },
+  "w:for@f": {
+   "heard": "for",
+   "ok": true
+  },
+  "w:fork@f": {
+   "heard": "Fork",
+   "ok": true
+  },
+  "w:form@f": {
+   "heard": "Form",
+   "ok": true
+  },
+  "w:form@m": {
+   "heard": "Form",
+   "ok": true
+  },
+  "w:found@f": {
+   "heard": "found",
+   "ok": true
+  },
+  "w:found@m": {
+   "heard": "found",
+   "ok": true
+  },
+  "w:four@f": {
+   "heard": "4",
+   "ok": false
+  },
+  "w:free@f": {
+   "heard": "Free",
+   "ok": true
+  },
+  "w:free@m": {
+   "heard": "Free",
+   "ok": true
+  },
+  "w:friday@f": {
+   "heard": "Friday",
+   "ok": true
+  },
+  "w:friend@f": {
+   "heard": "friend",
+   "ok": true
   },
   "w:from@f": {
    "heard": "From",
+   "ok": true
+  },
+  "w:full@f": {
+   "heard": "full",
    "ok": true
   },
   "w:fun@f": {
@@ -1542,6 +3598,22 @@
   },
   "w:fun@m2": {
    "heard": "fun",
+   "ok": true
+  },
+  "w:funny@f": {
+   "heard": "funny",
+   "ok": true
+  },
+  "w:funny@m": {
+   "heard": "funny",
+   "ok": true
+  },
+  "w:game@f": {
+   "heard": "game",
+   "ok": true
+  },
+  "w:game@m": {
+   "heard": "game",
    "ok": true
   },
   "w:gas@f": {
@@ -1564,12 +3636,64 @@
    "heard": "gift",
    "ok": true
   },
+  "w:girl@f": {
+   "heard": "girl",
+   "ok": true
+  },
+  "w:girl@m": {
+   "heard": "girl",
+   "ok": true
+  },
+  "w:give@f": {
+   "heard": "give",
+   "ok": true
+  },
   "w:glass@f": {
    "heard": "glass",
    "ok": true
   },
+  "w:glass@m": {
+   "heard": "glass",
+   "ok": true
+  },
+  "w:glue@f": {
+   "heard": "Glue",
+   "ok": true
+  },
+  "w:glue@m": {
+   "heard": "glue",
+   "ok": true
+  },
   "w:go@f": {
    "heard": "Go",
+   "ok": true
+  },
+  "w:goal@f": {
+   "heard": "goal",
+   "ok": true
+  },
+  "w:goal@m": {
+   "heard": "goal",
+   "ok": true
+  },
+  "w:goat@f": {
+   "heard": "goat",
+   "ok": true
+  },
+  "w:goat@m": {
+   "heard": "goat",
+   "ok": true
+  },
+  "w:gone@f": {
+   "heard": "Gone",
+   "ok": true
+  },
+  "w:good@f": {
+   "heard": "Good.",
+   "ok": true
+  },
+  "w:good@m": {
+   "heard": "good",
    "ok": true
   },
   "w:got@f": {
@@ -1579,6 +3703,58 @@
   "w:got@m": {
    "heard": "God",
    "ok": false
+  },
+  "w:grab@f": {
+   "heard": "Grab",
+   "ok": true
+  },
+  "w:grab@m": {
+   "heard": "Grab",
+   "ok": true
+  },
+  "w:graph@f": {
+   "heard": "Graph",
+   "ok": true
+  },
+  "w:graph@m": {
+   "heard": "graph",
+   "ok": true
+  },
+  "w:grass@f": {
+   "heard": "Grass",
+   "ok": true
+  },
+  "w:grass@m": {
+   "heard": "Grass",
+   "ok": true
+  },
+  "w:green@f": {
+   "heard": "green",
+   "ok": true
+  },
+  "w:green@m": {
+   "heard": "green",
+   "ok": true
+  },
+  "w:grew@f": {
+   "heard": "Grille",
+   "ok": false
+  },
+  "w:grew@m": {
+   "heard": "grew",
+   "ok": true
+  },
+  "w:group@f": {
+   "heard": "group",
+   "ok": true
+  },
+  "w:grow@f": {
+   "heard": "grow",
+   "ok": true
+  },
+  "w:grow@m": {
+   "heard": "grow",
+   "ok": true
   },
   "w:habit@f": {
    "heard": "Habit",
@@ -1596,6 +3772,26 @@
    "heard": "had",
    "ok": true
   },
+  "w:half@f": {
+   "heard": "Half",
+   "ok": true
+  },
+  "w:hall@f": {
+   "heard": "call",
+   "ok": false
+  },
+  "w:hall@m": {
+   "heard": "huang",
+   "ok": false
+  },
+  "w:hand@f": {
+   "heard": "hand",
+   "ok": true
+  },
+  "w:hand@m": {
+   "heard": "hand",
+   "ok": true
+  },
   "w:hang@f": {
    "heard": "Hang",
    "ok": true
@@ -1604,9 +3800,29 @@
    "heard": "hang",
    "ok": true
   },
+  "w:happy@f": {
+   "heard": "Happy",
+   "ok": true
+  },
+  "w:happy@m": {
+   "heard": "Happy",
+   "ok": true
+  },
+  "w:hard@f": {
+   "heard": "Hard",
+   "ok": true
+  },
+  "w:hard@m": {
+   "heard": "hard",
+   "ok": true
+  },
   "w:has@f": {
    "heard": "has",
    "ok": true
+  },
+  "w:hassan@f": {
+   "heard": "Hisan",
+   "ok": false
   },
   "w:hat@f": {
    "heard": "hat",
@@ -1632,6 +3848,66 @@
    "heard": "",
    "ok": false
   },
+  "w:heat@f": {
+   "heard": "heat",
+   "ok": true
+  },
+  "w:heat@f2": {
+   "heard": "Heat",
+   "ok": true
+  },
+  "w:heat@m": {
+   "heard": "hit",
+   "ok": false
+  },
+  "w:heat@m2": {
+   "heard": "heat",
+   "ok": true
+  },
+  "w:help@f": {
+   "heard": "Help it.",
+   "ok": false
+  },
+  "w:help@m": {
+   "heard": "Help.",
+   "ok": true
+  },
+  "w:helped@f": {
+   "heard": "helped",
+   "ok": true
+  },
+  "w:helped@m": {
+   "heard": "helped",
+   "ok": true
+  },
+  "w:helpful@f": {
+   "heard": "Helpful",
+   "ok": true
+  },
+  "w:helpful@m": {
+   "heard": "Helpful",
+   "ok": true
+  },
+  "w:her@f": {
+   "heard": "Hurry.",
+   "ok": false
+  },
+  "w:her@m": {
+   "heard": "foreign",
+   "ok": false
+  },
+  "w:here@f": {
+   "heard": "Here",
+   "ok": true
+  },
+  "w:high@f": {
+   "heard": "Hi",
+   "ok": false
+  },
+  "w:high@m": {
+   "heard": "Hi",
+   "ok": false
+  },
   "w:him@f": {
    "heard": "him",
    "ok": true
@@ -1648,8 +3924,32 @@
    "heard": "Hit",
    "ok": true
   },
+  "w:hit@f2": {
+   "heard": "Hit",
+   "ok": true
+  },
   "w:hit@m": {
    "heard": "Hit",
+   "ok": true
+  },
+  "w:hit@m2": {
+   "heard": "hit",
+   "ok": true
+  },
+  "w:home@f": {
+   "heard": "home",
+   "ok": true
+  },
+  "w:home@m": {
+   "heard": "home",
+   "ok": true
+  },
+  "w:hope@f": {
+   "heard": "Hope",
+   "ok": true
+  },
+  "w:hope@m": {
+   "heard": "Hope",
    "ok": true
   },
   "w:hot@f": {
@@ -1667,6 +3967,34 @@
   "w:hot@m2": {
    "heard": "hot",
    "ok": true
+  },
+  "w:hotel@f": {
+   "heard": "Hotel",
+   "ok": true
+  },
+  "w:hotel@m": {
+   "heard": "Hotel",
+   "ok": true
+  },
+  "w:hour@f": {
+   "heard": "hour",
+   "ok": true
+  },
+  "w:house@f": {
+   "heard": "House",
+   "ok": true
+  },
+  "w:house@m": {
+   "heard": "Hows",
+   "ok": false
+  },
+  "w:how@f": {
+   "heard": "how",
+   "ok": true
+  },
+  "w:how@m": {
+   "heard": "At all.",
+   "ok": false
   },
   "w:hut@f": {
    "heard": "HUT",
@@ -1686,6 +4014,10 @@
   },
   "w:i@f": {
    "heard": "I",
+   "ok": true
+  },
+  "w:idea@f": {
+   "heard": "Idea",
    "ok": true
   },
   "w:if@f": {
@@ -1710,6 +4042,14 @@
   },
   "w:index@m": {
    "heard": "INDEX",
+   "ok": true
+  },
+  "w:information@f": {
+   "heard": "Information",
+   "ok": true
+  },
+  "w:information@m": {
+   "heard": "Information",
    "ok": true
   },
   "w:ink@f": {
@@ -1836,6 +4176,14 @@
    "heard": "Jog",
    "ok": true
   },
+  "w:join@f": {
+   "heard": "Join",
+   "ok": true
+  },
+  "w:join@m": {
+   "heard": "Join",
+   "ok": true
+  },
   "w:joke@f": {
    "heard": "Joke",
    "ok": true
@@ -1866,6 +4214,30 @@
   },
   "w:jot@m2": {
    "heard": "Jot",
+   "ok": true
+  },
+  "w:jump@f": {
+   "heard": "JUMPY",
+   "ok": false
+  },
+  "w:jump@m": {
+   "heard": "jump",
+   "ok": true
+  },
+  "w:jumped@f": {
+   "heard": "jumped",
+   "ok": true
+  },
+  "w:jumped@m": {
+   "heard": "jumped",
+   "ok": true
+  },
+  "w:just@f": {
+   "heard": "Just",
+   "ok": true
+  },
+  "w:just@m": {
+   "heard": "Just",
    "ok": true
   },
   "w:ken@f": {
@@ -1906,6 +4278,18 @@
   },
   "w:kin@m2": {
    "heard": "kin",
+   "ok": true
+  },
+  "w:kind@f": {
+   "heard": "kind",
+   "ok": true
+  },
+  "w:kindness@f": {
+   "heard": "kindness",
+   "ok": true
+  },
+  "w:kindness@m": {
+   "heard": "kindness",
    "ok": true
   },
   "w:king@f": {
@@ -1972,12 +4356,40 @@
    "heard": "led",
    "ok": false
   },
+  "w:landed@f": {
+   "heard": "landed",
+   "ok": true
+  },
+  "w:landed@m": {
+   "heard": "landed",
+   "ok": true
+  },
   "w:laptop@f": {
    "heard": "laptop",
    "ok": true
   },
   "w:laptop@m": {
    "heard": "laptop",
+   "ok": true
+  },
+  "w:last@f": {
+   "heard": "Last",
+   "ok": true
+  },
+  "w:last@m": {
+   "heard": "last",
+   "ok": true
+  },
+  "w:late@f": {
+   "heard": "Late",
+   "ok": true
+  },
+  "w:late@m": {
+   "heard": "Late",
+   "ok": true
+  },
+  "w:laugh@f": {
+   "heard": "laugh",
    "ok": true
   },
   "w:leaf@f": {
@@ -1994,6 +4406,26 @@
   },
   "w:leaf@m2": {
    "heard": "Leaf",
+   "ok": true
+  },
+  "w:leap@f": {
+   "heard": "Leap",
+   "ok": true
+  },
+  "w:leap@f2": {
+   "heard": "Leap",
+   "ok": true
+  },
+  "w:leap@m": {
+   "heard": "leap",
+   "ok": true
+  },
+  "w:leap@m2": {
+   "heard": "Leap",
+   "ok": true
+  },
+  "w:learn@f": {
+   "heard": "Learn",
    "ok": true
   },
   "w:leave@f": {
@@ -2036,6 +4468,22 @@
    "heard": "Leg",
    "ok": true
   },
+  "w:lend@f": {
+   "heard": "Lend",
+   "ok": true
+  },
+  "w:lend@m": {
+   "heard": "Lend",
+   "ok": true
+  },
+  "w:lent@f": {
+   "heard": "Lent",
+   "ok": true
+  },
+  "w:lent@m": {
+   "heard": "lent",
+   "ok": true
+  },
   "w:less@f": {
    "heard": "less",
    "ok": true
@@ -2050,6 +4498,22 @@
   },
   "w:let@m": {
    "heard": "let",
+   "ok": true
+  },
+  "w:letter@f": {
+   "heard": "letter",
+   "ok": true
+  },
+  "w:letter@m": {
+   "heard": "letter",
+   "ok": true
+  },
+  "w:library@f": {
+   "heard": "Library",
+   "ok": true
+  },
+  "w:library@m": {
+   "heard": "Library",
    "ok": true
   },
   "w:lid@f": {
@@ -2068,6 +4532,14 @@
    "heard": "lid",
    "ok": true
   },
+  "w:light@f": {
+   "heard": "Light",
+   "ok": true
+  },
+  "w:light@m": {
+   "heard": "light",
+   "ok": true
+  },
   "w:like@f": {
    "heard": "LIKE",
    "ok": true
@@ -2080,12 +4552,52 @@
    "heard": "limit",
    "ok": true
   },
+  "w:line@f": {
+   "heard": "line",
+   "ok": true
+  },
+  "w:line@m": {
+   "heard": "line",
+   "ok": true
+  },
   "w:lip@f": {
    "heard": "Lippie",
    "ok": false
   },
+  "w:lip@f2": {
+   "heard": "Lip",
+   "ok": true
+  },
   "w:lip@m": {
    "heard": "lip",
+   "ok": true
+  },
+  "w:lip@m2": {
+   "heard": "Lippie.",
+   "ok": false
+  },
+  "w:list@f": {
+   "heard": "list",
+   "ok": true
+  },
+  "w:list@m": {
+   "heard": "Listing",
+   "ok": false
+  },
+  "w:listen@f": {
+   "heard": "Listen",
+   "ok": true
+  },
+  "w:little@f": {
+   "heard": "little",
+   "ok": true
+  },
+  "w:little@m": {
+   "heard": "little",
+   "ok": true
+  },
+  "w:live@f": {
+   "heard": "Live",
    "ok": true
   },
   "w:lock@f": {
@@ -2112,12 +4624,40 @@
    "heard": "long",
    "ok": true
   },
+  "w:look@f": {
+   "heard": "Look",
+   "ok": true
+  },
+  "w:look@m": {
+   "heard": "Look.",
+   "ok": true
+  },
   "w:lot@f": {
    "heard": "LUT",
    "ok": false
   },
   "w:lot@m": {
    "heard": "Lot",
+   "ok": true
+  },
+  "w:loud@f": {
+   "heard": "loud",
+   "ok": true
+  },
+  "w:loud@m": {
+   "heard": "loud",
+   "ok": true
+  },
+  "w:love@f": {
+   "heard": "Loves",
+   "ok": false
+  },
+  "w:low@f": {
+   "heard": "low",
+   "ok": true
+  },
+  "w:low@m": {
+   "heard": "low",
    "ok": true
   },
   "w:luck@f": {
@@ -2152,6 +4692,54 @@
    "heard": "mad",
    "ok": true
   },
+  "w:made@f": {
+   "heard": "Maid",
+   "ok": false
+  },
+  "w:made@m": {
+   "heard": "Made",
+   "ok": true
+  },
+  "w:mail@f": {
+   "heard": "Male",
+   "ok": false
+  },
+  "w:mail@m": {
+   "heard": "Male",
+   "ok": false
+  },
+  "w:main@f": {
+   "heard": "Maine",
+   "ok": false
+  },
+  "w:main@m": {
+   "heard": "Maine",
+   "ok": false
+  },
+  "w:major@f": {
+   "heard": "major",
+   "ok": true
+  },
+  "w:major@m": {
+   "heard": "major",
+   "ok": true
+  },
+  "w:make@f": {
+   "heard": "Make",
+   "ok": true
+  },
+  "w:make@m": {
+   "heard": "Make",
+   "ok": true
+  },
+  "w:mall@f": {
+   "heard": "Mal",
+   "ok": false
+  },
+  "w:mall@m": {
+   "heard": "maw",
+   "ok": false
+  },
   "w:man@f": {
    "heard": "MAN",
    "ok": true
@@ -2166,6 +4754,10 @@
   },
   "w:man@m2": {
    "heard": "man",
+   "ok": true
+  },
+  "w:many@f": {
+   "heard": "many",
    "ok": true
   },
   "w:map@f": {
@@ -2198,6 +4790,14 @@
   },
   "w:mash@m2": {
    "heard": "MASH",
+   "ok": true
+  },
+  "w:mask@f": {
+   "heard": "Mask",
+   "ok": true
+  },
+  "w:mask@m": {
+   "heard": "mask",
    "ok": true
   },
   "w:mat@f": {
@@ -2248,6 +4848,22 @@
    "heard": "me",
    "ok": true
   },
+  "w:mean@f": {
+   "heard": "Man",
+   "ok": false
+  },
+  "w:mean@m": {
+   "heard": "mean",
+   "ok": true
+  },
+  "w:meet@f": {
+   "heard": "Meet",
+   "ok": true
+  },
+  "w:meet@m": {
+   "heard": "meat",
+   "ok": false
+  },
   "w:men@f": {
    "heard": "Men",
    "ok": true
@@ -2262,6 +4878,14 @@
   },
   "w:men@m2": {
    "heard": "men",
+   "ok": true
+  },
+  "w:menu@f": {
+   "heard": "menu",
+   "ok": true
+  },
+  "w:menu@m": {
+   "heard": "menu",
    "ok": true
   },
   "w:mess@f": {
@@ -2288,12 +4912,40 @@
    "heard": "met",
    "ok": true
   },
+  "w:middle@f": {
+   "heard": "middle",
+   "ok": true
+  },
+  "w:middle@m": {
+   "heard": "middle",
+   "ok": true
+  },
+  "w:milk@f": {
+   "heard": "milk",
+   "ok": true
+  },
+  "w:milk@m": {
+   "heard": "milk",
+   "ok": true
+  },
+  "w:minute@f": {
+   "heard": "minute",
+   "ok": true
+  },
   "w:miss@f": {
    "heard": "Miss",
    "ok": true
   },
   "w:miss@m": {
    "heard": "miss",
+   "ok": true
+  },
+  "w:missing@f": {
+   "heard": "Missing",
+   "ok": true
+  },
+  "w:missing@m": {
+   "heard": "missing",
    "ok": true
   },
   "w:mix@f": {
@@ -2320,12 +4972,24 @@
    "heard": "Mod",
    "ok": false
   },
+  "w:mobile@f": {
+   "heard": "Mobile",
+   "ok": true
+  },
+  "w:mobile@m": {
+   "heard": "mobile",
+   "ok": true
+  },
   "w:mom@f": {
    "heard": "Mom",
    "ok": true
   },
   "w:mom@m": {
    "heard": "mom",
+   "ok": true
+  },
+  "w:monday@f": {
+   "heard": "Monday",
    "ok": true
   },
   "w:mop@f": {
@@ -2343,6 +5007,38 @@
   "w:mop@m2": {
    "heard": "mop",
    "ok": true
+  },
+  "w:more@f": {
+   "heard": "More.",
+   "ok": true
+  },
+  "w:more@m": {
+   "heard": "More.",
+   "ok": true
+  },
+  "w:mother@f": {
+   "heard": "mother",
+   "ok": true
+  },
+  "w:mouth@f": {
+   "heard": "mouse",
+   "ok": false
+  },
+  "w:mouth@m": {
+   "heard": "Mouth",
+   "ok": true
+  },
+  "w:move@f": {
+   "heard": "Melves",
+   "ok": false
+  },
+  "w:mr@f": {
+   "heard": "Mr.",
+   "ok": true
+  },
+  "w:mrs@f": {
+   "heard": "Misses",
+   "ok": false
   },
   "w:much@f": {
    "heard": "much",
@@ -2376,8 +5072,32 @@
    "heard": "muffin",
    "ok": true
   },
+  "w:music@f": {
+   "heard": "Music",
+   "ok": true
+  },
+  "w:music@m": {
+   "heard": "music",
+   "ok": true
+  },
+  "w:must@f": {
+   "heard": "must",
+   "ok": true
+  },
+  "w:must@m": {
+   "heard": "must",
+   "ok": true
+  },
   "w:my@f": {
    "heard": "my",
+   "ok": true
+  },
+  "w:name@f": {
+   "heard": "Name",
+   "ok": true
+  },
+  "w:name@m": {
+   "heard": "name",
    "ok": true
   },
   "w:nap@f": {
@@ -2396,12 +5116,36 @@
    "heard": "Napkin",
    "ok": true
   },
+  "w:nation@f": {
+   "heard": "Nation",
+   "ok": true
+  },
+  "w:nation@m": {
+   "heard": "nation",
+   "ok": true
+  },
+  "w:nationality@f": {
+   "heard": "Nationality",
+   "ok": true
+  },
+  "w:nationality@m": {
+   "heard": "Nationality",
+   "ok": true
+  },
   "w:neck@f": {
    "heard": "NAC",
    "ok": false
   },
   "w:neck@m": {
    "heard": "Neck.",
+   "ok": true
+  },
+  "w:need@f": {
+   "heard": "Knead",
+   "ok": false
+  },
+  "w:need@m": {
+   "heard": "need",
    "ok": true
   },
   "w:net@f": {
@@ -2412,9 +5156,61 @@
    "heard": "net",
    "ok": true
   },
+  "w:new@f": {
+   "heard": "Now",
+   "ok": false
+  },
+  "w:next@f": {
+   "heard": "Next",
+   "ok": true
+  },
+  "w:next@m": {
+   "heard": "Next.",
+   "ok": true
+  },
+  "w:nice@f": {
+   "heard": "Nice",
+   "ok": true
+  },
+  "w:nice@m": {
+   "heard": "nice",
+   "ok": true
+  },
+  "w:night@f": {
+   "heard": "night",
+   "ok": true
+  },
+  "w:nine@f": {
+   "heard": "9",
+   "ok": false
+  },
+  "w:nine@m": {
+   "heard": "9.",
+   "ok": false
+  },
   "w:no@f": {
    "heard": "you know",
    "ok": false
+  },
+  "w:noon@f": {
+   "heard": "Noun",
+   "ok": false
+  },
+  "w:noon@m": {
+   "heard": "noon",
+   "ok": true
+  },
+  "w:nora@f": {
+   "heard": "Nora",
+   "ok": true
+  },
+  "w:north@f": {
+   "heard": "North",
+   "ok": true
+  },
+  "w:north@m": {
+   "heard": "North",
+   "ok": true
   },
   "w:nose@f": {
    "heard": "NOS",
@@ -2434,6 +5230,38 @@
   },
   "w:not@m2": {
    "heard": "not",
+   "ok": true
+  },
+  "w:note@f": {
+   "heard": "note",
+   "ok": true
+  },
+  "w:note@m": {
+   "heard": "note",
+   "ok": true
+  },
+  "w:now@f": {
+   "heard": "now",
+   "ok": true
+  },
+  "w:now@m": {
+   "heard": "Now",
+   "ok": true
+  },
+  "w:number@f": {
+   "heard": "Number",
+   "ok": true
+  },
+  "w:number@m": {
+   "heard": "number",
+   "ok": true
+  },
+  "w:nurse@f": {
+   "heard": "nurse",
+   "ok": true
+  },
+  "w:nurse@m": {
+   "heard": "NURSE",
    "ok": true
   },
   "w:nut@f": {
@@ -2476,6 +5304,18 @@
    "heard": "Life.",
    "ok": false
   },
+  "w:oil@f": {
+   "heard": "Oil",
+   "ok": true
+  },
+  "w:oil@m": {
+   "heard": "oil",
+   "ok": true
+  },
+  "w:old@f": {
+   "heard": "Old",
+   "ok": true
+  },
   "w:on@f": {
    "heard": "On",
    "ok": true
@@ -2488,9 +5328,45 @@
    "heard": "1",
    "ok": true
   },
+  "w:only@f": {
+   "heard": "Only",
+   "ok": true
+  },
+  "w:open@f": {
+   "heard": "Open",
+   "ok": true
+  },
+  "w:open@m": {
+   "heard": "Open",
+   "ok": true
+  },
   "w:or@f": {
-   "heard": "R",
+   "heard": "or",
+   "ok": true
+  },
+  "w:other@f": {
+   "heard": "Other",
+   "ok": true
+  },
+  "w:our@f": {
+   "heard": "hour",
    "ok": false
+  },
+  "w:out@f": {
+   "heard": "Out",
+   "ok": true
+  },
+  "w:out@m": {
+   "heard": "Out",
+   "ok": true
+  },
+  "w:own@f": {
+   "heard": "own",
+   "ok": true
+  },
+  "w:own@m": {
+   "heard": "own",
+   "ok": true
   },
   "w:pack@f": {
    "heard": "pack",
@@ -2506,6 +5382,22 @@
   },
   "w:pack@m2": {
    "heard": "pack",
+   "ok": true
+  },
+  "w:page@f": {
+   "heard": "pay",
+   "ok": false
+  },
+  "w:page@m": {
+   "heard": "pay",
+   "ok": false
+  },
+  "w:paint@f": {
+   "heard": "Paint",
+   "ok": true
+  },
+  "w:paint@m": {
+   "heard": "paint",
    "ok": true
   },
   "w:pan@f": {
@@ -2532,12 +5424,44 @@
    "heard": "panic",
    "ok": true
   },
+  "w:paper@f": {
+   "heard": "paper",
+   "ok": true
+  },
+  "w:paper@m": {
+   "heard": "Paper",
+   "ok": true
+  },
+  "w:park@f": {
+   "heard": "Parked",
+   "ok": false
+  },
+  "w:park@m": {
+   "heard": "park",
+   "ok": true
+  },
+  "w:party@f": {
+   "heard": "Party",
+   "ok": true
+  },
+  "w:party@m": {
+   "heard": "Party",
+   "ok": true
+  },
   "w:pass@f": {
    "heard": "Pass",
    "ok": true
   },
   "w:pass@m": {
    "heard": "pass",
+   "ok": true
+  },
+  "w:passed@f": {
+   "heard": "passed",
+   "ok": true
+  },
+  "w:passed@m": {
+   "heard": "passed",
    "ok": true
   },
   "w:pat@f": {
@@ -2562,6 +5486,22 @@
   },
   "w:path@m": {
    "heard": "path",
+   "ok": true
+  },
+  "w:pay@f": {
+   "heard": "pay",
+   "ok": true
+  },
+  "w:pay@m": {
+   "heard": "pay",
+   "ok": true
+  },
+  "w:payment@f": {
+   "heard": "Payment",
+   "ok": true
+  },
+  "w:payment@m": {
+   "heard": "Payment",
    "ok": true
   },
   "w:peck@f": {
@@ -2612,6 +5552,18 @@
    "heard": "pen",
    "ok": true
   },
+  "w:people@f": {
+   "heard": "People",
+   "ok": true
+  },
+  "w:person@f": {
+   "heard": "person",
+   "ok": true
+  },
+  "w:person@m": {
+   "heard": "person",
+   "ok": true
+  },
   "w:pet@f": {
    "heard": "pet",
    "ok": true
@@ -2627,6 +5579,22 @@
   "w:pet@m2": {
    "heard": "pet",
    "ok": true
+  },
+  "w:phone@f": {
+   "heard": "phone",
+   "ok": true
+  },
+  "w:phone@m": {
+   "heard": "phone",
+   "ok": true
+  },
+  "w:photo@f": {
+   "heard": "phone",
+   "ok": false
+  },
+  "w:photo@m": {
+   "heard": "phone",
+   "ok": false
   },
   "w:pick@f": {
    "heard": "PECE",
@@ -2651,6 +5619,14 @@
   "w:picnic@m": {
    "heard": "Picnic",
    "ok": true
+  },
+  "w:pie@f": {
+   "heard": "pie",
+   "ok": true
+  },
+  "w:pie@m": {
+   "heard": "pi",
+   "ok": false
   },
   "w:pig@f": {
    "heard": "pig",
@@ -2724,6 +5700,94 @@
    "heard": "Pit",
    "ok": true
   },
+  "w:place@f": {
+   "heard": "place",
+   "ok": true
+  },
+  "w:place@m": {
+   "heard": "place",
+   "ok": true
+  },
+  "w:plan@f": {
+   "heard": "plan",
+   "ok": true
+  },
+  "w:plan@m": {
+   "heard": "plan",
+   "ok": true
+  },
+  "w:plane@f": {
+   "heard": "plane",
+   "ok": true
+  },
+  "w:plane@m": {
+   "heard": "plane",
+   "ok": true
+  },
+  "w:planned@f": {
+   "heard": "Planned",
+   "ok": true
+  },
+  "w:planned@m": {
+   "heard": "Planned",
+   "ok": true
+  },
+  "w:plant@f": {
+   "heard": "plant",
+   "ok": true
+  },
+  "w:plant@m": {
+   "heard": "plant",
+   "ok": true
+  },
+  "w:plate@f": {
+   "heard": "plate",
+   "ok": true
+  },
+  "w:plate@m": {
+   "heard": "plate",
+   "ok": true
+  },
+  "w:play@f": {
+   "heard": "Play",
+   "ok": true
+  },
+  "w:play@m": {
+   "heard": "play",
+   "ok": true
+  },
+  "w:player@f": {
+   "heard": "player",
+   "ok": true
+  },
+  "w:player@m": {
+   "heard": "player",
+   "ok": true
+  },
+  "w:plus@f": {
+   "heard": "plus",
+   "ok": true
+  },
+  "w:plus@m": {
+   "heard": "+",
+   "ok": false
+  },
+  "w:point@f": {
+   "heard": "point",
+   "ok": true
+  },
+  "w:point@m": {
+   "heard": "point",
+   "ok": true
+  },
+  "w:pool@f": {
+   "heard": "pool",
+   "ok": true
+  },
+  "w:pool@m": {
+   "heard": "pool",
+   "ok": true
+  },
   "w:pop@f": {
    "heard": "Poppet.",
    "ok": false
@@ -2756,6 +5820,30 @@
    "heard": "pot",
    "ok": true
   },
+  "w:press@f": {
+   "heard": "Press [no audio]",
+   "ok": false
+  },
+  "w:press@m": {
+   "heard": "Press",
+   "ok": true
+  },
+  "w:print@f": {
+   "heard": "Print",
+   "ok": true
+  },
+  "w:print@m": {
+   "heard": "print",
+   "ok": true
+  },
+  "w:printed@f": {
+   "heard": "printed",
+   "ok": true
+  },
+  "w:printed@m": {
+   "heard": "printed",
+   "ok": true
+  },
   "w:public@f": {
    "heard": "Public",
    "ok": true
@@ -2763,6 +5851,10 @@
   "w:public@m": {
    "heard": "Public",
    "ok": true
+  },
+  "w:pull@f": {
+   "heard": "Paulie",
+   "ok": false
   },
   "w:pun@f": {
    "heard": "pun",
@@ -2796,8 +5888,24 @@
    "heard": "PUBBY",
    "ok": false
   },
+  "w:push@f": {
+   "heard": "Pushing",
+   "ok": false
+  },
+  "w:put@f": {
+   "heard": "PUT",
+   "ok": true
+  },
   "w:queen@f": {
    "heard": "Queen",
+   "ok": true
+  },
+  "w:question@f": {
+   "heard": "Question",
+   "ok": true
+  },
+  "w:question@m": {
+   "heard": "Question",
    "ok": true
   },
   "w:quick@f": {
@@ -2806,6 +5914,18 @@
   },
   "w:quick@m": {
    "heard": "quick",
+   "ok": true
+  },
+  "w:quickly@f": {
+   "heard": "quickly",
+   "ok": true
+  },
+  "w:quickly@m": {
+   "heard": "quickly",
+   "ok": true
+  },
+  "w:quiet@f": {
+   "heard": "Quiet",
    "ok": true
   },
   "w:quit@f": {
@@ -2840,6 +5960,10 @@
    "heard": "rack",
    "ok": true
   },
+  "w:rain@f": {
+   "heard": "Rain",
+   "ok": true
+  },
   "w:ran@f": {
    "heard": "Ran",
    "ok": true
@@ -2872,12 +5996,52 @@
    "heard": "Rang",
    "ok": true
   },
+  "w:read@f": {
+   "heard": "Read",
+   "ok": true
+  },
+  "w:read@m": {
+   "heard": "Read",
+   "ok": true
+  },
+  "w:reader@f": {
+   "heard": "Reader",
+   "ok": true
+  },
+  "w:reader@m": {
+   "heard": "Reader",
+   "ok": true
+  },
   "w:red@f": {
    "heard": "Red",
    "ok": true
   },
   "w:red@m": {
    "heard": "red",
+   "ok": true
+  },
+  "w:redo@f": {
+   "heard": "Redo",
+   "ok": true
+  },
+  "w:redo@m": {
+   "heard": "redo",
+   "ok": true
+  },
+  "w:replay@f": {
+   "heard": "Replay",
+   "ok": true
+  },
+  "w:replay@m": {
+   "heard": "Replay",
+   "ok": true
+  },
+  "w:restroom@f": {
+   "heard": "Restroom",
+   "ok": true
+  },
+  "w:restroom@m": {
+   "heard": "Restroom",
    "ok": true
   },
   "w:rib@f": {
@@ -2896,6 +6060,14 @@
    "heard": "Ribber",
    "ok": false
   },
+  "w:rice@f": {
+   "heard": "Rice",
+   "ok": true
+  },
+  "w:rice@m": {
+   "heard": "Rice",
+   "ok": true
+  },
   "w:rich@f": {
    "heard": "rich",
    "ok": true
@@ -2903,6 +6075,22 @@
   "w:rich@m": {
    "heard": "Rich",
    "ok": true
+  },
+  "w:ride@f": {
+   "heard": "Ride",
+   "ok": true
+  },
+  "w:ride@m": {
+   "heard": "Ride",
+   "ok": true
+  },
+  "w:right@f": {
+   "heard": "Right",
+   "ok": true
+  },
+  "w:right@m": {
+   "heard": "write",
+   "ok": false
   },
   "w:ring@f": {
    "heard": "Ring",
@@ -2928,6 +6116,14 @@
    "heard": "RIP",
    "ok": true
   },
+  "w:road@f": {
+   "heard": "Road",
+   "ok": true
+  },
+  "w:road@m": {
+   "heard": "road",
+   "ok": true
+  },
   "w:rob@f": {
    "heard": "Rob",
    "ok": true
@@ -2944,6 +6140,14 @@
    "heard": "R.O.B.",
    "ok": true
   },
+  "w:robot@f": {
+   "heard": "Robot",
+   "ok": true
+  },
+  "w:robot@m": {
+   "heard": "Robot",
+   "ok": true
+  },
   "w:rock@f": {
    "heard": "rock",
    "ok": true
@@ -2958,6 +6162,14 @@
   },
   "w:rock@m2": {
    "heard": "rock",
+   "ok": true
+  },
+  "w:room@f": {
+   "heard": "room",
+   "ok": true
+  },
+  "w:room@m": {
+   "heard": "room",
    "ok": true
   },
   "w:rot@f": {
@@ -3072,6 +6284,14 @@
    "heard": "sad",
    "ok": true
   },
+  "w:sadness@f": {
+   "heard": "Sadness",
+   "ok": true
+  },
+  "w:sadness@m": {
+   "heard": "Sadness",
+   "ok": true
+  },
   "w:safe@f": {
    "heard": "safe",
    "ok": true
@@ -3094,6 +6314,14 @@
   },
   "w:sam@f": {
    "heard": "Sam",
+   "ok": true
+  },
+  "w:same@f": {
+   "heard": "Same",
+   "ok": true
+  },
+  "w:same@m": {
+   "heard": "Same",
    "ok": true
   },
   "w:sand@f": {
@@ -3132,6 +6360,10 @@
    "heard": "zat",
    "ok": false
   },
+  "w:saturday@f": {
+   "heard": "Saturday",
+   "ok": true
+  },
   "w:save@f": {
    "heard": "Save",
    "ok": true
@@ -3147,6 +6379,58 @@
   "w:save@m2": {
    "heard": "Save",
    "ok": true
+  },
+  "w:saw@f": {
+   "heard": "saw",
+   "ok": true
+  },
+  "w:saw@m": {
+   "heard": "song",
+   "ok": false
+  },
+  "w:say@f": {
+   "heard": "Say",
+   "ok": true
+  },
+  "w:say@m": {
+   "heard": "Say",
+   "ok": true
+  },
+  "w:scan@f": {
+   "heard": "Scan",
+   "ok": true
+  },
+  "w:scan@m": {
+   "heard": "scan",
+   "ok": true
+  },
+  "w:school@f": {
+   "heard": "school",
+   "ok": true
+  },
+  "w:seat@f": {
+   "heard": "See it.",
+   "ok": false
+  },
+  "w:seat@f2": {
+   "heard": "A seat.",
+   "ok": true
+  },
+  "w:seat@m": {
+   "heard": "Zeed",
+   "ok": false
+  },
+  "w:seat@m2": {
+   "heard": "seed",
+   "ok": false
+  },
+  "w:see@f": {
+   "heard": "C.",
+   "ok": false
+  },
+  "w:see@m": {
+   "heard": "C.",
+   "ok": false
   },
   "w:sell@f": {
    "heard": "Cell",
@@ -3172,6 +6456,14 @@
    "heard": "Send",
    "ok": true
   },
+  "w:sent@f": {
+   "heard": "Scent",
+   "ok": false
+  },
+  "w:sent@m": {
+   "heard": "Send",
+   "ok": false
+  },
   "w:set@f": {
    "heard": "set",
    "ok": true
@@ -3186,6 +6478,14 @@
   },
   "w:set@m2": {
    "heard": "set",
+   "ok": true
+  },
+  "w:setting@f": {
+   "heard": "setting",
+   "ok": true
+  },
+  "w:setting@m": {
+   "heard": "setting",
    "ok": true
   },
   "w:share@f": {
@@ -3256,6 +6556,14 @@
    "heard": "shib",
    "ok": false
   },
+  "w:shirt@f": {
+   "heard": "shirt",
+   "ok": true
+  },
+  "w:shirt@m": {
+   "heard": "Shorten",
+   "ok": false
+  },
   "w:shoe@f": {
    "heard": "shu",
    "ok": false
@@ -3288,6 +6596,22 @@
    "heard": "Chomp",
    "ok": false
   },
+  "w:shopping@f": {
+   "heard": "Shopping",
+   "ok": true
+  },
+  "w:shopping@m": {
+   "heard": "Shopping",
+   "ok": true
+  },
+  "w:short@f": {
+   "heard": "Short",
+   "ok": true
+  },
+  "w:short@m": {
+   "heard": "Shored",
+   "ok": false
+  },
   "w:shot@f": {
    "heard": "shot",
    "ok": true
@@ -3302,6 +6626,18 @@
   },
   "w:shot@m2": {
    "heard": "shot",
+   "ok": true
+  },
+  "w:should@f": {
+   "heard": "She said it.",
+   "ok": false
+  },
+  "w:show@f": {
+   "heard": "show",
+   "ok": true
+  },
+  "w:show@m": {
+   "heard": "show",
    "ok": true
   },
   "w:shut@f": {
@@ -3326,6 +6662,22 @@
   },
   "w:sick@m": {
    "heard": "Sick.",
+   "ok": true
+  },
+  "w:sight@f": {
+   "heard": "Sight",
+   "ok": true
+  },
+  "w:sight@m": {
+   "heard": "Side",
+   "ok": false
+  },
+  "w:simple@f": {
+   "heard": "Simple",
+   "ok": true
+  },
+  "w:simple@m": {
+   "heard": "Simple",
    "ok": true
   },
   "w:sin@f": {
@@ -3360,6 +6712,14 @@
    "heard": "zing",
    "ok": false
   },
+  "w:singing@f": {
+   "heard": "singing",
+   "ok": true
+  },
+  "w:singing@m": {
+   "heard": "singing",
+   "ok": true
+  },
   "w:sink@f": {
    "heard": "Sink",
    "ok": true
@@ -3392,6 +6752,14 @@
    "heard": "zip",
    "ok": false
   },
+  "w:site@f": {
+   "heard": "Sight",
+   "ok": false
+  },
+  "w:site@m": {
+   "heard": "Side",
+   "ok": false
+  },
   "w:six@f": {
    "heard": "a sexa",
    "ok": false
@@ -3400,8 +6768,144 @@
    "heard": "A 6.",
    "ok": true
   },
+  "w:skill@f": {
+   "heard": "skill",
+   "ok": true
+  },
+  "w:skill@m": {
+   "heard": "skill",
+   "ok": true
+  },
+  "w:skin@f": {
+   "heard": "skin",
+   "ok": true
+  },
+  "w:skin@m": {
+   "heard": "skin",
+   "ok": true
+  },
+  "w:skip@f": {
+   "heard": "Skip",
+   "ok": true
+  },
+  "w:skip@m": {
+   "heard": "Skip.",
+   "ok": true
+  },
+  "w:sky@f": {
+   "heard": "The sky",
+   "ok": true
+  },
+  "w:sleep@f": {
+   "heard": "sleep",
+   "ok": true
+  },
+  "w:sleep@f2": {
+   "heard": "sleep",
+   "ok": true
+  },
+  "w:sleep@m": {
+   "heard": "sleep",
+   "ok": true
+  },
+  "w:sleep@m2": {
+   "heard": "sleep",
+   "ok": true
+  },
+  "w:slim@f": {
+   "heard": "Slim",
+   "ok": true
+  },
+  "w:slim@m": {
+   "heard": "Slim",
+   "ok": true
+  },
+  "w:slip@f": {
+   "heard": "Slip",
+   "ok": true
+  },
+  "w:slip@f2": {
+   "heard": "Slip",
+   "ok": true
+  },
+  "w:slip@m": {
+   "heard": "Slip",
+   "ok": true
+  },
+  "w:slip@m2": {
+   "heard": "Slip",
+   "ok": true
+  },
+  "w:slow@f": {
+   "heard": "slow",
+   "ok": true
+  },
+  "w:slow@m": {
+   "heard": "slow",
+   "ok": true
+  },
+  "w:slowly@f": {
+   "heard": "slowly",
+   "ok": true
+  },
+  "w:slowly@m": {
+   "heard": "slowly",
+   "ok": true
+  },
+  "w:small@f": {
+   "heard": "Small",
+   "ok": true
+  },
+  "w:small@m": {
+   "heard": "Small",
+   "ok": true
+  },
+  "w:smart@f": {
+   "heard": "Smart",
+   "ok": true
+  },
+  "w:smart@m": {
+   "heard": "Smart",
+   "ok": true
+  },
+  "w:smell@f": {
+   "heard": "Smell",
+   "ok": true
+  },
+  "w:smell@m": {
+   "heard": "Smell",
+   "ok": true
+  },
+  "w:smile@f": {
+   "heard": "Smile",
+   "ok": true
+  },
+  "w:smile@m": {
+   "heard": "smile",
+   "ok": true
+  },
+  "w:snack@f": {
+   "heard": "snack",
+   "ok": true
+  },
+  "w:snack@m": {
+   "heard": "snack",
+   "ok": true
+  },
+  "w:snow@f": {
+   "heard": "snow",
+   "ok": true
+  },
   "w:so@f": {
    "heard": "so",
+   "ok": true
+  },
+  "w:soap@f": {
+   "heard": "Soap",
+   "ok": true
+  },
+  "w:soap@m": {
+   "heard": "Soap",
    "ok": true
   },
   "w:sock@f": {
@@ -3432,6 +6936,10 @@
    "heard": "Summit",
    "ok": false
   },
+  "w:son@f": {
+   "heard": "Sun",
+   "ok": true
+  },
   "w:song@f": {
    "heard": "Song",
    "ok": true
@@ -3439,6 +6947,250 @@
   "w:song@m": {
    "heard": "song",
    "ok": true
+  },
+  "w:soon@f": {
+   "heard": "Soon.",
+   "ok": true
+  },
+  "w:soon@m": {
+   "heard": "Soon.",
+   "ok": true
+  },
+  "w:sorry@f": {
+   "heard": "Sorry",
+   "ok": true
+  },
+  "w:sorry@m": {
+   "heard": "Sorry",
+   "ok": true
+  },
+  "w:sound@f": {
+   "heard": "sound",
+   "ok": true
+  },
+  "w:sound@m": {
+   "heard": "sound",
+   "ok": true
+  },
+  "w:south@f": {
+   "heard": "South",
+   "ok": true
+  },
+  "w:south@m": {
+   "heard": "South",
+   "ok": true
+  },
+  "w:speak@f": {
+   "heard": "Speak",
+   "ok": true
+  },
+  "w:speak@m": {
+   "heard": "Speaker",
+   "ok": false
+  },
+  "w:spell@f": {
+   "heard": "spell",
+   "ok": true
+  },
+  "w:spell@m": {
+   "heard": "spell",
+   "ok": true
+  },
+  "w:spelling@f": {
+   "heard": "Spelling",
+   "ok": true
+  },
+  "w:spelling@m": {
+   "heard": "Spelling",
+   "ok": true
+  },
+  "w:spend@f": {
+   "heard": "spend",
+   "ok": true
+  },
+  "w:spend@m": {
+   "heard": "spend",
+   "ok": true
+  },
+  "w:spent@f": {
+   "heard": "expand",
+   "ok": false
+  },
+  "w:spent@m": {
+   "heard": "spend",
+   "ok": false
+  },
+  "w:spin@f": {
+   "heard": "Spin",
+   "ok": true
+  },
+  "w:spin@m": {
+   "heard": "Spin",
+   "ok": true
+  },
+  "w:spoon@f": {
+   "heard": "spoon",
+   "ok": true
+  },
+  "w:sport@f": {
+   "heard": "Sport",
+   "ok": true
+  },
+  "w:sport@m": {
+   "heard": "Sportin'",
+   "ok": false
+  },
+  "w:spot@f": {
+   "heard": "Spot",
+   "ok": true
+  },
+  "w:spot@m": {
+   "heard": "spot",
+   "ok": true
+  },
+  "w:spring@f": {
+   "heard": "spring",
+   "ok": true
+  },
+  "w:spring@m": {
+   "heard": "spring",
+   "ok": true
+  },
+  "w:stack@f": {
+   "heard": "stack",
+   "ok": true
+  },
+  "w:stack@m": {
+   "heard": "stack",
+   "ok": true
+  },
+  "w:start@f": {
+   "heard": "Start",
+   "ok": true
+  },
+  "w:start@m": {
+   "heard": "Start",
+   "ok": true
+  },
+  "w:station@f": {
+   "heard": "Station",
+   "ok": true
+  },
+  "w:station@m": {
+   "heard": "Station",
+   "ok": true
+  },
+  "w:stay@f": {
+   "heard": "Stay at...",
+   "ok": true
+  },
+  "w:stay@m": {
+   "heard": "stand",
+   "ok": false
+  },
+  "w:steal@f": {
+   "heard": "Steel",
+   "ok": false
+  },
+  "w:steal@f2": {
+   "heard": "A steel",
+   "ok": false
+  },
+  "w:steal@m": {
+   "heard": "steel",
+   "ok": false
+  },
+  "w:steal@m2": {
+   "heard": "Steel",
+   "ok": false
+  },
+  "w:step@f": {
+   "heard": "Step",
+   "ok": true
+  },
+  "w:step@m": {
+   "heard": "a step.",
+   "ok": true
+  },
+  "w:stick@f": {
+   "heard": "Stick",
+   "ok": true
+  },
+  "w:stick@m": {
+   "heard": "A stick.",
+   "ok": true
+  },
+  "w:still@f": {
+   "heard": "Still",
+   "ok": true
+  },
+  "w:still@f2": {
+   "heard": "Still",
+   "ok": true
+  },
+  "w:still@m": {
+   "heard": "Still...",
+   "ok": true
+  },
+  "w:still@m2": {
+   "heard": "Still...",
+   "ok": true
+  },
+  "w:stop@f": {
+   "heard": "Stop.",
+   "ok": true
+  },
+  "w:stop@m": {
+   "heard": "Stop",
+   "ok": true
+  },
+  "w:storm@f": {
+   "heard": "storm",
+   "ok": true
+  },
+  "w:storm@m": {
+   "heard": "storm",
+   "ok": true
+  },
+  "w:story@f": {
+   "heard": "Story",
+   "ok": true
+  },
+  "w:story@m": {
+   "heard": "Story",
+   "ok": true
+  },
+  "w:strong@f": {
+   "heard": "strong",
+   "ok": true
+  },
+  "w:strong@m": {
+   "heard": "strong",
+   "ok": true
+  },
+  "w:stuck@f": {
+   "heard": "stock",
+   "ok": false
+  },
+  "w:stuck@m": {
+   "heard": "This dog",
+   "ok": false
+  },
+  "w:student@f": {
+   "heard": "Student",
+   "ok": true
+  },
+  "w:student@m": {
+   "heard": "student",
+   "ok": true
+  },
+  "w:study@f": {
+   "heard": "Study",
+   "ok": true
+  },
+  "w:study@m": {
+   "heard": "studying",
+   "ok": false
   },
   "w:submit@f": {
    "heard": "Submit",
@@ -3462,6 +7214,10 @@
   },
   "w:sun@m2": {
    "heard": "Sun",
+   "ok": true
+  },
+  "w:sunday@f": {
+   "heard": "Sunday",
    "ok": true
   },
   "w:sung@f": {
@@ -3488,6 +7244,34 @@
    "heard": "Sunset",
    "ok": true
   },
+  "w:sure@f": {
+   "heard": "sure",
+   "ok": true
+  },
+  "w:swim@f": {
+   "heard": "Swim",
+   "ok": true
+  },
+  "w:swim@m": {
+   "heard": "Swim",
+   "ok": true
+  },
+  "w:swimming@f": {
+   "heard": "swimming",
+   "ok": true
+  },
+  "w:swimming@m": {
+   "heard": "swimming",
+   "ok": true
+  },
+  "w:swing@f": {
+   "heard": "Swing",
+   "ok": true
+  },
+  "w:swing@m": {
+   "heard": "swing",
+   "ok": true
+  },
   "w:tab@f": {
    "heard": "Tab",
    "ok": true
@@ -3502,6 +7286,14 @@
   },
   "w:tab@m2": {
    "heard": "tab",
+   "ok": true
+  },
+  "w:table@f": {
+   "heard": "Table",
+   "ok": true
+  },
+  "w:table@m": {
+   "heard": "table",
    "ok": true
   },
   "w:tack@f": {
@@ -3526,6 +7318,18 @@
   },
   "w:tag@m": {
    "heard": "tag",
+   "ok": true
+  },
+  "w:talk@f": {
+   "heard": "Talk",
+   "ok": true
+  },
+  "w:tall@f": {
+   "heard": "Tall",
+   "ok": true
+  },
+  "w:tall@m": {
+   "heard": "tall",
    "ok": true
   },
   "w:tan@f": {
@@ -3560,6 +7364,14 @@
    "heard": "DAB",
    "ok": false
   },
+  "w:tape@f": {
+   "heard": "tape",
+   "ok": true
+  },
+  "w:tape@m": {
+   "heard": "tape",
+   "ok": true
+  },
   "w:tax@f": {
    "heard": "tax",
    "ok": true
@@ -3570,6 +7382,34 @@
   },
   "w:taxi@f": {
    "heard": "Taxi",
+   "ok": true
+  },
+  "w:tea@f": {
+   "heard": "T",
+   "ok": false
+  },
+  "w:teach@f": {
+   "heard": "th",
+   "ok": false
+  },
+  "w:teach@m": {
+   "heard": "teach",
+   "ok": true
+  },
+  "w:teacher@f": {
+   "heard": "teacher",
+   "ok": true
+  },
+  "w:teacher@m": {
+   "heard": "teacher",
+   "ok": true
+  },
+  "w:team@f": {
+   "heard": "team",
+   "ok": true
+  },
+  "w:team@m": {
+   "heard": "Team",
    "ok": true
   },
   "w:tell@f": {
@@ -3603,6 +7443,46 @@
   "w:tennis@m": {
    "heard": "TANIS",
    "ok": false
+  },
+  "w:tent@f": {
+   "heard": "TENT.",
+   "ok": true
+  },
+  "w:tent@m": {
+   "heard": "tent",
+   "ok": true
+  },
+  "w:term@f": {
+   "heard": "term",
+   "ok": true
+  },
+  "w:term@m": {
+   "heard": "term",
+   "ok": true
+  },
+  "w:test@f": {
+   "heard": "test",
+   "ok": true
+  },
+  "w:test@m": {
+   "heard": "Test test",
+   "ok": false
+  },
+  "w:tested@f": {
+   "heard": "Tested",
+   "ok": true
+  },
+  "w:tested@m": {
+   "heard": "Tested",
+   "ok": true
+  },
+  "w:text@f": {
+   "heard": "text",
+   "ok": true
+  },
+  "w:text@m": {
+   "heard": "text",
+   "ok": true
   },
   "w:thank@f": {
    "heard": "Thank",
@@ -3696,6 +7576,14 @@
    "heard": "Think",
    "ok": true
   },
+  "w:third@f": {
+   "heard": "Third",
+   "ok": true
+  },
+  "w:third@m": {
+   "heard": "3rd",
+   "ok": false
+  },
   "w:this@f": {
    "heard": "This.",
    "ok": true
@@ -3704,9 +7592,41 @@
    "heard": "This.",
    "ok": true
   },
+  "w:thought@f": {
+   "heard": "Thought",
+   "ok": true
+  },
   "w:three@f": {
    "heard": "3",
    "ok": false
+  },
+  "w:through@f": {
+   "heard": "through",
+   "ok": true
+  },
+  "w:throw@f": {
+   "heard": "Throw",
+   "ok": true
+  },
+  "w:throw@m": {
+   "heard": "throw",
+   "ok": true
+  },
+  "w:thursday@f": {
+   "heard": "Thursday",
+   "ok": true
+  },
+  "w:tie@f": {
+   "heard": "Thai",
+   "ok": false
+  },
+  "w:time@f": {
+   "heard": "Time",
+   "ok": true
+  },
+  "w:time@m": {
+   "heard": "time",
+   "ok": true
   },
   "w:tin@f": {
    "heard": "10",
@@ -3740,6 +7660,34 @@
    "heard": "Tom",
    "ok": true
   },
+  "w:tomorrow@f": {
+   "heard": "Tomorrow.",
+   "ok": true
+  },
+  "w:too@f": {
+   "heard": "to",
+   "ok": false
+  },
+  "w:too@m": {
+   "heard": "to",
+   "ok": false
+  },
+  "w:took@f": {
+   "heard": "Tog",
+   "ok": false
+  },
+  "w:took@m": {
+   "heard": "Jog",
+   "ok": false
+  },
+  "w:tool@f": {
+   "heard": "tool",
+   "ok": true
+  },
+  "w:tool@m": {
+   "heard": "tool",
+   "ok": true
+  },
   "w:top@f": {
    "heard": "Top",
    "ok": true
@@ -3764,6 +7712,62 @@
    "heard": "Topic",
    "ok": true
   },
+  "w:town@f": {
+   "heard": "town",
+   "ok": true
+  },
+  "w:town@m": {
+   "heard": "town",
+   "ok": true
+  },
+  "w:toy@f": {
+   "heard": "toy",
+   "ok": true
+  },
+  "w:train@f": {
+   "heard": "train",
+   "ok": true
+  },
+  "w:train@m": {
+   "heard": "train",
+   "ok": true
+  },
+  "w:tree@f": {
+   "heard": "tree",
+   "ok": true
+  },
+  "w:trip@f": {
+   "heard": "Trip it.",
+   "ok": false
+  },
+  "w:trip@m": {
+   "heard": "Drip",
+   "ok": false
+  },
+  "w:truck@f": {
+   "heard": "truck it",
+   "ok": false
+  },
+  "w:truck@m": {
+   "heard": "drug drug",
+   "ok": false
+  },
+  "w:true@f": {
+   "heard": "True",
+   "ok": true
+  },
+  "w:true@m": {
+   "heard": "True",
+   "ok": true
+  },
+  "w:try@f": {
+   "heard": "try",
+   "ok": true
+  },
+  "w:try@m": {
+   "heard": "try",
+   "ok": true
+  },
   "w:tuck@f": {
    "heard": "Taka",
    "ok": false
@@ -3780,12 +7784,68 @@
    "heard": "tug",
    "ok": false
   },
+  "w:tuesday@f": {
+   "heard": "Tuesday",
+   "ok": true
+  },
+  "w:turn@f": {
+   "heard": "Turn",
+   "ok": true
+  },
+  "w:turn@m": {
+   "heard": "turn",
+   "ok": true
+  },
+  "w:turtle@f": {
+   "heard": "turtle",
+   "ok": true
+  },
+  "w:twenty@f": {
+   "heard": "20",
+   "ok": false
+  },
+  "w:twenty@m": {
+   "heard": "20",
+   "ok": false
+  },
+  "w:twin@f": {
+   "heard": "twin",
+   "ok": true
+  },
+  "w:twin@m": {
+   "heard": "twin",
+   "ok": true
+  },
   "w:two@f": {
    "heard": "to",
    "ok": true
   },
   "w:umbrella@f": {
    "heard": "Umbrella",
+   "ok": true
+  },
+  "w:under@f": {
+   "heard": "Under",
+   "ok": true
+  },
+  "w:under@m": {
+   "heard": "under",
+   "ok": true
+  },
+  "w:unhappy@f": {
+   "heard": "unhappy",
+   "ok": true
+  },
+  "w:unhappy@m": {
+   "heard": "unhappy",
+   "ok": true
+  },
+  "w:unlock@f": {
+   "heard": "unlock",
+   "ok": true
+  },
+  "w:unlock@m": {
+   "heard": "unlock",
    "ok": true
   },
   "w:up@f": {
@@ -3810,6 +7870,22 @@
   },
   "w:us@m": {
    "heard": "Us.",
+   "ok": true
+  },
+  "w:use@f": {
+   "heard": "use",
+   "ok": true
+  },
+  "w:use@m": {
+   "heard": "use",
+   "ok": true
+  },
+  "w:useful@f": {
+   "heard": "Useful",
+   "ok": true
+  },
+  "w:useful@m": {
+   "heard": "useful",
    "ok": true
   },
   "w:van@f": {
@@ -4068,6 +8144,26 @@
    "heard": "whale",
    "ok": true
   },
+  "w:wait@f": {
+   "heard": "Wait",
+   "ok": true
+  },
+  "w:wait@m": {
+   "heard": "wait",
+   "ok": true
+  },
+  "w:walk@f": {
+   "heard": "walk",
+   "ok": true
+  },
+  "w:want@f": {
+   "heard": "want",
+   "ok": true
+  },
+  "w:warm@f": {
+   "heard": "warm",
+   "ok": true
+  },
   "w:wary@f": {
    "heard": "wary",
    "ok": true
@@ -4120,6 +8216,18 @@
    "heard": "watch",
    "ok": true
   },
+  "w:water@f": {
+   "heard": "Water",
+   "ok": true
+  },
+  "w:way@f": {
+   "heard": "way",
+   "ok": true
+  },
+  "w:way@m": {
+   "heard": "way",
+   "ok": true
+  },
   "w:we@f": {
    "heard": "We",
    "ok": true
@@ -4130,6 +8238,18 @@
   },
   "w:web@m": {
    "heard": "Web",
+   "ok": true
+  },
+  "w:wednesday@f": {
+   "heard": "Wednesday",
+   "ok": true
+  },
+  "w:week@f": {
+   "heard": "week",
+   "ok": true
+  },
+  "w:week@m": {
+   "heard": "week",
    "ok": true
   },
   "w:well@f": {
@@ -4260,6 +8380,18 @@
    "heard": "Who?",
    "ok": true
   },
+  "w:whose@f": {
+   "heard": "Who is?",
+   "ok": false
+  },
+  "w:why@f": {
+   "heard": "Y",
+   "ok": false
+  },
+  "w:why@m": {
+   "heard": "y",
+   "ok": false
+  },
   "w:will@f": {
    "heard": "Will",
    "ok": true
@@ -4290,6 +8422,14 @@
   },
   "w:win@m2": {
    "heard": "win",
+   "ok": true
+  },
+  "w:window@f": {
+   "heard": "Window",
+   "ok": true
+  },
+  "w:window@m": {
+   "heard": "Window",
    "ok": true
   },
   "w:wine@f": {
@@ -4346,6 +8486,34 @@
   },
   "w:within@m": {
    "heard": "within",
+   "ok": true
+  },
+  "w:women@f": {
+   "heard": "Women",
+   "ok": true
+  },
+  "w:wood@f": {
+   "heard": "would",
+   "ok": false
+  },
+  "w:wood@m": {
+   "heard": "wood",
+   "ok": true
+  },
+  "w:word@f": {
+   "heard": "Word",
+   "ok": true
+  },
+  "w:work@f": {
+   "heard": "Work",
+   "ok": true
+  },
+  "w:world@f": {
+   "heard": "World",
+   "ok": true
+  },
+  "w:would@f": {
+   "heard": "would",
    "ok": true
   },
   "w:wow@f": {
@@ -4444,6 +8612,22 @@
    "heard": "Yell",
    "ok": true
   },
+  "w:yelled@f": {
+   "heard": "yelled.",
+   "ok": true
+  },
+  "w:yelled@m": {
+   "heard": "yelled.",
+   "ok": true
+  },
+  "w:yellow@f": {
+   "heard": "Yellow",
+   "ok": true
+  },
+  "w:yellow@m": {
+   "heard": "yellow",
+   "ok": true
+  },
   "w:yes@f": {
    "heard": "Yes.",
    "ok": true
@@ -4511,36 +8695,89 @@
   "w:zip@m": {
    "heard": "Zip",
    "ok": true
+  },
+  "w:zoom@f": {
+   "heard": "Zoom",
+   "ok": true
+  },
+  "w:zoom@m": {
+   "heard": "Zoom",
+   "ok": true
   }
  },
  "asr_summary": {
-  "checked": 1128,
+  "checked": 2176,
   "failed": [
+   "s:ali-and-his-brother-sat-by-the-window@f",
+   "s:ali-checks-the-list-and-the-old-tests@f",
+   "s:ali-gets-a-cool-drink-and-a-muffin@f",
+   "s:ali-gets-a-snack-for-sara@f",
    "s:ali-has-a-fan@f",
+   "s:ali-has-a-math-test-next@f",
    "s:ali-has-a-red-cab@f",
+   "s:ali-has-a-snack-in-his-bag@f",
+   "s:ali-has-a-snack@f",
+   "s:ali-has-a-test-in-math@f",
+   "s:ali-helped-me@f",
+   "s:ali-is-sad-and-he-needs-to-sleep@f",
+   "s:ali-plays-on-a-math-team@f",
+   "s:ali-plays-on-the-tennis-team@f",
+   "s:ali-rides-the-bus@f",
+   "s:ali-sat-with-his-mother@f",
+   "s:at-noon-ali-and-ken-look-for-food@f",
+   "s:call-me-at-noon@f",
+   "s:his-first-name-is-ali@f",
    "s:i-nap@f",
+   "s:i-passed-the-test@f",
+   "s:i-sent-the-text@f",
    "s:it-is-a-pin@f",
    "s:it-is-a-tip@f",
+   "s:it-is-five-to-nine@f",
    "s:it-is-in-a-tin@f",
+   "s:ken-checked-the-lab-and-ali-checked-the-shop@f",
+   "s:ken-checked-the-shop@f",
+   "s:next-term-sara-will-study-art-and-ali-will-study-math@f",
+   "s:pull@f",
+   "s:push@f",
+   "s:read-page-twenty@f",
    "s:sam-and-ali-get-on-it@f",
    "s:sam-and-ali-get-on-the-bus@f",
+   "s:sara-and-ali-are-at-the-bus-stop@f",
+   "s:sara-buys-a-coat@f",
+   "s:sara-has-a-test-on-sunday@f",
    "s:sara-has-cash@f",
+   "s:sara-sends-ali-a-list@f",
+   "s:sara-sends-him-a-list@f",
    "s:she-has-cash@f",
+   "s:she-reads-twenty-pages@f",
    "s:the-bank-is-shut@f",
+   "s:the-class-ends-at-10-30@f",
+   "s:the-club-meets-in-room-nine-each-week@f",
+   "s:the-club-meets-in-room-nine@f",
+   "s:then-ali-makes-a-note-get-up-on-time@f",
+   "s:then-the-bus-stops-and-sara-and-ali-get-on@f",
+   "s:then-the-storm-stopped-and-the-boys-went-to-sleep@f",
    "s:tom-is-sad@f",
    "s:we-are-back@f",
    "s:we-can-sit@f",
+   "s:we-enjoy-the-mall@f",
+   "s:what-does-ali-get-on-the-quiz@f",
    "w:a@f",
+   "w:age@f",
+   "w:age@m",
    "w:am@f",
    "w:am@m",
    "w:app@m",
    "w:are@f",
+   "w:asked@m",
    "w:at@f",
    "w:at@m",
    "w:ban@m2",
    "w:bat@m2",
    "w:bath@f",
    "w:be@f",
+   "w:beat@f",
+   "w:beat@m2",
    "w:bet@f",
    "w:bet@m2",
    "w:bin@f",
@@ -4548,8 +8785,18 @@
    "w:bin@m",
    "w:bin@m2",
    "w:block@f",
+   "w:book@f",
+   "w:boot@f",
+   "w:bowl@m",
+   "w:brick@f",
    "w:bug@m2",
    "w:bun@f",
+   "w:buy@f",
+   "w:by@f",
+   "w:by@m",
+   "w:cake@f",
+   "w:card@f",
+   "w:card@m",
    "w:cash@f2",
    "w:cash@m",
    "w:catch@f",
@@ -4570,6 +8817,12 @@
    "w:chop@f2",
    "w:chop@m",
    "w:chop@m2",
+   "w:club@f",
+   "w:coach@f",
+   "w:coach@m",
+   "w:coat@m",
+   "w:cold@f",
+   "w:cook@f",
    "w:cop@f2",
    "w:cop@m",
    "w:cop@m2",
@@ -4580,14 +8833,24 @@
    "w:cub@m2",
    "w:cup@f",
    "w:cup@m2",
+   "w:cute@m",
+   "w:date@f",
    "w:did@f",
    "w:did@m",
+   "w:dip@m2",
    "w:dish@f",
    "w:dock@f",
    "w:dock@f2",
    "w:dock@m2",
    "w:dot@m",
+   "w:dr@f",
    "w:duck@f",
+   "w:eight@f",
+   "w:end@f",
+   "w:eye@f",
+   "w:face@f",
+   "w:face@m",
+   "w:far@m",
    "w:fast@f",
    "w:fast@f2",
    "w:fast@m",
@@ -4599,6 +8862,9 @@
    "w:fault@f2",
    "w:fault@m",
    "w:fault@m2",
+   "w:feet@f",
+   "w:feet@f2",
+   "w:feet@m",
    "w:fell@m",
    "w:ferry@f",
    "w:ferry@f2",
@@ -4608,21 +8874,45 @@
    "w:few@m2",
    "w:fill@f2",
    "w:fill@m",
+   "w:first@f",
+   "w:first@m",
    "w:fish@f",
    "w:fish@m",
+   "w:fit@f2",
    "w:fit@m",
+   "w:fit@m2",
+   "w:five@f",
+   "w:five@m",
    "w:fix@f",
    "w:fix@m",
-   "w:for@f",
+   "w:fixed@f",
+   "w:fixed@m",
+   "w:flew@f",
+   "w:flew@m",
+   "w:follow@f",
+   "w:four@f",
    "w:got@m",
+   "w:grew@f",
+   "w:hall@f",
+   "w:hall@m",
+   "w:hassan@f",
    "w:hat@m",
    "w:have@f",
    "w:he@f",
+   "w:heat@m",
+   "w:help@f",
+   "w:her@f",
+   "w:her@m",
+   "w:high@f",
+   "w:high@m",
+   "w:house@m",
+   "w:how@m",
    "w:hut@m",
    "w:hut@m2",
    "w:jaw@m2",
    "w:jeer@m",
    "w:jot@m",
+   "w:jump@f",
    "w:ken@f",
    "w:key@f",
    "w:kin@f2",
@@ -4632,46 +8922,77 @@
    "w:leaf@f",
    "w:led@f",
    "w:lip@f",
+   "w:lip@m2",
+   "w:list@m",
    "w:lock@f2",
    "w:lock@m2",
    "w:long@f",
    "w:lot@f",
+   "w:love@f",
    "w:luck@m2",
+   "w:made@f",
+   "w:mail@f",
+   "w:mail@m",
+   "w:main@f",
+   "w:main@m",
+   "w:mall@f",
+   "w:mall@m",
    "w:mat@f",
    "w:mat@f2",
    "w:mat@m",
    "w:mat@m2",
    "w:match@f",
+   "w:mean@f",
+   "w:meet@m",
    "w:met@f",
    "w:mob@m2",
    "w:mop@m",
+   "w:mouth@f",
+   "w:move@f",
+   "w:mrs@f",
    "w:neck@f",
+   "w:need@f",
+   "w:new@f",
+   "w:nine@f",
+   "w:nine@m",
    "w:no@f",
+   "w:noon@f",
    "w:nose@f",
    "w:nut@f",
    "w:nut@m",
    "w:off@f",
    "w:off@m",
-   "w:or@f",
+   "w:our@f",
+   "w:page@f",
+   "w:page@m",
+   "w:park@f",
    "w:pat@f2",
    "w:path@f",
    "w:peck@f",
    "w:peck@m2",
    "w:peg@m2",
+   "w:photo@f",
+   "w:photo@m",
    "w:pick@f",
    "w:pick@m2",
    "w:picnic@f",
+   "w:pie@m",
    "w:pig@m",
+   "w:plus@m",
    "w:pop@f",
+   "w:press@f",
+   "w:pull@f",
    "w:pun@m2",
    "w:pup@f",
    "w:pup@m",
    "w:pup@m2",
+   "w:push@f",
    "w:quick@f",
    "w:quit@m",
    "w:rack@f2",
    "w:rib@f",
    "w:rib@m2",
+   "w:right@m",
    "w:rob@f2",
    "w:rub@f",
    "w:rub@m2",
@@ -4683,24 +9004,36 @@
    "w:sack@m2",
    "w:sat@f",
    "w:sat@m2",
+   "w:saw@m",
+   "w:seat@f",
+   "w:seat@m",
+   "w:seat@m2",
+   "w:see@f",
+   "w:see@m",
    "w:sell@f",
    "w:sell@m",
    "w:send@f",
+   "w:sent@f",
+   "w:sent@m",
    "w:set@m",
    "w:sheep@m2",
    "w:sheet@f",
    "w:sheet@m",
    "w:sheet@m2",
    "w:ship@m2",
+   "w:shirt@m",
    "w:shoe@f",
    "w:shoe@f2",
    "w:shoe@m",
    "w:shoe@m2",
    "w:shop@f2",
    "w:shop@m2",
+   "w:short@m",
+   "w:should@f",
    "w:shut@f2",
    "w:shut@m",
    "w:sick@f",
+   "w:sight@m",
    "w:sin@m2",
    "w:sing@m2",
    "w:sink@m",
@@ -4709,31 +9042,60 @@
    "w:sit@f",
    "w:sit@m",
    "w:sit@m2",
+   "w:site@f",
+   "w:site@m",
    "w:six@f",
    "w:sock@f2",
    "w:sock@m",
    "w:sock@m2",
    "w:some@f",
+   "w:speak@m",
+   "w:spent@f",
+   "w:spent@m",
+   "w:sport@m",
+   "w:stay@m",
+   "w:steal@f",
+   "w:steal@f2",
+   "w:steal@m",
+   "w:steal@m2",
+   "w:stuck@f",
+   "w:stuck@m",
+   "w:study@m",
    "w:sung@m2",
    "w:tack@f2",
    "w:tack@m2",
    "w:tan@f2",
    "w:tap@m2",
    "w:tax@m",
+   "w:tea@f",
+   "w:teach@f",
    "w:tennis@m",
+   "w:test@m",
    "w:thank@m",
    "w:the@f",
    "w:they@f",
    "w:thin@f2",
    "w:thing@f2",
+   "w:third@m",
    "w:three@f",
+   "w:tie@f",
    "w:tin@f",
    "w:tin@m",
    "w:tip@f",
    "w:to@f",
+   "w:too@f",
+   "w:too@m",
+   "w:took@f",
+   "w:took@m",
+   "w:trip@f",
+   "w:trip@m",
+   "w:truck@f",
+   "w:truck@m",
    "w:tuck@f",
    "w:tuck@m",
    "w:tuck@m2",
+   "w:twenty@f",
+   "w:twenty@m",
    "w:up@m",
    "w:van@m2",
    "w:vat@f",
@@ -4757,8 +9119,12 @@
    "w:wheel@m2",
    "w:which@f",
    "w:while@m2",
+   "w:whose@f",
+   "w:why@f",
+   "w:why@m",
    "w:win@f",
    "w:within@f",
+   "w:wood@f",
    "w:wow@f2",
    "w:wow@m2",
    "w:yaw@f",
@@ -4767,7 +9133,7 @@
    "w:you@f"
   ]
  },
- "files": 11,
+ "files": 6,
  "pipeline": "2",
  "sounds": {
   "aa": {
@@ -4935,6 +9301,100 @@
      "heard": "Back",
      "ok": false,
      "word": "bank"
+    }
+   ]
+  },
+  "ar": {
+   "accepted": true,
+   "method": "vowel",
+   "on": 0.052,
+   "score": 0.75,
+   "source": "pˈɑɹt",
+   "tests": [
+    {
+     "heard": "park",
+     "ok": true,
+     "word": "park"
+    },
+    {
+     "heard": "Sartan",
+     "ok": false,
+     "word": "farm"
+    },
+    {
+     "heard": "Card.",
+     "ok": true,
+     "word": "card"
+    },
+    {
+     "heard": "hard",
+     "ok": true,
+     "word": "hard"
+    }
+   ]
+  },
+  "aw": {
+   "accepted": false,
+   "alone": {
+    "heard": "I",
+    "ok": false
+   },
+   "method": "vowel",
+   "on": 0.055,
+   "score": 0.25,
+   "source": "tˈɔk",
+   "tests": [
+    {
+     "heard": "Talk.",
+     "ok": true,
+     "word": "talk"
+    },
+    {
+     "heard": "Suck",
+     "ok": false,
+     "word": "saw"
+    },
+    {
+     "heard": "UH-HOG",
+     "ok": false,
+     "word": "law"
+    },
+    {
+     "heard": "Done.",
+     "ok": false,
+     "word": "dawn"
+    }
+   ]
+  },
+  "awl": {
+   "accepted": true,
+   "alone": {
+    "heard": "all",
+    "ok": true
+   },
+   "method": "whole",
+   "score": 0.25,
+   "source": "ˈɔl",
+   "tests": [
+    {
+     "heard": "Baal",
+     "ok": true,
+     "word": "ball"
+    },
+    {
+     "heard": "\"T\" all",
+     "ok": false,
+     "word": "tall"
+    },
+    {
+     "heard": "Kyle",
+     "ok": false,
+     "word": "call"
+    },
+    {
+     "heard": "all",
+     "ok": false,
+     "word": "fall"
     }
    ]
   },
@@ -5121,6 +9581,35 @@
      "heard": "Yet.",
      "ok": true,
      "word": "yet"
+    }
+   ]
+  },
+  "er": {
+   "accepted": true,
+   "method": "vowel",
+   "on": 0.057,
+   "score": 1.0,
+   "source": "hˈɜɹt",
+   "tests": [
+    {
+     "heard": "bird",
+     "ok": true,
+     "word": "bird"
+    },
+    {
+     "heard": "turn",
+     "ok": true,
+     "word": "turn"
+    },
+    {
+     "heard": "hurt",
+     "ok": true,
+     "word": "hurt"
+    },
+    {
+     "heard": "shirt",
+     "ok": true,
+     "word": "shirt"
     }
    ]
   },
@@ -5435,6 +9924,208 @@
    "voiced": 1.0,
    "vowel_on": 0.075
   },
+  "long-a": {
+   "accepted": true,
+   "method": "vowel",
+   "on": 0.057,
+   "score": 0.8,
+   "source": "kˈAk",
+   "tests": [
+    {
+     "heard": "Make",
+     "ok": true,
+     "word": "make"
+    },
+    {
+     "heard": "LATE",
+     "ok": true,
+     "word": "late"
+    },
+    {
+     "heard": "game",
+     "ok": true,
+     "word": "game"
+    },
+    {
+     "heard": "name",
+     "ok": true,
+     "word": "name"
+    },
+    {
+     "heard": "Nhaixuan",
+     "ok": false,
+     "word": "nation"
+    }
+   ]
+  },
+  "long-e": {
+   "accepted": false,
+   "alone": {
+    "heard": "A",
+    "ok": false
+   },
+   "method": "vowel",
+   "on": 0.111,
+   "score": 0.5,
+   "source": "sˈit",
+   "tests": [
+    {
+     "heard": "See to",
+     "ok": false,
+     "word": "feet"
+    },
+    {
+     "heard": "Need",
+     "ok": true,
+     "word": "need"
+    },
+    {
+     "heard": "Team",
+     "ok": true,
+     "word": "team"
+    },
+    {
+     "heard": "c2",
+     "ok": false,
+     "word": "seat"
+    }
+   ]
+  },
+  "long-i": {
+   "accepted": true,
+   "alone": {
+    "heard": "I",
+    "ok": true
+   },
+   "method": "whole",
+   "score": 0.5,
+   "source": "ˈI",
+   "tests": [
+    {
+     "heard": "time",
+     "ok": true,
+     "word": "time"
+    },
+    {
+     "heard": "But I can't",
+     "ok": false,
+     "word": "bike"
+    },
+    {
+     "heard": "like",
+     "ok": true,
+     "word": "like"
+    },
+    {
+     "heard": "sign",
+     "ok": false,
+     "word": "fine"
+    }
+   ]
+  },
+  "long-o": {
+   "accepted": false,
+   "alone": {
+    "heard": "ow",
+    "ok": false
+   },
+   "method": "vowel",
+   "on": 0.067,
+   "score": 0.33,
+   "source": "tˈOt",
+   "tests": [
+    {
+     "heard": "home",
+     "ok": true,
+     "word": "home"
+    },
+    {
+     "heard": "bout",
+     "ok": false,
+     "word": "boat"
+    },
+    {
+     "heard": "Note",
+     "ok": true,
+     "word": "note"
+    },
+    {
+     "heard": "Oh",
+     "ok": false,
+     "word": "road"
+    },
+    {
+     "heard": "Moxian",
+     "ok": false,
+     "word": "motion"
+    },
+    {
+     "heard": "Loushen",
+     "ok": false,
+     "word": "lotion"
+    }
+   ]
+  },
+  "long-oo": {
+   "accepted": false,
+   "alone": {
+    "heard": "/o/",
+    "ok": false
+   },
+   "method": "vowel",
+   "on": 0.071,
+   "score": 0.5,
+   "source": "tˈut",
+   "tests": [
+    {
+     "heard": "Moon",
+     "ok": true,
+     "word": "moon"
+    },
+    {
+     "heard": "SUDA",
+     "ok": false,
+     "word": "food"
+    },
+    {
+     "heard": "June",
+     "ok": false,
+     "word": "room"
+    },
+    {
+     "heard": "Soon",
+     "ok": true,
+     "word": "soon"
+    }
+   ]
+  },
+  "long-u": {
+   "accepted": true,
+   "alone": {
+    "heard": "yu",
+    "ok": true
+   },
+   "method": "whole",
+   "score": 0.0,
+   "source": "jˈu",
+   "tests": [
+    {
+     "heard": "Kiyo-te",
+     "ok": false,
+     "word": "cute"
+    },
+    {
+     "heard": "yo",
+     "ok": false,
+     "word": "mule"
+    },
+    {
+     "heard": "Yo",
+     "ok": false,
+     "word": "fuse"
+    }
+   ]
+  },
   "m": {
    "accepted": true,
    "centroid": 236,
@@ -5568,6 +10259,99 @@
     }
    ],
    "voiced": 0.07
+  },
+  "or": {
+   "accepted": true,
+   "alone": {
+    "heard": "or",
+    "ok": true
+   },
+   "method": "whole",
+   "score": 0.0,
+   "source": "ˈɔɹ",
+   "tests": [
+    {
+     "heard": "or",
+     "ok": false,
+     "word": "fork"
+    },
+    {
+     "heard": "boar",
+     "ok": false,
+     "word": "born"
+    },
+    {
+     "heard": "or",
+     "ok": false,
+     "word": "short"
+    },
+    {
+     "heard": "or",
+     "ok": false,
+     "word": "horn"
+    }
+   ]
+  },
+  "ow-cow": {
+   "accepted": true,
+   "alone": {
+    "heard": "ow",
+    "ok": true
+   },
+   "method": "whole",
+   "score": 0.25,
+   "source": "ˈW",
+   "tests": [
+    {
+     "heard": "LOUD",
+     "ok": true,
+     "word": "loud"
+    },
+    {
+     "heard": "Downton",
+     "ok": false,
+     "word": "down"
+    },
+    {
+     "heard": "N-L-S",
+     "ok": false,
+     "word": "mouth"
+    },
+    {
+     "heard": "Ours",
+     "ok": false,
+     "word": "house"
+    }
+   ]
+  },
+  "oy": {
+   "accepted": true,
+   "method": "vowel",
+   "on": 0.052,
+   "score": 0.75,
+   "source": "kˈYs",
+   "tests": [
+    {
+     "heard": "coin",
+     "ok": true,
+     "word": "coin"
+    },
+    {
+     "heard": "Boiled.",
+     "ok": false,
+     "word": "boil"
+    },
+    {
+     "heard": "Join.",
+     "ok": true,
+     "word": "join"
+    },
+    {
+     "heard": "Toys",
+     "ok": true,
+     "word": "toys"
+    }
+   ]
   },
   "p": {
    "accepted": true,
@@ -5772,6 +10556,62 @@
     }
    ],
    "voiced": 0.0
+  },
+  "short-oo": {
+   "accepted": false,
+   "method": "vowel",
+   "on": 0.052,
+   "score": 0.5,
+   "source": "pˈʊt",
+   "tests": [
+    {
+     "heard": "but",
+     "ok": false,
+     "word": "book"
+    },
+    {
+     "heard": "God",
+     "ok": true,
+     "word": "good"
+    },
+    {
+     "heard": "look",
+     "ok": true,
+     "word": "look"
+    },
+    {
+     "heard": "K-O-K",
+     "ok": false,
+     "word": "cook"
+    }
+   ]
+  },
+  "shun": {
+   "accepted": false,
+   "alone": {
+    "heard": "Shen",
+    "ok": false
+   },
+   "method": "whole",
+   "score": 0.0,
+   "source": "ʃən",
+   "tests": [
+    {
+     "heard": "Nhaixuan",
+     "ok": false,
+     "word": "nation"
+    },
+    {
+     "heard": "Moxian",
+     "ok": false,
+     "word": "motion"
+    },
+    {
+     "heard": "Loushen",
+     "ok": false,
+     "word": "lotion"
+    }
+   ]
   },
   "t": {
    "accepted": true,

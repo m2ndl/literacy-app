@@ -49,6 +49,8 @@ SHORT_O = re.compile(r'^[b-df-hj-np-tv-z]*o[b-df-hj-np-qs-tv-z]+$')
 NAME_PHONEMES = {'Ali': 'ˈɑli', 'Sara': 'sˈɑɹə', 'Hassan': 'həsˈɑn', 'Nora': 'nˈɔɹə',
                  'Mr': 'mˈɪstəɹ', 'Mrs': 'mˈɪsɪz', 'Dr': 'dˈɑktəɹ'}
 LETTER_PHONEMES = {'a': 'ˈA', 'i': 'ˈI'}
+# Heteronyms said alone: the meaning taught in data.js (in sentences, misaki picks from context).
+WORD_PHONEMES = {'close': 'klˈOz', 'use': 'jˈuz', 'live': 'lˈɪv'}
 
 # --- isolated sounds -------------------------------------------------------------------------
 # Candidate source words (explicit stressed phonemes) and the cut method for each sound.
@@ -291,6 +293,8 @@ class Synth:
             return LETTER_PHONEMES.get(text) or self.g2p(text.upper())[0]
         if text in NAME_PHONEMES:
             return NAME_PHONEMES[text]
+        if kind == 'w' and text in WORD_PHONEMES:
+            return WORD_PHONEMES[text]
         _, tokens = self.g2p(text)
         out = []
         for t in tokens:
