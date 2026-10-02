@@ -2,7 +2,7 @@
 
 **Purpose:** review the app as a literacy course and plan how to make it the best possible English reading app for **college-level EFL learners at CEFR pre-A1 whose first language is Arabic**.
 **Audience:** the app owner, teachers who recommend the app, and developers.
-**Status:** this document is the plan. Phase 1 (section 12) is implemented in this repository. Later phases are proposals.
+**Status:** this document is the plan. Phase 1 (section 12) and Phase 2 (section 13) are implemented in this repository. Later phases are proposals.
 
 Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 
@@ -22,7 +22,8 @@ Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 10. [How to evaluate the app](#10-how-to-evaluate-the-app)
 11. [Roadmap](#11-roadmap)
 12. [Phase 1 — what this release changes](#12-phase-1--what-this-release-changes)
-13. [References](#13-references)
+13. [Phase 2 — the learner model](#13-phase-2--the-learner-model)
+14. [References](#14-references)
 
 ---
 
@@ -207,7 +208,8 @@ Names (*Ali, Sara* and a few others) are flagged as name-words for cultural rele
 | **What does it mean?** (replaces "word match") | Random distractors | Read the English word → choose its Arabic meaning | — |
 | **First/last sound** | First sound only | Alternates first and last sound | Middle sound |
 | **Complete the sentence** ("أكمل الجملة", was "بناء الجمل") | Mislabelled; translation visible | Translation shown **after** answering; same-word-class distractors | Real word-order building (adjective before noun) |
-| *New, later* | | | Blending (tap each sound → word), dictation, tracing, read-along texts, timed reading, record-and-compare |
+| *New in Phase 2* | | | Dictation, heart-word spelling, sentence order, letter formation (optional), ear training, placement test (section 13) |
+| *Later* | | | Blending (tap each sound → word), timed reading, record-and-compare |
 
 ### Feedback and error correction (Phase 1)
 
@@ -238,7 +240,7 @@ Every answer is logged locally with item, choice, correctness and response time.
   - `af_heart`, the highest-rated voice, for sounds, words and sentences;
   - `am_michael` for words, so learners hear more than one talker.
 
-  Phase 2 adds more voices for perception training.
+  Phase 2 adds `af_sarah` and `am_fenrir` for ear training, so every ear-training word is heard in four voices (section 13).
 - **Pronunciation input:** the *misaki* US phonemizer, plus a small hand-checked list of fixes.
 - **Isolated speech sounds:** a TTS model cannot say a lone consonant (it comes out as vowel-like noise), so each sound is cut out of whole words at acoustic landmarks such as frication, voicing onset and loudness changes.
   - Several source words are tried for each sound.
@@ -268,13 +270,13 @@ Every answer is logged locally with item, choice, correctness and response time.
 - **iPhone silent switch:** handled with the Audio Session API (`navigator.audioSession.type = "playback"`) where available, with a silent-loop fallback.
 - **Offline:** clips are cached by the service worker unit by unit. They are read with `fetch()`, which avoids Safari's range-request problem with cached media.
 - **Speech-engine fallback:** the device's speech engine is used only for words or sentences with no recording, never for letters or sounds.
-- **Storage:** the app asks the browser to keep its storage (`navigator.storage.persist()`). Phase 2 adds Home-Screen install guidance for iPhone, a backup/restore code, and a warning when opened inside in-app browsers (WhatsApp, Instagram).
+- **Storage:** the app asks the browser to keep its storage (`navigator.storage.persist()`). Phase 2 adds Home-Screen install guidance for iPhone, a backup/restore code, and a warning when opened inside in-app browsers (Instagram, Facebook, TikTok…).
 
 ---
 
 ## 9. Assessment inside the app
 
-**Placement test (Phase 2).** About 10 minutes, adaptive, with Arabic instructions. It covers:
+**Placement test (built in Phase 2, see section 13).** At most about 10 minutes, adaptive, with Arabic instructions. The original design covered:
 - letter sounds;
 - vowel minimal pairs;
 - real words read for meaning;
@@ -283,10 +285,10 @@ Every answer is logged locally with item, choice, correctness and response time.
 - a 5-word dictation;
 - 3 sentences matched to pictures.
 
-It places the learner at the first unit not yet mastered and lets them test out of units, replacing "unlock all".
+It places the learner at the first unit not yet mastered and lets them test out of units, replacing "unlock all". The built version covers letter sounds, minimal pairs, made-up words, heart words and dictation; sentence–picture matching waits for Phase 3 pictures.
 
 **Ongoing tracking.** Logged from Phase 1 and used for adaptation from Phase 2: accuracy, response time and confusion pairs for each grapheme and word.
-- Proposed mastery rule: ≥ 90% correct over the last ≥ 8 attempts, spread over ≥ 2 days, with a median response under 2 s on recognition tasks.
+- Mastery rule (Phase 2): ≥ 90% correct over the last ≥ 8 first tries, spread over ≥ 2 days, and an average response under 3 s on recognition tasks. The time counts from when the item appears, so it includes about 1 s of audio (≈ 2 s after the audio ends).
 - These thresholds should be calibrated in the pilot study.
 
 **Unit check (Phase 4).** 12 mixed items, including 2 pseudowords and 1 mini-text; pass at ≥ 80%.
@@ -366,7 +368,7 @@ Learners see Arabic can-do statements.
 | Phase | Deliverables | Done when |
 |---|---|---|
 | **1 Foundation** (this release) | This plan; decodable Stage 0–2 curriculum; generated American audio for sounds, words and sentences; iPhone/Android audio engine; explanatory feedback; local error log; curriculum-checking tests | All tests pass; 100% decodable; audio plays on both platforms |
-| 2 Learner model | Placement test; item-level mastery; daily spaced review; "practise my weak sounds"; multi-voice perception training; dictation; tracing; word-order sentences; backup code; iPhone install guide; in-app-browser warning | First usability round SUS ≥ 70 |
+| **2 Learner model** (built, section 13) | Placement test; item-level mastery; daily spaced review; "practise my weak sounds"; multi-voice perception training; dictation; tracing; word-order sentences; backup code; iPhone install guide; in-app-browser warning | First usability round SUS ≥ 70 ([usability kit](./docs/usability-kit.md)) |
 | 3 Curriculum | Stages 3–5; heart-word strand (≈100); decodable adult readers (campus series) with read-along highlighting and comprehension; campus signs and forms | Content metrics met |
 | 4 Fluency & assessment | Timed fluency tasks; record-and-compare reading aloud; unit checks and stage benchmarks; can-do self-assessment | Benchmarks validated in pilot |
 | 5 Evaluation | Tier 3 pilot; report; revisions | Report complete |
@@ -459,11 +461,142 @@ Learners see Arabic can-do statements.
   - a short listening pass over the clips flagged in `tools/audio/qa-report.json`.
 
 ### Deferred to Phase 2+
-Placement test, spaced review, the multi-voice perception-training module, dictation, tracing, word-order sentences, backup/restore code, iPhone install guide and in-app-browser warning (see section 11).
+Placement test, spaced review, the multi-voice perception-training module, dictation, tracing, word-order sentences, backup/restore code, iPhone install guide and in-app-browser warning. All were built in Phase 2 (section 13).
 
 ---
 
-## 13. References
+## 13. Phase 2 — the learner model
+
+Phase 1 logged every answer. Phase 2 uses that record. The app now:
+- places each learner;
+- schedules review;
+- targets each learner's own confusions;
+- trains the ear with several voices;
+- asks learners to *produce* spellings, sentences and letters, not only recognise them;
+- protects self-study progress.
+
+### Item memory and spaced review (`learner.js`)
+- **What is tracked.** Every sound (sound ↔ letter), decodable word and heart word the learner practises gets a small record:
+  - a Leitner box (0–6);
+  - the next review day;
+  - the last 10 first-try results;
+  - a moving average of response time;
+  - the number of different days practised.
+- **Spacing** (Leitner 1972; Cepeda et al. 2006; Kang 2016).
+  - A right first try on a due item moves it up one box. The next review is then 1, 2, 4, 8, 16 or 32 days later.
+  - A wrong answer sends it back to tomorrow.
+  - Right answers given before the item is due don't move it up, so answering the same word in three activities on one day counts once.
+- **Mastery** (shown in the report). All of these are needed:
+  - ≥ 90% right over the last ≥ 8 first tries;
+  - practice on ≥ 2 different days;
+  - an average response under 3 s on recognition tasks.
+
+  These thresholds are for the pilot to calibrate (section 9).
+- **Daily review** ("مراجعة اليوم"). Up to 12 due items per session, mixed across sounds, words and heart words.
+  - The question type gets harder as an item becomes secure: *meaning / which word* → *missing letter / build the word* → *dictation*.
+  - This moves from recognition to recall (Karpicke & Roediger 2008; Bjork 1994).
+- **Weak sounds** ("نقاط ضعفي"). Found in the last 300 answers: graphemes with < 80% first-try accuracy, or confused ≥ 2 times.
+  - Because only recent answers count, a weak sound disappears once the learner improves.
+  - The practice is a 10-item mix: ear-training trials, sound → letter with the confused letter as a distractor, minimal-pair words, and missing letter.
+- **Progress v4.** Phase 1 (v3) progress is migrated, not reset, and item memory is rebuilt from the answer log. Streak days now use the local date; the UTC date was a day behind for learners in UTC+3 before 3 a.m.
+
+### Ear training (high-variability phonetic training)
+- **The sets.** 11 sets for the contrasts in section 2: *a/o, i/e, e/a, a/u, o/u, p/b, f/v, v/w, j/y, sh/ch, n/ng*.
+  - Each set has 7–12 minimal pairs (178 words), heard in four voices: `af_heart`, `am_michael`, `af_sarah`, `am_fenrir`.
+  - A set opens once both letters have been taught.
+- **A round.** 16 two-choice trials. The learner hears a word and chooses the **letter** they heard; the word is shown afterwards, so consonant sets can use words not yet decodable (*fine/vine*).
+  - Half the trials have each answer, the voices vary, and the same word never comes twice in a row.
+  - A wrong answer plays both words of the pair in the same voice.
+  - Accuracy per round is kept, and the menu and report show the trend.
+  - This is the design of identification HVPT (Thomson 2018; Qian et al. 2018; Uchihara, Karas & Thomson 2025).
+- **Clip checks.** A wrong clip would teach the wrong category, so every ear-training clip is transcribed by the speech recogniser. The 174 of 712 clips it does not hear as the intended word are never used (`audio/manifest.json`, `avoid`).
+
+### New activities
+
+| Activity | Units | Design |
+|---|---|---|
+| **Dictation** (إملاء) | 1–10 | The learner hears a word (one of two voices) and types it on an **in-app QWERTY keyboard**, where letters not yet taught are disabled. This avoids switching the phone to an English keyboard and stops autocorrect. Feedback compares the spelling grapheme by grapheme. It names a missing vowel ("every vowel is written in English"), a swapped grapheme (with the pair hint), or a spelling choice for the same sound (*c/k/ck*). |
+| **Heart words** (كلمات القلب) | 1–10 | Hear a heart word → choose its spelling among look-alike heart words (*the/they/then*). The feedback marks the tricky part. |
+| **Sentence order** (رتّب الجملة) | 2–10 | The Arabic meaning and the audio are shown; the learner taps the word tiles in English order. Tiles keep the capital letter and the full stop, which teaches both conventions. |
+| **Letter formation** (اكتب الحرف, optional) | 1–6 | Three steps follow model–lead–test: watch the stroke animation; trace over a dotted letter from the green start dot; then write it alone on guide lines. Scoring checks how much of the letter was covered, how much of the ink is on the letter, and the start point. It rejects mirrored *b/d, p/q* and strokes drawn from the bottom up. The activity is optional because the evidence is for handwriting with a pen (Wiley & Rapp 2021), so learners are also told to write on paper. |
+
+Each unit now has 7–12 activities. Letter formation does not count towards completing a unit.
+
+### Placement test
+- **When it is offered.** At first launch the learner chooses "complete beginner → unit 1" or "I know some English → short test". It is also in the menu, replacing "unlock all".
+- **What it asks.** Five items per unit (units 1–9):
+  - two sound → letter items (unit 9: word meaning);
+  - one minimal pair;
+  - one made-up word;
+  - one dictation or heart-word item.
+
+  A unit is passed with ≥ 4/5. The test stops at the first unit not passed, so a true beginner sees 5 items and a strong reader at most 45.
+- **Made-up words.** 35 of them, 3–4 per unit, presented as "product names". The learner decodes one by choosing among three spoken versions: the right one, a vowel misreading and a consonant misreading. This tests decoding without letting a false beginner use a memorised word (compare the Phonics Screening Check and PIAAC components).
+  - They are synthesised from phonemes built from their letters.
+  - They were checked against the American pronunciation lexicon so that none is a real word or sounds like one.
+  - The curriculum linter rejects any whose spelling would be read differently (soft *g* in *gim*).
+  - A speech-recogniser check made sure each made-up word and its vowel foil sound different. Seven foils were changed to a more distant vowel, e.g. *nin/nan* instead of *nin/nen*, because the synthetic short *i* and *e* were too close in made-up words.
+- **Scoring.** No feedback and no points during the test. Units passed are marked complete but stay open. A retake can only move the starting unit forward.
+
+### Keeping self-study progress safe
+- **Backup code.** `L2A1.` + compressed JSON + a checksum, about 1–4 KB of text.
+  - The learner can copy it, share it (e.g. to themselves on WhatsApp) or save it as a file.
+  - Restoring shows a summary and asks for confirmation.
+  - The checksum catches codes cut off while copying.
+  - Browsers without `CompressionStream` get an uncompressed code.
+  - The dashboard reminds learners every 14 days once they have made real progress.
+- **Answer log export (CSV)** for a teacher or a study. The learner decides whether to share it; nothing is sent automatically.
+- **iPhone/iPad in Safari.** Before the first lesson, illustrated Arabic steps for *Add to Home Screen*, with the reason: Safari can delete a site's data after 7 days without a visit.
+- **Android.** An install button, or manual steps.
+- **In-app browsers** (Instagram, Facebook, TikTok, Snapchat, LINE, other web views). A banner on the landing page asks the learner to open the link in Safari or Chrome, with a copy-link button.
+
+### Audio added in Phase 2
+- **Voice choice.** The two extra voices were chosen by recogniser accuracy on the 178 ear-training words, each spoken alone:
+
+  | Voice | Recognised (of 178) |
+  |---|---|
+  | `af_sarah` | 144 |
+  | `af_bella` | 134 |
+  | `af_nicole` | 113 |
+  | `am_fenrir` | 120 |
+  | `am_puck` | 87 |
+
+  The best female and the best male voice were kept (`tools/audio/voice-comparison.json`).
+- **New clips.** 681 clips (made-up words and ear-training words); the total audio is now 1,590 files, ≈ 6.6 MB.
+
+### Verification
+- `npm test` (238 tests) covers:
+  - the learner model: Leitner, mastery, due order, local days, v3 → v4 migration;
+  - backup codes: round trip, cut and changed codes, uncompressed fallback;
+  - platform detection: iPhone, iPad, Android, in-app browsers;
+  - letter templates and scoring: all 26 letters, mirrored, reversed and scribbled input;
+  - every unit × activity × 5 random seeds, review questions for every item, placement, ear-training blocks and weak-sound practice;
+  - made-up words: decodable, not curriculum words;
+  - the ear-training sets;
+  - audio coverage, enough clean tokens per set, and the size budget.
+- A browser run (Chromium; Pixel 7, iPhone and Instagram profiles) passed 18 checks:
+  - placement right on units 1–3 and wrong on 4 → starts at unit 4, no points;
+  - sentence order, dictation feedback;
+  - tracing (a well-formed letter accepted, a mirrored one rejected);
+  - daily review after the items become due;
+  - weak-sound practice;
+  - a 16-trial ear-training round;
+  - the report;
+  - backup → reset → restore;
+  - the iPhone Home Screen guide;
+  - the in-app banner;
+  - no page errors.
+
+  A second run completed every activity of units 1, 7, 9 and 10 with a mix of right and wrong answers (37 checks, no page errors).
+
+### Still to do by a person
+- **iPhone check:** Home Screen guide, silent switch, airplane mode, and copy-pasting a backup code through WhatsApp.
+- **A short listening pass** over the made-up words (`audio/f/p/`) and a sample of the new voices. Listen especially for short *i* versus *e*: the recogniser often hears the main voice's /ɪ/ as /ɛ/ in made-up words (*nin* → "nen"). It happens less often with real words (*bin* → "Ben" is one), and ear training already skips every clip the recogniser mishears, but a person should judge.
+- **Usability round 1** with 5–8 learners: see [`docs/usability-kit.md`](./docs/usability-kit.md).
+
+---
+
+## 14. References
 
 References were checked against DOI, ERIC or publisher records. Those marked † were located through web-search records of the publisher page but not re-opened for this document.
 
@@ -515,12 +648,15 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Sabatini, J. P., & Bruce, K. M. (2009). *PIAAC Reading Component: A Conceptual Framework* (OECD Education Working Papers No. 33). https://doi.org/10.1787/220367414132
 
 ### Vocabulary, practice, fluency and motivation
+- Bjork, R. A. (1994). Memory and metamemory considerations in the training of human beings. In J. Metcalfe & A. P. Shimamura (Eds.), *Metacognition: Knowing about Knowing* (pp. 185–205). MIT Press.
 - Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., & Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. *Psychological Bulletin, 132*(3), 354–380. https://doi.org/10.1037/0033-2909.132.3.354
 - Chang, A. C.-S., & Millett, S. (2015). Improving reading rates and comprehension through audio-assisted extensive reading for beginner learners. *System, 52*, 91–102. https://doi.org/10.1016/j.system.2015.05.003
 - Graham, S., & Hebert, M. (2010). *Writing to Read: Evidence for How Writing Can Improve Reading.* Alliance for Excellent Education.
 - Hall, G., & Cook, G. (2012). Own-language use in language teaching and learning. *Language Teaching, 45*(3), 271–308. https://doi.org/10.1017/S0261444812000067
+- Kang, S. H. K. (2016). Spaced repetition promotes efficient and effective learning: Policy implications for instruction. *Policy Insights from the Behavioral and Brain Sciences, 3*(1), 12–19. https://doi.org/10.1177/2372732215624708
 - Karpicke, J. D., & Roediger, H. L. (2008). The critical importance of retrieval for learning. *Science, 319*(5865), 966–968. https://doi.org/10.1126/science.1152408
 - Knowles, M. S., Holton, E. F., & Swanson, R. A. (2015). *The Adult Learner* (8th ed.). Routledge.
+- Leitner, S. (1972). *So lernt man lernen.* Herder.
 - Laufer, B., & Shmueli, K. (1997). Memorizing new words: Does teaching have anything to do with it? *RELC Journal, 28*(1), 89–108. https://doi.org/10.1177/003368829702800106
 - Nation, P. (2007). The four strands. *Innovation in Language Learning and Teaching, 1*(1), 2–13. https://doi.org/10.2167/illt039.0
 - Ryan, R. M., & Deci, E. L. (2000). Self-determination theory and the facilitation of intrinsic motivation, social development, and well-being. *American Psychologist, 55*(1), 68–78. https://doi.org/10.1037/0003-066X.55.1.68

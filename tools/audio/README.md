@@ -7,9 +7,9 @@ The generator is re-run whenever the curriculum in `data.js` changes.
 |---|---|
 | Engine | [Kokoro-82M v1.0](https://github.com/hexgrad/kokoro) via [`kokoro-onnx`](https://github.com/thewh1teagle/kokoro-onnx) (ONNX Runtime, CPU). The model and voices are Apache-2.0. |
 | Accent | American English. Short *o* is normalised to /ɑ/ (as in many US accents), e.g. *dog, long, off*. |
-| Voices | `f` = af_heart (main), `m` = am_michael (second talker for words), `fs` = af_heart slowed to 0.8× with a pitch-preserving time-stretch (the "slow" button). Kokoro's own slow speed adds a short "uh" before the word, so it is not used. |
+| Voices | `f` = af_heart (main), `m` = am_michael (second talker for words), `fs` = af_heart slowed to 0.8× with a pitch-preserving time-stretch (the "slow" button). Kokoro's own slow speed adds a short "uh" before the word, so it is not used. `f2` = af_sarah and `m2` = am_fenrir: extra talkers for ear training (see *Voice choice*). |
 | Format | MP3, mono, 24 kHz, 48 kbps. Plays on every iPhone and Android browser. |
-| Size | ≈ 6 MB for Phase 1 (≈ 900 files). Cached per unit by the service worker. |
+| Size | ≈ 6.6 MB (1,590 files). Cached per unit by the service worker. |
 
 ## What gets generated
 
@@ -19,6 +19,8 @@ The generator is re-run whenever the curriculum in `data.js` changes.
 - **`ln`**: letter names (*ay, bee, see* …), used for spelling.
 - **`w`**: words, keywords and heart words.
 - **`s`**: sentences and text sentences.
+- **`p`**: made-up words for the placement test (*nis, kep, tobnap* and their misread versions). They are synthesised straight from phonemes built from their letters (`toPhonemes` in `phonics.js`), so no dictionary guess is involved, and they are not checked by the speech recogniser (it would hear real words). They were checked against the misaki American lexicon so that none is, or sounds like, a real word.
+- Ear-training words (`PERCEPTION` in `data.js`) are `w` clips in four voices: `f`, `m`, `f2`, `m2`.
 
 The app finds each clip through `audio/manifest.json`, which records each clip's duration and a content hash. The hash is added to the URL so the cache updates when a clip changes.
 
@@ -41,6 +43,8 @@ A sound that never passes is left out. The app then teaches it through its keywo
 - Isolated words are hard for any recogniser: it adds "a"/"the", prefers names (*Ollie* for *Ali*), or picks a more frequent neighbour (*Ben* for *bin*). So read the failure list as a list of clips to listen to, not as errors.
 - **Voice choice.** Ten American Kokoro voices were compared on 44 minimal-pair words (isolated and in a carrier sentence). The two best were then compared on all 189 curriculum words: af_heart was recognised exactly for 154 and af_sarah for 155. With no real difference in clarity, af_heart was kept because it is rated the most natural voice.
 - The sound cuts also pass acoustic sanity checks: voicing share and spectral centre.
+- **Ear-training voices.** `tools/audio/compare-voices.py` synthesised the 178 ear-training words with five more Kokoro voices and transcribed them: af_sarah 144, af_bella 134, af_nicole 113, am_fenrir 120, am_puck 87 (`voice-comparison.json`). The best female and male voices became `f2` and `m2`.
+- **Ear-training tokens.** In perception training, a token that sounds like the other word teaches the wrong category. Every ear-training clip (word × voice) is transcribed, and the ones not heard as the intended word are listed under `avoid` in `audio/manifest.json`. The app never plays them in ear training (174 of 712 tokens).
 
 ## Re-generating
 
@@ -56,6 +60,7 @@ curl -LO https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-fil
 curl -L https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-whisper-small.en.tar.bz2 | tar xj
 cd ..
 node tools/audio/build-manifest.mjs
+python tools/audio/compare-voices.py --models models    # optional: re-rank the extra ear-training voices
 python tools/audio/generate.py --models models          # only new or changed clips
 python tools/audio/generate.py --models models --force  # everything
 npm test                                                # includes the audio coverage test
