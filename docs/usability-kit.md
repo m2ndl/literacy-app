@@ -32,9 +32,11 @@ Read each task in Arabic. Record success (✓ without help / ½ with a hint / �
 | 4 | أكمل نشاط «اسمع الصوت». | Finishes; notices the hint after a mistake |
 | 5 | أكمل نشاط «إملاء» واكتب ثلاث كلمات. | Uses the on-screen keyboard; understands the coloured feedback |
 | 6 | (optional) جرّب «اكتب الحرف». | Traces one letter, then writes it alone |
-| 7 | ارجع إلى الصفحة الرئيسية وابدأ «تدريب الأذن» (after unit 2 is open; use the placement test or a prepared phone). | Finishes one round of 16 |
+| 7 | ارجع إلى الصفحة الرئيسية وابدأ «تدريب الأذن» (after unit 2 is open; use the placement test or a prepared phone — a strong reader can reach unit 21 or 23 through the placement test too). | Finishes one round of 16 |
 | 8 | ابحث عن الأصوات التي تحتاج إلى تدريب. | Opens the progress report and finds "sounds to practise" |
 | 9 | احفظ نسخة احتياطية من تقدّمك وأرسلها لنفسك. | Makes a code and copies or shares it |
+| 10 | (prepared phone, unit 21 open) افتح الوحدة ٢١ وأكمل «اقرأ اللافتة». | Finishes; can say what one sign means without looking at the options |
+| 11 | (prepared phone, unit 23 open) في «الاستمارات»، أين تكتب رقم هاتفك؟ | Chooses the *Phone* field; says whether they understood the form |
 
 After the tasks, ask: «ما أصعب شيء في البرنامج؟ ما أكثر شيء أفادك؟ هل ستستخدمه غدًا؟ لماذا؟»
 

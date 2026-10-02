@@ -2,7 +2,7 @@
 
 **Purpose:** review the app as a literacy course and plan how to make it the best possible English reading app for **college-level EFL learners at CEFR pre-A1 whose first language is Arabic**.
 **Audience:** the app owner, teachers who recommend the app, and developers.
-**Status:** this document is the plan. Phase 1 (section 12) and Phase 2 (section 13) are implemented in this repository. Later phases are proposals.
+**Status:** this document is the plan. Phase 1 (section 12), Phase 2 (section 13) and Phase 3 (section 14) are implemented in this repository. Later phases are proposals.
 
 Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 
@@ -23,7 +23,8 @@ Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 11. [Roadmap](#11-roadmap)
 12. [Phase 1 — what this release changes](#12-phase-1--what-this-release-changes)
 13. [Phase 2 — the learner model](#13-phase-2--the-learner-model)
-14. [References](#14-references)
+14. [Phase 3 — the full course (Stages 3–5)](#14-phase-3--the-full-course-stages-35)
+15. [References](#15-references)
 
 ---
 
@@ -168,10 +169,12 @@ Some cited studies (McCandliss et al. 2003; Chang & Millett 2015; Hirsh-Pasek et
 | 0 Orientation (inside unit 1) | Left-to-right; spaces between words; print letters don't join; capitals; **every vowel is written**; letter **name** vs **sound** | — | Script and direction |
 | 1 Single-letter sounds + CVC words | s a t i n p · m d o g · c k ck e · u r h b · f l ff ll ss · j v w x y z zz qu | 6 | p/b, f/v, w/v, j/y; *pin/pen/pan*, *cut/cot*; b/d/p/q |
 | 2 Digraphs, plural -s/-es, two-syllable words | sh ch th · ng nk wh · *laptop*, *sunset* | 3 + review | th = ث/ذ, sh = ش; *ng* without /g/ |
-| 3 Consonant clusters | st sp sk sm sn · bl cl fl gl pl sl · br cr dr fr gr pr tr · -st -nd -mp -nt; -ed (/t d ɪd/), -ing | ≈4 | No inserted vowel |
-| 4 Long vowels; American r-coloured vowels | a_e i_e o_e u_e; ee/ea; ai/ay; oa/ow; igh/y; oo; ar or er/ir/ur; ou/ow; oi/oy; schwa | ≈6 | Many spellings per vowel: the biggest spelling load |
-| 5 Multisyllabic words and morphology | syllable types; un- re- -er -est -ful -ly -tion; stress; campus/academic words | ≈4 | Word families |
+| 3 Consonant clusters | st sp sk sm sn · bl cl fl gl pl sl · br cr dr fr gr pr tr · -st -nd -mp -nt; -ed (/t d ɪd/), -ing | 4 (units 11–14) | No inserted vowel |
+| 4 Long vowels; American r-coloured vowels | a_e i_e o_e u_e; ee/ea; ai/ay; oa/ow; igh/y; oo; ar or er/ir/ur; ou/ow; oi/oy; aw, all | 6 + review (units 15–21) | Many spellings per vowel: the biggest spelling load |
+| 5 Multisyllabic words and morphology | open syllables; y = /i/; soft c/g; -le; un- re- -er -est -ful -ly -ness -ment -tion; ph; campus words, signs and forms | 2 + review (units 22–24) | Word families |
 | Strands (all stages) | ≈100 most frequent heart words; numbers, days, times; campus signs (EXIT, PUSH, LIBRARY); forms (name, ID, email) | — | Survival and college literacy |
+
+Units 11–24 (Stages 3–5) are listed in section 14.
 
 ### Phase 1 units (Stages 0–2)
 
@@ -209,6 +212,7 @@ Names (*Ali, Sara* and a few others) are flagged as name-words for cultural rele
 | **First/last sound** | First sound only | Alternates first and last sound | Middle sound |
 | **Complete the sentence** ("أكمل الجملة", was "بناء الجمل") | Mislabelled; translation visible | Translation shown **after** answering; same-word-class distractors | Real word-order building (adjective before noun) |
 | *New in Phase 2* | | | Dictation, heart-word spelling, sentence order, letter formation (optional), ear training, placement test (section 13) |
+| *New in Phase 3* | | | Read the sign, forms, multiple-choice text questions; word build and missing letter with vowel teams and word parts (section 14) |
 | *Later* | | | Blending (tap each sound → word), timed reading, record-and-compare |
 
 ### Feedback and error correction (Phase 1)
@@ -285,7 +289,7 @@ Every answer is logged locally with item, choice, correctness and response time.
 - a 5-word dictation;
 - 3 sentences matched to pictures.
 
-It places the learner at the first unit not yet mastered and lets them test out of units, replacing "unlock all". The built version covers letter sounds, minimal pairs, made-up words, heart words and dictation; sentence–picture matching waits for Phase 3 pictures.
+It places the learner at the first unit not yet mastered and lets them test out of units, replacing "unlock all". The built version covers letter sounds, minimal pairs, made-up words, heart words and dictation; sentence–picture matching is not built yet (it needs pictures for whole sentences).
 
 **Ongoing tracking.** Logged from Phase 1 and used for adaptation from Phase 2: accuracy, response time and confusion pairs for each grapheme and word.
 - Mastery rule (Phase 2): ≥ 90% correct over the last ≥ 8 first tries, spread over ≥ 2 days, and an average response under 3 s on recognition tasks. The time counts from when the item appears, so it includes about 1 s of audio (≈ 2 s after the audio ends).
@@ -315,7 +319,7 @@ Learners see Arabic can-do statements.
 - the principles in section 4 as a checklist;
 - WCAG 2.2 AA for accessibility.
 
-**Automated content metrics** (computed from `data.js` by the test suite):
+**Automated content metrics** (computed from `data.js` by the test suite and `tools/content/metrics.py`; Phase 3 results in section 14):
 
 | Metric | Target |
 |---|---|
@@ -369,7 +373,7 @@ Learners see Arabic can-do statements.
 |---|---|---|
 | **1 Foundation** (this release) | This plan; decodable Stage 0–2 curriculum; generated American audio for sounds, words and sentences; iPhone/Android audio engine; explanatory feedback; local error log; curriculum-checking tests | All tests pass; 100% decodable; audio plays on both platforms |
 | **2 Learner model** (built, section 13) | Placement test; item-level mastery; daily spaced review; "practise my weak sounds"; multi-voice perception training; dictation; tracing; word-order sentences; backup code; iPhone install guide; in-app-browser warning | First usability round SUS ≥ 70 ([usability kit](./docs/usability-kit.md)) |
-| 3 Curriculum | Stages 3–5; heart-word strand (≈100); decodable adult readers (campus series) with read-along highlighting and comprehension; campus signs and forms | Content metrics met |
+| **3 Curriculum** (built, section 14) | Stages 3–5; heart-word strand (≈100); decodable adult readers (campus series) with read-along highlighting and comprehension; campus signs and forms | Content metrics met (all but vocabulary frequency; see section 14) |
 | 4 Fluency & assessment | Timed fluency tasks; record-and-compare reading aloud; unit checks and stage benchmarks; can-do self-assessment | Benchmarks validated in pilot |
 | 5 Evaluation | Tier 3 pilot; report; revisions | Report complete |
 
@@ -596,7 +600,206 @@ Each unit now has 7–12 activities. Letter formation does not count towards com
 
 ---
 
-## 14. References
+## 14. Phase 3 — the full course (Stages 3–5)
+
+Phase 3 completes the scope and sequence in section 6:
+- 14 new units (11–24), so the course now has **24 units** in four stages on the home screen;
+- the full heart-word strand;
+- campus reading texts with comprehension questions;
+- campus signs and forms.
+
+Every new word, sentence, text, sign and form label passes the same decodability test as Phase 1.
+
+### Units 11–24
+
+| Unit | New patterns | Heart words | Sample words | Text |
+|---|---|---|---|---|
+| 11 | st sp sk sm sn sl sw sc | put push pull full does | stop spin skill smell snack swim | *At the Bus Stop* |
+| 12 | bl cl fl gl pl br cr dr gr pr tr tw | friend want water work word | black class clock flag plan truck | *In Class* |
+| 13 | -st -nd -nt -mp -sk -lp -lk -xt; str spr | old cold find kind both | best last hand went help strong | *The Test* |
+| 14 | -ed (/t/, /d/, /ɪd/), -ing, doubling (*planned*) | give live love done gone | jumped filled ended planned shopping | *The Lost Backpack* |
+| 15 | a_e i_e o_e u_e (silent e) | very every many any again | name late time smile home cute use | *Five to Nine* |
+| 16 | ee ea ai ay | people because eye buy laugh | see need sleep teach train day | *The Team* |
+| 17 | oa ow (snow) igh y (my) ie | could would should walk talk | road coat show light high cry pie | *A Cold Night* |
+| 18 | oo (moon, book) ew ue | school group through move whose | food room restroom soon good few true | *Lunch* |
+| 19 | ar or er ir ur | four our hour sure warm | card park short sport her first turn | *The Form* |
+| 20 | ou ow (cow) oi oy aw all | father mother brother other son | out loud house now join boy saw call | *The Mall* |
+| 21 | Review; 14 signs | answer listen here | — | three texts |
+| 22 | open syllables (*o-pen*, *stu-dent*), y = /i/ (*baby*), soft c and g, -le; days of the week | busy women eight half learn | open paper music student email library | *At the Library* |
+| 23 | -er -est -ful -ly -ness -ment, un- re-, -tion, ph, numbers | enough quiet idea minute | teacher biggest helpful kindness unlock station phone | *The Math Teacher* + a library-card form |
+| 24 | Review; 12 signs; a student-card form | world thought tomorrow only | — | three texts |
+
+The four stages on the home screen are: sounds and short words (1–10), consonant clusters and word endings (11–14), long vowels (15–21), and longer words, signs and forms (22–24).
+
+### What the decoding check now understands (`phonics.js`)
+- **Syllable types:**
+  - closed;
+  - silent e;
+  - vowel teams;
+  - r-controlled vowels;
+  - open syllables;
+  - y as a vowel (*my*, *baby*);
+  - consonant + *le*;
+  - *-tion*.
+
+  Each syllable of a word must use only patterns taught by that unit.
+- **Consonant clusters** at the start (*st, bl, str*…) and the end (*-nd, -mp, -xt*…) of a syllable, introduced in units 11–13.
+- **Word parts.**
+  - Endings: -s, -es, -ed, -ing, -er, -est, -ful, -less, -ness, -ment, -ly.
+  - Prefixes: un-, re-.
+  - Spelling changes are handled: dropped e (*make → making*), doubled consonant (*plan → planned*) and y → i (*happy → happiness*).
+
+  A word with parts is accepted when its base is decodable (or a heart word) and its parts have been taught.
+- **Spellings that would mislead.** These are refused unless the word is a heart word:
+  - *w* + *a* (*want*);
+  - *wor-/war-*;
+  - *-old, -ind, -ild, -alk*;
+  - a soft *c* or *g* before unit 22.
+- **Made-up words** are synthesised from phonemes worked out by the same rules: long vowels in open syllables, soft *c*/*g*, *-le* as /əl/.
+
+### What is aimed at Arabic speakers
+- **No inserted vowel in clusters.** Arabic does not allow two consonants at the start of a syllable, so learners often say *sipring* or *hande* (Smith 2001).
+  - The contrast pairs differ only by the cluster consonant (*top/stop, lip/slip, tent/test*).
+  - The Arabic tips say "stop, not «سِتوب»".
+  - The vowel-error choice for each new made-up word has an **inserted vowel** (*snep* vs *sinep*), so the placement test and the made-up-word activity catch this error.
+- **-ed has three sounds.** The tip in unit 14 says that *jumped* is one syllable, and that /ɪd/ is added only after *t* and *d*.
+- **Long vs short vowels.** Every long-vowel unit contrasts it with the short vowel (*not/note, sit/seat, cut/cute*). A twelfth ear-training set, **i / ee**, has 11 pairs (*ship/sheep, sit/seat, fill/feel*…). It opens at unit 16 and targets the best-known vowel problem for Arabic speakers.
+- **Many spellings for one vowel** (Fender 2008; Saigh & Schmitt 2012).
+  - Spellings of the same sound are grouped: *a_e/ai/ay, ee/ea/y, er/ir/ur, oo/ew/ue*, and others.
+  - In *missing letter* and *word build*, the wrong choices include other spellings of the same sound.
+  - In dictation, a spelling that has the right sounds but the wrong letters (*rane* for *rain*, *fone* for *phone*) gets its own message: «نطقك صحيح! لكن هذه الكلمة تُكتب بطريقة أخرى». This means "your sounds are right, but this word is spelled another way". It replaces a sound hint that would not apply.
+- **American r.** *ar, or, er/ir/ur*. The tips say the American *r* is not trilled and is always said at the end of a word (*car, more*).
+- **Second sounds.** Some letters get a second sound: *ow* in *cow* (after *snow*), *y* in *baby* (after *my*), *c* in *city* and *g* in *page*.
+  - Each has its own sound card, with the same letter and a new keyword.
+  - Earlier units keep the first sound, so a word is never ambiguous when it is first met.
+
+### Heart-word strand
+- **105 heart words** in all:
+  - 39 in units 1–10;
+  - 66 in units 11–24, about five per unit.
+- They are the frequent irregular words learners meet in campus texts (*people, because, could, school, friend, water, father, enough*).
+- The tricky part of each is marked on the word card (Ehri 2014).
+- The heart-word activity uses look-alike heart words as wrong choices (*could/would/should*, *four/our/hour*).
+
+### Campus readers
+- **22 short texts**: one in each of units 11–20, 22 and 23; three in each of the review units 21 and 24; four in unit 10.
+  - They follow the same students (*Sara*, *Ali*) through campus life: the bus stop, class, a test, a lost backpack, lunch, a form, the library, the end of term.
+  - Unit texts are 35–60 words long. Every word is decodable at that unit or is a taught heart word or name.
+- **Read-along** (from Phase 1):
+  - each sentence is highlighted as it is spoken, and an Arabic translation can be shown under each sentence;
+  - the routine is "read alone, then listen and follow, then read again", based on repeated and audio-assisted reading (Therrien 2004; Chang & Millett 2015).
+- **Comprehension.** 66 questions:
+  - 53 yes/no statements;
+  - 13 *who/what/where* questions with three English options.
+
+  The options must also be decodable. Each question has an Arabic translation, shown after answering.
+
+### Signs and forms (survival literacy)
+- **"Read the sign" (اقرأ اللافتة)**, units 21 and 24.
+  - 26 campus signs in capitals: *EXIT, PUSH, PULL, NO ENTRY, STAFF ONLY, LOST AND FOUND, QUIET PLEASE, FIRST AID*…
+  - Each sign is on a coloured plate: red for stop, a ban or a warning; green for go, open or free; blue for information. The learner chooses its Arabic meaning.
+  - The unit 21 tip explains that signs use capital letters (EXIT = exit).
+- **"Forms" (الاستمارات)**, units 23 and 24. A library-card form and a student-card form, with two question types:
+  - On the empty form: "where do you write your phone number?" → choose the field label (*First name, Last name, Phone, Email, Date of birth, Student number*…).
+  - On a filled form: yes/no statements about the details (*Her last name is Hassan.*), which practise reading names, numbers, dates and an email address.
+
+These are the "real-world literacy" tasks in the CLB adult-literacy benchmarks and LASLLIAM (filling in personal details, recognising public signs).
+
+### Activities adapted to longer words
+- **Word build:** tiles are the word's sound-spellings and word parts (*jump + ed*, *teach + er*). The extra tile is another spelling of a vowel or another suffix.
+- **Missing letter:** the blank can be a whole vowel team (*r _ _ d* → *oa / ai / ee*).
+- **First/last sound** and the sound cards show the letters (*y*, *ow*), not internal names.
+- **Placement test:**
+  - It now reaches unit 23.
+  - From unit 11 each unit has **3 items** instead of 5: a minimal pair, a made-up word and a dictation word. Units 11–23 build on everything before them, so these three are enough evidence.
+  - A strong reader answers at most 81 items (about 10 minutes); a true beginner still answers only 5.
+  - All three items must be right to pass a unit from 11 on (the 80% rule). This errs towards starting earlier, which costs little because completed units are quick.
+- **Can-do statements** after placement now cover clusters and endings, long vowels, campus texts, and signs and forms.
+
+### Content metrics (section 10)
+
+Computed by `tests/curriculum.test.js` and `tools/content/metrics.py` (`tools/content/metrics.json`).
+
+| Metric | Target | Result |
+|---|---|---|
+| Decodable at point of use | 100% | **100%**: 493 words, 203 practice sentences, 22 texts, 26 signs, 2 forms |
+| Words with an Arabic meaning | 100% | **100%** |
+| Contrast pairs per unit | ≥ 3 (unit 1: ≥ 2) | **met**: 72 sets in units 11–24 |
+| Items available per activity | ≥ 4 options | **met** (tested for every unit × activity × 5 seeds) |
+| Heart-word strand | ≈ 100 | **105** |
+| Texts with comprehension | every unit from 10 | **met**: 22 texts, 66 questions |
+| Words in the top 1,000 (from unit 3) | ≥ 70% | **not met: 45%** (50% counting word families) |
+
+**Why the frequency target is not met.** The frequency list is `wordfreq`'s English top-1,000, used as a stand-in for the NGSL (Browne, Culligan & Phillips 2013); the two overlap heavily, but this should be re-checked against the NGSL itself. Three things keep the share down:
+1. The most frequent words (*have, said, would, people*) are mostly irregular. They are taught as **heart words**, which this metric does not count.
+2. Minimal pairs need partners that are less frequent (*spin, slip, cot, cute*).
+3. Campus words learners need (*laptop, backpack, restroom, library*) are frequent on campus but not in a general list.
+
+The sounds a unit teaches limit what it can use, which is why units 9 (*laptop, napkin, sunset*), 11 and 14 are lowest.
+
+**What the learner actually reads is much more frequent.** Of the 1,692 running words in all sentences and texts (names excluded):
+- **84%** are in the top 1,000 word families;
+- **95%** are in the top 3,000.
+
+Of the word lists themselves, 80% of words from unit 3 are in the top 3,000 families.
+
+**Proposed revision, for the owner and raters to decide.** Replace the type-based target with:
+- ≥ 80% of running words in the top 1,000 families (met: 84%);
+- ≥ 75% of listed words in the top 3,000 families (met: 80%).
+
+Running-word coverage is the usual measure of how readable a text is for a learner (Nation 2006). Until this is agreed, the original target is reported as **not met**.
+
+### Audio added in Phase 3
+- **New clips.** 865 clips: words, sentences, signs, form statements, made-up words, and the *i/ee* ear-training words.
+  - The total is now 1,496 clips in 3,369 files, about 16.8 MB, or about 0.7 MB per unit.
+  - Clips are cached as the learner reaches each unit, never all at once. The size budget in the tests was raised from 12 MB to 20 MB.
+- **Isolated sounds.** 9 of the 15 new sounds have a clean recording on their own: *long a, long i, long u, ar, or, er, ow* (cow), *oy*, *all*.
+  - Long vowels are synthesised on their own as well as cut from words.
+  - A vowel said alone is accepted if the recogniser hears it as its name (*I*, *you*, *or*, *ow*, *all*).
+  - *Long o, long e, oo* (both sounds), *aw* and *-tion* failed. They are taught through their keyword, and the prompt now says "listen to **the vowel** in *home*" (or "the last part of *station*") instead of "the first sound".
+  - Units 1–10 still have 29 of 31 sounds (*th* in *thin* and *this* is taught through its keyword).
+  - A fix was needed on the way. Adding long-vowel test words had made the check reject *f*, *b* and *r*, because glued diphthongs are hard for the recogniser. Consonants are now judged only on short-vowel words, as in Phase 1.
+- **Pronunciation fixes found by checking:**
+  - *for* and *or* had been said like "far" and "ar": the short-o rule now skips *o* before *r*.
+  - *close*, *use* and *live* said alone were the wrong meaning (/kloʊs/, /juːs/, /laɪv/). They are now /kloʊz/, /juːz/, /lɪv/, matching *يُغلق، يستخدم، يعيش*. In sentences the context already gave the right form.
+  - One text sentence had *read* as past tense /rɛd/ in a present-tense story, which clashes with *ea* = /iː/ taught in unit 16. It was rewritten (*the club reads a short book*).
+- **Made-up words.**
+  - 48 new items (unit 11 on), each with two misread versions.
+  - A recogniser check compared each word with its misread versions. Four foils were changed because they sounded like a real word (*moble* ≈ *mobile*, *sharp*) or too close to the target (*smock*/*smawk*, *snobeng*/*snobbing*). *cimp*'s vowel foil is now *semp* (soft c kept).
+  - Two pairs are still written the same way by the recogniser (*snobbing/snobing*, *retrom/rettrom*), but their phonemes differ clearly (/ɑ/ vs /oʊ/; stress and vowel).
+- **Recogniser flags.** 423 of 2,176 checked clips are flagged. In the new words almost all are homophones or digits (*by → bye*, *see → C*, *nine → 9*, *mail → male*) or short isolated words. The flags to listen to are in the list below.
+- **Ear training.** 31 of the 88 *i/ee* tokens are not heard as the intended word, mostly *ship/sheep*-type confusions in the extra voices, so they are never played. Every set still has at least 16 clean tokens per side.
+
+### Verification
+- `npm test`: 392 tests. New or extended:
+  - decoding of every Stage 3–5 pattern on a synthetic curriculum;
+  - all 24 units decodable at the point of use (words, sentences, texts, questions, signs, form labels and statements, multiple-choice options);
+  - heart words ≥ 95;
+  - every unit × activity × 5 seeds for the new activities;
+  - placement parts (5 items, or 3 from unit 11; at most 90 in all);
+  - audio coverage per stage and the new size budget.
+- **Browser runs** (Chromium, Pixel 7 profile, no service worker):
+  - every activity of units 11, 15, 19, 21, 22, 23 and 24 with a mix of right and wrong answers: 71 checks, no page errors;
+  - units 17 and 23 again with the final audio: 23 checks;
+  - placement right through unit 12 and wrong on unit 13 → 54 items, starts at unit 13 with the clusters can-do line;
+  - placement all right → 81 items (≈ 3 minutes for the script), starts at the final review with the top can-do line.
+- **Screenshots checked:** sound cards for *a_e … u_e*; vowel colouring in silent-e words; heart-word marks; sign plates; filled and empty forms; text questions; the sound-match fallback note.
+
+### Still to do by a person
+- **A listening pass:**
+  - the new isolated sounds (`audio/f/ph/`);
+  - the *-ed* endings (*jumped, filled, ended*);
+  - the made-up words with an inserted-vowel foil (`audio/f/p/`, e.g. *snep/sinep*);
+  - the words the recogniser heard with *v* for *f* in both voices (*face, first, fixed*);
+  - *page/age* (heard as *pay/A*), *coach* (*coat*), *took* (*tog*), *hall*, *mall*.
+- **Tier 1 expert review** of units 11–24 (section 10): two or three raters, especially for the naturalness of the texts and the Arabic translations and tips.
+- **Decide on the frequency target** (above).
+- **Usability round 1** (still open from Phase 2), now also covering a Stage 3 unit, signs and forms.
+- **Tier 3 pilot.** The course is complete, so the learning-effectiveness pilot in section 10 can be planned.
+
+---
+
+## 15. References
 
 References were checked against DOI, ERIC or publisher records. Those marked † were located through web-search records of the publisher page but not re-opened for this document.
 
@@ -649,6 +852,7 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 
 ### Vocabulary, practice, fluency and motivation
 - Bjork, R. A. (1994). Memory and metamemory considerations in the training of human beings. In J. Metcalfe & A. P. Shimamura (Eds.), *Metacognition: Knowing about Knowing* (pp. 185–205). MIT Press.
+- Browne, C., Culligan, B., & Phillips, J. (2013). *The New General Service List* (Version 1.0). http://www.newgeneralservicelist.org
 - Cepeda, N. J., Pashler, H., Vul, E., Wixted, J. T., & Rohrer, D. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. *Psychological Bulletin, 132*(3), 354–380. https://doi.org/10.1037/0033-2909.132.3.354
 - Chang, A. C.-S., & Millett, S. (2015). Improving reading rates and comprehension through audio-assisted extensive reading for beginner learners. *System, 52*, 91–102. https://doi.org/10.1016/j.system.2015.05.003
 - Graham, S., & Hebert, M. (2010). *Writing to Read: Evidence for How Writing Can Improve Reading.* Alliance for Excellent Education.
@@ -658,12 +862,14 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Knowles, M. S., Holton, E. F., & Swanson, R. A. (2015). *The Adult Learner* (8th ed.). Routledge.
 - Leitner, S. (1972). *So lernt man lernen.* Herder.
 - Laufer, B., & Shmueli, K. (1997). Memorizing new words: Does teaching have anything to do with it? *RELC Journal, 28*(1), 89–108. https://doi.org/10.1177/003368829702800106
+- Nation, I. S. P. (2006). How large a vocabulary is needed for reading and listening? *The Canadian Modern Language Review, 63*(1), 59–82. https://doi.org/10.3138/cmlr.63.1.59
 - Nation, P. (2007). The four strands. *Innovation in Language Learning and Teaching, 1*(1), 2–13. https://doi.org/10.2167/illt039.0
 - Ryan, R. M., & Deci, E. L. (2000). Self-determination theory and the facilitation of intrinsic motivation, social development, and well-being. *American Psychologist, 55*(1), 68–78. https://doi.org/10.1037/0003-066X.55.1.68
 - Sailer, M., & Homner, L. (2020). The gamification of learning: A meta-analysis. *Educational Psychology Review, 32*(1), 77–112. https://doi.org/10.1007/s10648-019-09498-w
 - Saito, Y., Garza, T. J., & Horwitz, E. K. (1999). Foreign language reading anxiety. *The Modern Language Journal, 83*(2), 202–218. https://doi.org/10.1111/0026-7902.00016
 - Settles, B., & Meeder, B. (2016). A trainable spaced repetition model for language learning. In *Proceedings of the 54th Annual Meeting of the ACL* (pp. 1848–1858). https://doi.org/10.18653/v1/P16-1174
 - Shute, V. J. (2008). Focus on formative feedback. *Review of Educational Research, 78*(1), 153–189. https://doi.org/10.3102/0034654307313795
+- Speer, R. (2022). *wordfreq* (Version 3) [Software and word-frequency data]. https://github.com/rspeer/wordfreq
 - Thomson, R. I. (2018). High variability [pronunciation] training (HVPT): A proven technique about which every language teacher and learner ought to know. *Journal of Second Language Pronunciation, 4*(2), 208–231. https://doi.org/10.1075/jslp.17038.tho
 
 ### Speech technology

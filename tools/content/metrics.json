@@ -9,7 +9,7 @@
   "top3000_from_unit3": 0.77,
   "family1000_from_unit3": 0.5,
   "family3000_from_unit3": 0.8,
-  "running_words": 1691,
+  "running_words": 1692,
   "running_family1000": 0.84,
   "running_family3000": 0.95,
   "frequency_source": "wordfreq top_n_list(\"en\") (proxy for the NGSL)"
@@ -326,7 +326,7 @@
    "contrasts": 7,
    "sentences": 6,
    "texts": 3,
-   "text_words": 115,
+   "text_words": 116,
    "signs": 14,
    "forms": 0
   },
