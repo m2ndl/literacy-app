@@ -413,7 +413,10 @@ function renderPrompt(q) {
   const box = el('div', { class: 'prompt' });
   const p = q.prompt;
   if (q.activity === 'sound-match' && !audio.hasClip(p.audio)) {
-    box.append(el('p', { class: 'prompt-note' }, 'استمع إلى أول صوت في كلمة ', en(p.kw)));
+    // No clean recording of the sound alone: the keyword is played instead.
+    const where = gpc[q.answer]?.vowel ? 'استمع إلى صوت حرف العلة في كلمة '
+      : !p.kw.startsWith(q.answer) && p.kw.endsWith(q.answer) ? 'استمع إلى آخر جزء في كلمة ' : 'استمع إلى أول صوت في كلمة ';
+    box.append(el('p', { class: 'prompt-note' }, where, en(p.kw)));
   }
   if (q.type === 'trace') return box;
   if (q.activity === 'pseudo') {

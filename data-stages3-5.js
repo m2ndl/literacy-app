@@ -981,7 +981,7 @@ export const stage3to5 = [
     ],
     contrasts: [['nice', 'nine'], ['place', 'plate'], ['rice', 'ride']],
     pseudo: [{ w: 'pomic', split: 'po|mic', foils: ['pom|mic', 'po|mig'] }, { w: 'tilby', split: 'til|by', foils: ['tal|by', 'til|py'] },
-      { w: 'cimp', foils: ['camp', 'kimp'] }, { w: 'mople', split: 'mo|ple', foils: [{ w: 'mopple', ipa: 'mˈɑpəl' }, { w: 'moble', ipa: 'mˈObəl' }] }],
+      { w: 'cimp', foils: ['semp', 'kimp'] }, { w: 'mople', split: 'mo|ple', foils: [{ w: 'mopple', ipa: 'mˈɑpəl' }, { w: 'moble', ipa: 'mˈObəl' }] }],
     sentences: [
       { text: 'Open the email.', missing: 'email', ar: 'افتح البريد الإلكتروني.' },
       { text: 'I am a student.', missing: 'student', ar: 'أنا طالب.' },
