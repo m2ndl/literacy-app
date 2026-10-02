@@ -240,21 +240,21 @@ Every answer is logged locally with item, choice, correctness and response time.
 
   Phase 2 adds more voices for perception training.
 - **Pronunciation input:** the *misaki* US phonemizer, plus a small hand-checked list of fixes.
-- **Isolated speech sounds:**
-  - vowels and continuous consonants are synthesised from phoneme input;
-  - stop consonants are synthesised as a minimal-vowel syllable and trimmed;
-  - any sound that fails quality checks is presented as "sound in a keyword" instead.
+- **Isolated speech sounds:** a TTS model cannot say a lone consonant (it comes out as vowel-like noise), so each sound is cut out of whole words at acoustic landmarks such as frication, voicing onset and loudness changes.
+  - Several source words are tried for each sound.
+  - Each cut is glued into test words (p + e + n) and must be recognised correctly (the "blend test"); the best cut is kept.
+  - A sound that never passes is presented as "sound in a keyword" instead. In Phase 1 that applies only to *th*.
 - **Post-processing (ffmpeg):**
   - trim leading and trailing silence only;
   - peak-normalise words and sounds;
   - loudness-normalise sentences;
   - encode as **MP3, mono, 24 kHz, 48 kbps**, which every iPhone and Android device can play.
 - **Automated quality checks:**
-  - duration, silence and clipping;
-  - each word and sentence is transcribed back by a speech recogniser (Whisper small.en via sherpa-onnx) and must match;
-  - vowel sounds are checked against American English formant norms (Hillenbrand et al. 1995).
+  - acoustic sanity checks on every cut sound (voicing share and spectral centre);
+  - the blend test;
+  - every word and sentence transcribed back by a speech recogniser (Whisper small.en via sherpa-onnx).
 
-  Results are written to `tools/audio/qa-report.json`.
+  Results are written to `tools/audio/qa-report.json`. Formant measurements were tried as a vowel check but proved unreliable on synthetic voices, so the blend test is used instead.
 
 **Why synthetic speech is acceptable:**
 - Modern TTS supports learning about as well as a human voice (Craig & Schroeder 2017) and is as comprehensible to L2 learners (Bione & Cardoso 2020).
@@ -375,7 +375,91 @@ Learners see Arabic can-do statements.
 
 ## 12. Phase 1 — what this release changes
 
-*(Updated as Phase 1 is implemented.)*
+### Curriculum (`data.js`)
+- 10 new units covering Stages 0–2:
+  - 189 words with Arabic meanings (88 with a picture emoji);
+  - 39 heart words with their tricky part marked;
+  - 6 names;
+  - 69 minimal-pair sets;
+  - 83 sentences;
+  - 4 short texts with 12 comprehension questions;
+  - Arabic tips in every unit.
+- 37 grapheme–phoneme correspondences. Each has a keyword with a picture, an Arabic "bridge" letter where the sound exists in Arabic, and a "new sound" flag where it doesn't.
+- **100% decodable at the point of use**, enforced by `tests/curriculum.test.js`. The previous version: about 70%.
+- The test segments words over the full grapheme inventory, so untaught patterns are caught. It also enforces:
+  - closed syllables;
+  - soft c/g and w+a rules;
+  - heart words, names, plural -s/-es and two-syllable splits by unit;
+  - unique Arabic meanings;
+  - valid minimal pairs.
+
+### Activities, feedback and data (`questions.js`, `app.js`, `logic.js`)
+- The eight activities described in section 7 plus short-text comprehension. Each has 8 items (pool permitting), and passing needs ≥ 80% right on the first try.
+- Wrong options come from tables of sounds and letter shapes that Arabic speakers confuse. Two spellings of the same sound (c/k/ck) are never offered together.
+- Error correction:
+  - a soft tone;
+  - a hint for the specific confusion;
+  - "listen again" and "what you chose";
+  - the answer revealed after a second error;
+  - the item repeated at the end with its options reshuffled.
+- Meaning (Arabic and emoji) is shown and the word is heard after each answer. Points are given for first-try answers only.
+- Every answer is logged on the device: item, choice, try number and response time. Per-grapheme accuracy and confusion counts feed the new **"sounds to practise"** report.
+- Progress v3 is stored under a new key. Old progress is reset (owner decision), and returning learners see a one-time Arabic notice.
+
+### Reading support
+- Andika (a typeface for beginning readers), self-hosted.
+- Vowel letters coloured everywhere: textual input enhancement for vowel blindness.
+- Tricky parts of heart words marked; syllable dots in two-syllable words.
+- Read-along texts that highlight each sentence as it is spoken.
+- English text tagged `lang="en"`.
+
+### Audio (`audio.js`, `tools/audio/`, `audio/`)
+- 909 generated MP3 clips (≈ 6 MB):
+  - 29 isolated sounds (vowels and most consonants);
+  - 26 letter names;
+  - 250 words in two voices plus a slow version;
+  - 113 sentences, plus slow versions.
+- Isolated sounds are cut from words and verified by the blend test (`tools/audio/README.md`). *th* is taught through its keywords.
+- Ten American voices were compared for minimal-pair clarity. On all curriculum words the two best voices were equivalent (154 vs 155 of 189 recognised exactly), so the most natural voice was kept.
+- Slow versions are time-stretched normal speech: the model's own slow mode added an "uh" before words.
+- The playback engine follows WebKit and Chrome guidance:
+  - Web Audio buffers;
+  - unlocks on every tap and recovers from iOS interruptions;
+  - Audio Session API for the iPhone silent switch, with a silent-loop fallback;
+  - no device-voice fallback for letter sounds;
+  - per-unit offline caching in a separate audio cache.
+- An "audio test" screen in the menu, to help learners and teachers troubleshoot.
+
+### Fixes found during the design review
+- Theme toggle bound twice: the menu toggle could stop working.
+- Modal backdrops: Tailwind v4 dropped `bg-opacity-*`, so backdrops rendered solid black.
+- Stale compiled Tailwind CSS. It is rebuilt now, scanning only the app's own files.
+- The service worker deleted every cache on the origin. It now deletes only this app's caches.
+- Progress is now also saved on `pagehide`, because iOS doesn't reliably fire `beforeunload`.
+- The sentence blank now matches whole words only.
+- "kids" removed from the web-app manifest; adult copy on the landing page.
+
+### Verification
+- `npm test` passes:
+  - the phonics engine;
+  - the curriculum linter;
+  - the question bank for every unit × activity × 5 random seeds;
+  - progress logic;
+  - the precache list;
+  - CSS classes;
+  - audio coverage and size budget.
+- An end-to-end browser run in Chromium, emulating a Pixel 7, passed:
+  - all activities of unit 1, plus units 7, 9 and 10;
+  - error, hint and reveal paths;
+  - MP3 decoding;
+  - progress logging;
+  - reload while offline, including cached audio.
+- **Still to do by a person:**
+  - the 2-minute iPhone check (Home Screen install, silent switch, airplane mode);
+  - a short listening pass over the clips flagged in `tools/audio/qa-report.json`.
+
+### Deferred to Phase 2+
+Placement test, spaced review, the multi-voice perception-training module, dictation, tracing, word-order sentences, backup/restore code, iPhone install guide and in-app-browser warning (see section 11).
 
 ---
 
@@ -450,7 +534,6 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - † Al-Shami, & Cardoso, W. (2025). Text-to-speech-based high-variability phonetic training with Arabic-speaking learners of English. *Canadian Journal of Applied Linguistics, 28*(3), 142–168. https://doi.org/10.37213/cjal.2025.35910
 - † Bione, T., & Cardoso, W. (2020). Synthetic voices in the foreign language context. *Language Learning & Technology, 24*(1).
 - Craig, S. D., & Schroeder, N. L. (2017). Reconsidering the voice effect when learning from a virtual human. *Computers & Education, 114*, 193–205. https://doi.org/10.1016/j.compedu.2017.07.003
-- Hillenbrand, J., Getty, L. A., Clark, M. J., & Wheeler, K. (1995). Acoustic characteristics of American English vowels. *Journal of the Acoustical Society of America, 97*(5), 3099–3111. https://doi.org/10.1121/1.411872
 - Qian, M., Chukharev-Hudilainen, E., & Levis, J. (2018). A system for adaptive high-variability segmental perceptual training: Implementation, effectiveness, transfer. *Language Learning & Technology, 22*(1), 69–96.
 - † Uchihara, T., Karas, M., & Thomson, R. I. (2025). High variability phonetic training: A meta-analysis. *Studies in Second Language Acquisition.* https://doi.org/10.1017/S0272263125100879
 
