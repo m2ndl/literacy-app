@@ -104,7 +104,6 @@ export const ACTIVITY_META = {
   'read-text':         { title: 'اقرأ وافهم',              desc: 'اقرأ نصًا قصيرًا وأجب بـ «نعم» أو «لا».',             icon: '📖' },
   'tracing':           { title: 'اكتب الحرف',              desc: 'شاهد كيف يُكتب الحرف، ثم تتبّعه بإصبعك، ثم اكتبه وحدك.', icon: '✏️', optional: true },
   'dictation':         { title: 'إملاء',                   desc: 'استمع إلى الكلمة واكتبها بلوحة المفاتيح الإنجليزية.',  icon: '⌨️' },
-  'heart-words':       { title: 'كلمات القلب',             desc: 'استمع واختر الكتابة الصحيحة لكلمة شائعة.',            icon: '♥' },
   'sentence-build':    { title: 'رتّب الجملة',             desc: 'رتّب الكلمات لتكوّن جملة إنجليزية صحيحة.',            icon: '🔀' },
   'signs':             { title: 'اقرأ اللافتة',            desc: 'اقرأ لافتة من الحرم الجامعي واختر معناها.',          icon: '🪧' },
   'forms':             { title: 'الاستمارات',              desc: 'اقرأ استمارة: أين تكتب اسمك ورقمك وبريدك؟',          icon: '🗂️' },
@@ -177,16 +176,17 @@ export const HINTS = {
 
 // Order: hear and recognise -> build and write -> meaning -> sentences.
 const LETTER_UNIT = ['sound-match', 'capital-match', 'tracing', 'which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter',
-  'dictation', 'meaning', 'heart-words', 'complete-sentence', 'sentence-build'];
+  'dictation', 'meaning', 'complete-sentence', 'sentence-build'];
 const DIGRAPH_UNIT = ['sound-match', 'which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
-  'heart-words', 'complete-sentence', 'sentence-build'];
+  'complete-sentence', 'sentence-build'];
 // Unit 1 has too few sentences of three or more words for "sentence order".
 const FIRST_UNIT = LETTER_UNIT.filter(a => a !== 'sentence-build');
 
 // Word fields: w = word, ar = Arabic meaning, emoji (concrete nouns only),
 // group = near-synonyms that must not be offered as each other's distractors,
 // split = syllables of a two-syllable word.
-// Heart words: mark puts the "tricky" part in [brackets].
+// heart = frequent words not yet decodable (the, said, you…). They are allowed in sentences and texts, which
+// the learner hears whole; they are not taught or tested on their own (owner decision, plan §16).
 // pseudo = made-up "brand names" for the placement test (decodable, not English words); each has two
 // spoken foils: a vowel misreading and a consonant misreading.
 const stage0to2 = [
@@ -685,7 +685,7 @@ const stage0to2 = [
       'الكلمة الطويلة تتكوّن من مقاطع، وفي كل مقطع حرف علة واحد: lap | top, sun | set.',
       'اقرأ كل مقطع وحده، ثم اجمعهما بسرعة.'
     ],
-    activities: ['which-word', 'word-build', 'missing-letter', 'dictation', 'meaning', 'heart-words', 'complete-sentence', 'sentence-build']
+    activities: ['which-word', 'word-build', 'missing-letter', 'dictation', 'meaning', 'complete-sentence', 'sentence-build']
   },
   {
     id: 10,
@@ -776,7 +776,7 @@ const stage0to2 = [
       'ثم استمع إليه وتابع الكلمات بعينك.',
       'ثم اقرأه مرة أخرى بسرعة أكبر.'
     ],
-    activities: ['which-word', 'dictation', 'meaning', 'heart-words', 'complete-sentence', 'sentence-build', 'read-text']
+    activities: ['which-word', 'dictation', 'meaning', 'complete-sentence', 'sentence-build', 'read-text']
   }
 ];
 

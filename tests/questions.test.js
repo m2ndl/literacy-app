@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { units, gpc, ALPHABET, PERCEPTION, STAGES } from '../data.js';
+import { units, gpc, ALPHABET, PERCEPTION, STAGES, ACTIVITY_META } from '../data.js';
 import { SENSE, BENCHMARK_TEXTS, PICTURES, BENCH_PSEUDO } from '../data-assess.js';
 import { createQuestionBank, PERCEPTION_VOICES, SHORT_PLACEMENT_FROM, CHECK_SIZE } from '../questions.js';
 import { makeRng, requiredClips, sameSound, contrastOf, segment } from '../phonics.js';
@@ -11,7 +11,7 @@ const SEEDS = [1, 2, 3, 4, 5];
 
 // Minimum questions per activity (some pools are small by design, e.g. unit 1 has 6 sounds).
 const MIN_ITEMS = { 'sound-match': 4, 'capital-match': 4, 'which-word': 3, 'word-build': 6, 'missing-letter': 6,
-  meaning: 6, 'first-last-sound': 6, 'complete-sentence': 4, 'read-text': 3, dictation: 6, 'heart-words': 3,
+  meaning: 6, 'first-last-sound': 6, 'complete-sentence': 4, 'read-text': 3, dictation: 6,
   'sentence-build': 4, tracing: 2, signs: 6, forms: 6, 'read-aloud': 4, 'unit-check': CHECK_SIZE, blend: 5 };
 
 /** Checks shared by every question, whatever builds it. */
@@ -64,7 +64,7 @@ function checkQuestion(q, activity) {
   assert.equal(new Set(values).size, values.length, `duplicate options ${values}`);
   assert.equal(values.filter(v => v === q.answer).length, 1, 'exactly one correct option');
   assert.ok(values.length >= 2 && values.length <= 4);
-  if (q.type === 'choice' && q.options[0].lang === 'en' && !['complete-sentence', 'which-word', 'heart-words', 'perception'].includes(activity)) {
+  if (q.type === 'choice' && q.options[0].lang === 'en' && !['complete-sentence', 'which-word', 'perception'].includes(activity)) {
     // grapheme options: never two spellings of the same sound
     for (let i = 0; i < values.length; i++) {
       for (let j = i + 1; j < values.length; j++) {
@@ -218,8 +218,7 @@ describe('question bank', () => {
     const rng = makeRng(4);
     const keys = [
       ...units.flatMap(u => (u.graphemes || []).map(g => `ph:${gpc[g].ph}`)),
-      ...units.flatMap(u => (u.words || []).map(w => `w:${w.w}`)),
-      ...units.flatMap(u => (u.heart || []).map(h => `h:${h.w}`))
+      ...units.flatMap(u => (u.words || []).map(w => `w:${w.w}`))
     ];
     for (const key of new Set(keys)) {
       const unit = bank.itemUnit(key);
@@ -233,6 +232,20 @@ describe('question bank', () => {
         }
       }
     }
+  });
+
+  it('never asks about frequent irregular words on their own (heart words were removed)', () => {
+    assert.ok(!('heart-words' in ACTIVITY_META));
+    for (const u of units) {
+      assert.ok(!u.activities.includes('heart-words'), `unit ${u.id} lists heart-words`);
+      for (const seed of [1, 2, 3]) {
+        const qs = [...bank.unitCheck(u, makeRng(seed)), ...(u.review ? [] : bank.placementItems(u.id, makeRng(seed)))];
+        assert.ok(!qs.some(q => q.activity === 'heart-words'), `unit ${u.id}: heart-word item`);
+      }
+    }
+    // Items left in old progress get no review question.
+    assert.equal(bank.itemUnit('h:the'), null);
+    assert.equal(bank.buildItem('h:the', 5, makeRng(1)), null);
   });
 
   it('makes recall questions (dictation) for secure items', () => {

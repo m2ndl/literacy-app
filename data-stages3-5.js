@@ -12,11 +12,11 @@
 //   pseudo foils may be written with | for syllables (tal|by) or as { w, ipa } when the spelling alone doesn't
 //   give the sound: word endings, and the extra vowel Arabic speakers may insert in a cluster (stib -> "sitib").
 
-const CLUSTER_UNIT = ['which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning', 'heart-words',
+const CLUSTER_UNIT = ['which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
   'complete-sentence', 'sentence-build', 'read-text'];
 const VOWEL_UNIT = ['sound-match', 'which-word', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
-  'heart-words', 'complete-sentence', 'sentence-build', 'read-text'];
-const WORD_PARTS_UNIT = ['sound-match', 'which-word', 'word-build', 'missing-letter', 'dictation', 'meaning', 'heart-words',
+  'complete-sentence', 'sentence-build', 'read-text'];
+const WORD_PARTS_UNIT = ['sound-match', 'which-word', 'word-build', 'missing-letter', 'dictation', 'meaning',
   'complete-sentence', 'sentence-build', 'read-text'];
 
 export const stage3to5 = [
@@ -991,7 +991,7 @@ export const stage3to5 = [
       'اللافتات تُكتب غالبًا بحروف كبيرة: EXIT = exit.',
       'اقرأ النص بنفسك أولًا، ثم استمع وتابع، ثم اقرأه مرة أخرى.'
     ],
-    activities: ['which-word', 'dictation', 'meaning', 'heart-words', 'signs', 'complete-sentence', 'sentence-build', 'read-text']
+    activities: ['which-word', 'dictation', 'meaning', 'signs', 'complete-sentence', 'sentence-build', 'read-text']
   },
 
   // ======================================================== Stage 5: longer words and word parts
@@ -1341,6 +1341,6 @@ export const stage3to5 = [
       'اللافتات والاستمارات من أهم ما تقرؤه في الجامعة: تعلّم كلماتها جيدًا.',
       'اقرأ النصوص بصوت عالٍ: الاستماع ثم القراءة ثم إعادة القراءة يزيد سرعتك.'
     ],
-    activities: ['which-word', 'dictation', 'meaning', 'heart-words', 'signs', 'forms', 'complete-sentence', 'sentence-build', 'read-text']
+    activities: ['which-word', 'dictation', 'meaning', 'signs', 'forms', 'complete-sentence', 'sentence-build', 'read-text']
   }
 ];

@@ -126,7 +126,6 @@ body.dark-mode .letter-slot.filled:hover {
   --c-border: #e5e7eb;
   --c-accent: #2563eb;
   --c-vowel: #c2410c;          /* vowel letters stand out (vowel blindness) */
-  --c-tricky: #be185d;         /* the tricky part of a heart word */
   --c-ok-bg: #dcfce7;  --c-ok-text: #166534;
   --c-try-bg: #fef3c7; --c-try-text: #92400e;
   --c-wrong: #fca5a5;
@@ -140,7 +139,6 @@ body.dark-mode {
   --c-border: #374151;
   --c-accent: #60a5fa;
   --c-vowel: #fdba74;
-  --c-tricky: #f9a8d4;
   --c-ok-bg: #064e3b;  --c-ok-text: #d1fae5;
   --c-try-bg: #451a03; --c-try-text: #fde68a;
   --c-wrong: #7f1d1d;
@@ -150,7 +148,6 @@ body.dark-mode {
 /* English text: a typeface designed for beginning readers */
 .english-content { font-family: 'Andika', 'Inter', system-ui, sans-serif; unicode-bidi: isolate; }
 .vowel { color: var(--c-vowel); }
-.tricky { color: var(--c-tricky); text-decoration: underline wavy; text-underline-offset: 4px; }
 .syllable-dot { color: var(--c-muted); padding: 0 .15em; }
 
 .skip-link { position: absolute; right: -999px; top: 0; background: var(--c-accent); color: #fff; padding: .5rem 1rem; z-index: 100; }
@@ -195,7 +192,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--c-accent); outl
 .word-chip .word { font-size: 1.5rem; font-weight: 700; }
 .chip-emoji { font-size: 1.1rem; line-height: 1; }
 .chip-ar { font-size: .8rem; color: var(--c-muted); margin-top: .1rem; }
-.heart-chip .chip-emoji { color: var(--c-tricky); }
 
 .reader { border: 1px solid var(--c-border); border-radius: .9rem; padding: 1rem; margin-bottom: 1rem; text-align: left; }
 .reader-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: .5rem; }

@@ -1019,7 +1019,7 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
   - Three made-up words are still written the same as a foil by the recogniser (*drup/drop*, *bife/bive*, *snoper/snopper*), but their sounds differ (/ʌ/ vs /ɑ/, /f/ vs /v/, /oʊ/ vs /ɑ/).
 - **Still to do by a person:** listen to the new single sounds (`audio/f/ph/`) and to *law, huge, stage, each, choice*, which the recogniser heard oddly in both voices.
 
-### After the first listening test
+### Owner feedback after launch
 - **Single sounds are now always followed by their keyword** ("m … *map*", "a … *apple*"):
   - on the sound cards;
   - in "listen to the sound and choose the letter";
@@ -1027,6 +1027,11 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
 
   The owner found the cut sounds unclear on their own. A consonant cut out of a word loses the transitions into the vowel that carry most of its place cue: *m* and *n*, and *b, d* and *g*, differ mainly in those transitions. The keyword puts the sound back in a word, which is also the routine of keyword-based phonics programmes.
 - Blending still plays the sounds alone, because the learner must join them. Its answer choices are whole spoken words.
+- **Heart words removed as a taught strand** (owner decision). The learners are adults already frustrated with English, and exceptions are too early for them.
+  - The heart-word activity, the "كلمات القلب ♥" lesson section, the ♥ marks and heart-word items in unit checks, the placement test and review are all gone. The placement slot is always a dictation item now.
+  - The words themselves (*the, I, is, you, said*…) stay in sentences and texts, because 179 of the 203 sentences use at least one. Learners hear every sentence whole, so these words are picked up by ear and sight, with no rule or exception to learn.
+  - The decodability linter still lets them into sentences. Review items for them saved in old progress (`h:`) are no longer offered.
+  - This supersedes the heart-word parts of sections 7, 9, 13 and 14.
 
 ---
 

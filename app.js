@@ -11,7 +11,7 @@ import {
 import { createQuestionBank, PERCEPTION_VOICES } from './questions.js';
 import { clipKey, errorFocus, classifyError, compareSpelling, sameSound, isVowel, shuffle, toPhonemes } from './phonics.js';
 import * as audio from './audio.js';
-import { el, en, svgIcon, richArabic, wordNode, heartNode, section, toArabicDigits, configureWords } from './dom.js';
+import { el, en, svgIcon, richArabic, wordNode, section, toArabicDigits, configureWords } from './dom.js';
 import { buildWidget, keyboardWidget, audioChoiceWidget, blendWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
 import { traceWidget } from './tracing.js';
 import { renderBackup, backupDue } from './backup-ui.js';
@@ -34,7 +34,7 @@ const ITEMS_PER_ACTIVITY = 8;
 const REVIEW_SIZE = 12;
 // Activities whose prompt is heard (played automatically); "meaning" and texts are read first.
 const AUTOPLAY = new Set(['sound-match', 'which-word', 'word-build', 'missing-letter', 'first-last-sound', 'complete-sentence',
-  'dictation', 'heart-words', 'sentence-build', 'perception']);
+  'dictation', 'sentence-build', 'perception']);
 const GRAPHEME_OPTIONS = new Set(['sound-match', 'capital-match', 'missing-letter', 'first-last-sound', 'perception']);
 const TIMED = new Set(['choice', 'yesno']);   // response times are kept for recognition tasks only
 
@@ -138,7 +138,8 @@ function unitSubtitle(u) {
   return '';
 }
 
-const reviewFilter = (k) => (bank.itemUnit(k) || 1) <= progress.unlockedUnit;
+// 'h:' items are left over from the heart-word activity, which was removed: they are no longer reviewed.
+const reviewFilter = (k) => !k.startsWith('h:') && (bank.itemUnit(k) || 1) <= progress.unlockedUnit;
 const currentWeak = () => {
   const taught = bank.taughtGraphemes(progress.unlockedUnit);
   return weakTargets(progress.attempts).filter(t => taught.includes(t.target));
@@ -247,11 +248,6 @@ function wordChip(w) {
   el('span', { class: 'chip-ar', text: w.ar }));
 }
 
-function heartChip(h) {
-  return el('button', { class: 'word-chip heart-chip', onclick: () => audio.play(clipKey('w', h.w), { text: h.w }) },
-    el('span', { class: 'chip-emoji', 'aria-hidden': 'true', text: '♥' }), heartNode(h.mark), el('span', { class: 'chip-ar', text: h.ar }));
-}
-
 /** Time a silent reading of a text (repeated reading): words a minute, compared with last time. */
 function readingTimer(t, unitId) {
   const id = `${unitId}:${t.id}`;
@@ -344,11 +340,6 @@ function showLesson(unitId) {
     root.append(section('كلمات للقراءة',
       el('div', { class: 'section-tools' }, el('p', { class: 'section-help', text: 'اقرأ الكلمة بنفسك أولًا، ثم اضغط لتسمعها. حروف العلة ملوّنة لتنتبه لها.' }), slowBtn),
       el('div', { class: 'word-grid' }, ...u.words.map(wordChip))));
-  }
-  const heart = [...(u.heart || []), ...(u.names || []).map(n => ({ w: n.w, ar: n.ar, mark: n.w }))];
-  if (heart.length) {
-    root.append(section('كلمات القلب ♥', el('p', { class: 'section-help', text: 'كلمات شائعة جدًا لا تُقرأ بالقواعد التي تعلّمتها بعد. الجزء الملوّن هو الجزء الصعب: احفظه.' }),
-      el('div', { class: 'word-grid' }, ...heart.map(heartChip))));
   }
   if ((u.signs || []).length) {
     root.append(section('لافتات في الحرم الجامعي', el('p', { class: 'section-help', text: 'اللافتات تُكتب غالبًا بحروف كبيرة. اضغط على اللافتة لتسمعها.' }),
@@ -525,7 +516,7 @@ function optionLabel(q, o) {
   if (o.lang === 'pic') return el('span', { class: 'pic-option', text: o.label });
   if (o.lang !== 'en') return o.label;
   if (['read-text', 'forms', 'bench-text'].includes(q.activity) || /\s/.test(o.label)) return en(o.label);
-  if (GRAPHEME_OPTIONS.has(q.activity) || q.activity === 'heart-words') return en(o.label);
+  if (GRAPHEME_OPTIONS.has(q.activity)) return en(o.label);
   return wordNode(o.label);
 }
 
@@ -610,7 +601,6 @@ function soundsTheSame(target, typed) {
 function hintFor(q, value, spell) {
   if (q.activity === 'meaning') return 'اقرأ الكلمة صوتًا صوتًا، ثم فكّر في معناها.';
   if (q.activity === 'read-text') return 'اقرأ النص مرة أخرى، وابحث عن الكلمات المهمة.';
-  if (q.activity === 'heart-words') return 'هذه كلمة قلب: لا تُقرأ بالقواعد كلها. انظر إلى شكلها واحفظ الجزء الصعب.';
   if (q.activity === 'sentence-build') return 'ابدأ بالكلمة التي أولها حرف كبير، وانتهِ بالكلمة التي فيها النقطة. استمع مرة أخرى.';
   if (q.activity === 'signs') return 'اقرأ اللافتة كلمةً كلمة: الحروف الكبيرة هي الحروف نفسها (EXIT = exit).';
   if (q.activity === 'forms') return q.prompt.statement ? 'اقرأ الخانة المطلوبة في الاستمارة وقارنها بالجملة.' : 'اقرأ كلمات الخانات، واختر الخانة التي تعني ما تحتاجه.';
@@ -688,7 +678,6 @@ function feedbackMeaning(q) {
   if (q.activity === 'capital-match') return el('p', { class: 'feedback-word' }, en(f.word));
   if (q.activity === 'tracing') return el('p', { class: 'feedback-word' }, en(`${f.word.toUpperCase()} ${f.word}`));
   if (q.activity === 'sound-match') return el('p', { class: 'feedback-word' }, 'كما في ', f.emoji ? `${f.emoji} ` : '', wordNode(f.word));
-  if (q.activity === 'heart-words') return el('p', { class: 'feedback-word' }, heartNode(f.mark), f.ar ? ` — ${f.ar}` : '');
   if (q.activity === 'perception') return el('p', { class: 'feedback-word' }, wordNode(f.word));
   return el('p', { class: 'feedback-word' }, f.emoji ? `${f.emoji} ` : '', wordNode(f.word), f.ar ? ` — ${f.ar}` : '');
 }

@@ -1,7 +1,7 @@
 // The learner model: daily review, weak sounds, ear training, the report, and backup -> reset -> restore.
 import { newPage, check, closeBadges, runSession, progress, openWith, unitsDone, modalOpen } from './harness.mjs';
 
-const ITEMS = ['w:pin', 'w:map', 'w:cat', 'w:pen', 'w:sit', 'w:top', 'w:net', 'w:dog', 'ph:ae', 'ph:ih', 'h:the', 'h:you'];
+const ITEMS = ['w:pin', 'w:map', 'w:cat', 'w:pen', 'w:sit', 'w:top', 'w:net', 'w:dog', 'ph:ae', 'ph:ih'];
 
 export default async function learner(browser, base) {
   const page = await newPage(browser, base);

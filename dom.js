@@ -71,15 +71,6 @@ export function wordNode(word, { syllables = false, cls = '', split = null } = {
   return out;
 }
 
-/** A heart word with its tricky part marked: mark "th[e]" -> th + <e>. */
-export function heartNode(mark) {
-  const out = el('bdi', { lang: 'en', dir: 'ltr', class: 'english-content word' });
-  mark.split(/(\[[^\]]+\])/).filter(Boolean).forEach(part => {
-    out.append(part.startsWith('[') ? el('span', { class: 'tricky', text: part.slice(1, -1) }) : part);
-  });
-  return out;
-}
-
 export function section(title, ...content) {
   return el('section', { class: 'lesson-section' }, el('h3', { class: 'section-title', text: title }), ...content);
 }

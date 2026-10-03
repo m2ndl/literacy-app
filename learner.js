@@ -3,7 +3,7 @@
 // Each item the learner practises has a small memory record:
 //   { b: Leitner box 0-6, due: day number, h: last results '1'/'0', rt: response time (ms, moving average),
 //     days: number of different days practised, last: last day practised }
-// Item keys: 'ph:<sound>' (sound <-> letter), 'w:<word>' (decodable word), 'h:<word>' (heart word).
+// Item keys: 'ph:<sound>' (sound <-> letter), 'w:<word>' (decodable word), 'h:<word>' (heart word; no longer reviewed).
 
 export const INTERVALS = [0, 1, 2, 4, 8, 16, 32];   // days until the next review, by box
 export const MAX_BOX = INTERVALS.length - 1;
