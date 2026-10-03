@@ -2,7 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { units, gpc, ACTIVITY_META, PERCEPTION, STAGES } from '../data.js';
-import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES } from '../data-assess.js';
+import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES } from '../data-assess.js';
 import { buildLexicon, decodeWord, analyzeToken, checkSentence, contrastOf, sameSound, tokenize, segment } from '../phonics.js';
 
 const lex = buildLexicon(units, gpc);
@@ -347,6 +347,15 @@ describe('Phase 4 assessment content', () => {
       const yn = t.questions.filter(q => !q.options);
       assert.ok(yn.some(q => q.answer) && yn.some(q => !q.answer));
     });
+  });
+
+  it('sentence-and-picture items are decodable at their unit and have three different pictures', () => {
+    assert.deepEqual([...new Set(PICTURES.map(x => x.unit))], [3, 6, 9]);
+    for (const x of PICTURES) {
+      assert.deepEqual(checkSentence(x.text, x.unit, lex), [], x.text);
+      assert.equal(new Set(x.pics).size, 3, x.text);
+      assert.match(x.ar, ARABIC);
+    }
   });
 
   it('can-do statements exist for every stage, in Arabic, with unique ids', () => {

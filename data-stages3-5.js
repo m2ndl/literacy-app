@@ -12,7 +12,7 @@
 //   pseudo foils may be written with | for syllables (tal|by) or as { w, ipa } when the spelling alone doesn't
 //   give the sound: word endings, and the extra vowel Arabic speakers may insert in a cluster (stib -> "sitib").
 
-const CLUSTER_UNIT = ['which-word', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning', 'heart-words',
+const CLUSTER_UNIT = ['which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning', 'heart-words',
   'complete-sentence', 'sentence-build', 'read-text'];
 const VOWEL_UNIT = ['sound-match', 'which-word', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
   'heart-words', 'complete-sentence', 'sentence-build', 'read-text'];

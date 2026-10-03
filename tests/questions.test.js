@@ -1,18 +1,18 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { units, gpc, ALPHABET, PERCEPTION, STAGES } from '../data.js';
-import { SENSE, BENCHMARK_TEXTS } from '../data-assess.js';
+import { SENSE, BENCHMARK_TEXTS, PICTURES } from '../data-assess.js';
 import { createQuestionBank, PERCEPTION_VOICES, SHORT_PLACEMENT_FROM, CHECK_SIZE } from '../questions.js';
 import { makeRng, requiredClips, sameSound, contrastOf, segment } from '../phonics.js';
 
-const bank = createQuestionBank({ units, gpc, alphabet: ALPHABET, perception: PERCEPTION, sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES });
+const bank = createQuestionBank({ units, gpc, alphabet: ALPHABET, perception: PERCEPTION, sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES });
 const clipKeys = new Set(requiredClips(units, gpc, ALPHABET, PERCEPTION).map(c => c.key));
 const SEEDS = [1, 2, 3, 4, 5];
 
 // Minimum questions per activity (some pools are small by design, e.g. unit 1 has 6 sounds).
 const MIN_ITEMS = { 'sound-match': 4, 'capital-match': 4, 'which-word': 3, 'word-build': 6, 'missing-letter': 6,
   meaning: 6, 'first-last-sound': 6, 'complete-sentence': 4, 'read-text': 3, dictation: 6, 'heart-words': 3,
-  'sentence-build': 4, tracing: 2, signs: 6, forms: 6, 'read-aloud': 4, 'unit-check': CHECK_SIZE };
+  'sentence-build': 4, tracing: 2, signs: 6, forms: 6, 'read-aloud': 4, 'unit-check': CHECK_SIZE, blend: 5 };
 
 /** Checks shared by every question, whatever builds it. */
 function checkQuestion(q, activity) {
@@ -36,6 +36,14 @@ function checkQuestion(q, activity) {
     assert.equal(q.graphemes.join(''), q.answer);
     assert.ok(bank.isCorrect(q, q.answer.toUpperCase()));
     assert.ok(!bank.isCorrect(q, `${q.answer}x`));
+    return;
+  }
+  if (q.type === 'blend') {
+    q.prompt.tiles.forEach(t => assert.ok(clipKeys.has(t.audio), `missing sound ${t.audio}`));
+    q.options.forEach(o => assert.ok(clipKeys.has(o.audio), `missing clip ${o.audio}`));
+    assert.equal(q.prompt.tiles.map(t => t.text).join(''), q.answer);
+    assert.equal(q.options.length, 3);
+    assert.equal(q.options.filter(o => o.value === q.answer).length, 1);
     return;
   }
   if (q.type === 'record') {
@@ -120,6 +128,29 @@ describe('question bank', () => {
       assert.equal(new Set(keys).size, keys.length);
     });
     assert.equal(bank.benchmark(9), null);
+  });
+
+  it('asks for the first, last and middle sound, the middle always a vowel', () => {
+    const qs = [1, 4, 7].flatMap(u => SEEDS.flatMap(seed => bank.build(u, 'first-last-sound', { rng: makeRng(seed) })));
+    const middle = qs.filter(q => q.prompt.position === 'middle');
+    assert.ok(middle.length >= 5 && qs.some(q => q.prompt.position === 'first') && qs.some(q => q.prompt.position === 'last'));
+    middle.forEach(q => {
+      assert.match(q.answer, /^[aeiou]$/, q.item);
+      q.options.forEach(o => assert.match(String(o.value), /^[aeiou]$/));
+    });
+  });
+
+  it('places a sentence-and-picture item in units 3, 6 and 9', () => {
+    for (const unitId of [3, 6, 9]) {
+      for (const seed of SEEDS) {
+        const qs = bank.placementItems(unitId, makeRng(seed));
+        const pic = qs.find(q => q.activity === 'sentence-picture');
+        assert.ok(pic && qs.length === 5, `unit ${unitId}`);
+        assert.equal(pic.options.length, 3);
+        assert.ok(pic.options.every(o => o.lang === 'pic'));
+      }
+    }
+    assert.ok(!bank.placementItems(4, makeRng(1)).some(q => q.activity === 'sentence-picture'));
   });
 
   it('sound-match covers every new sound of a unit', () => {

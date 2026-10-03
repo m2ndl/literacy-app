@@ -12,10 +12,10 @@ import { createQuestionBank, PERCEPTION_VOICES } from './questions.js';
 import { clipKey, errorFocus, classifyError, compareSpelling, sameSound, isVowel, shuffle, toPhonemes } from './phonics.js';
 import * as audio from './audio.js';
 import { el, en, svgIcon, richArabic, wordNode, heartNode, section, toArabicDigits, configureWords } from './dom.js';
-import { buildWidget, keyboardWidget, audioChoiceWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
+import { buildWidget, keyboardWidget, audioChoiceWidget, blendWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
 import { traceWidget } from './tracing.js';
 import { renderBackup, backupDue } from './backup-ui.js';
-import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES } from './data-assess.js';
+import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES } from './data-assess.js';
 import { recordCheck, checkPassed, wordsPerMinute, recordTextReading } from './assess.js';
 import { todayCards, reportSections, renderSpeedMenu } from './assess-ui.js';
 import { recordWidget, stopRecorder } from './recorder.js';
@@ -23,7 +23,7 @@ import { platformInfo, renderInstallGuide, inAppBanner } from './platform.js';
 
 const bank = createQuestionBank({
   units, gpc, alphabet: ALPHABET, perception: PERCEPTION, hasClip: (k) => audio.hasClip(k),
-  sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES
+  sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES
 });
 configureWords(bank.wordInfo);
 const achievements = getAchievements(units.length);
@@ -472,6 +472,10 @@ function renderPrompt(q) {
       ...p.text.split(' ').flatMap((w, i) => [i ? ' ' : '', wordNode(w)])));
     return box;
   }
+  if (q.activity === 'sentence-picture') {
+    box.append(el('p', { class: 'english-content prompt-sentence', dir: 'ltr', lang: 'en', text: p.statement }));
+    return box;
+  }
   if (q.activity === 'bench-text') {
     box.append(el('div', { class: 'reader reader-compact' }, en(p.title, 'reader-title'),
       ...p.sentences.map(s => el('p', { class: 'reader-line is-static' }, en(s.text)))),
@@ -491,7 +495,7 @@ function renderPrompt(q) {
   if (q.activity === 'first-last-sound') {
     const slots = el('div', { class: 'position-hint', 'aria-hidden': 'true' });
     for (let i = 0; i < 3; i++) {
-      const on = (p.position === 'first' && i === 0) || (p.position === 'last' && i === 2);
+      const on = (p.position === 'first' && i === 0) || (p.position === 'middle' && i === 1) || (p.position === 'last' && i === 2);
       slots.append(el('span', { class: on ? 'is-target' : null }));
     }
     box.append(slots);
@@ -519,6 +523,7 @@ function renderPrompt(q) {
 }
 
 function optionLabel(q, o) {
+  if (o.lang === 'pic') return el('span', { class: 'pic-option', text: o.label });
   if (o.lang !== 'en') return o.label;
   if (['read-text', 'forms', 'bench-text'].includes(q.activity) || /\s/.test(o.label)) return en(o.label);
   if (GRAPHEME_OPTIONS.has(q.activity) || q.activity === 'heart-words') return en(o.label);
@@ -529,7 +534,7 @@ function renderOptions(q) {
   const wrap = el('div', { class: `options ${GRAPHEME_OPTIONS.has(q.activity) ? 'options-grapheme' : 'options-word'}` });
   q.options.forEach(o => {
     const btn = el('button', {
-      class: `option-btn ${o.lang === 'ar' ? 'option-ar' : ''}`, 'data-value': String(o.value)
+      class: `option-btn ${o.lang === 'ar' ? 'option-ar' : o.lang === 'pic' ? 'option-pic' : ''}`, 'data-value': String(o.value)
     }, optionLabel(q, o));
     btn.addEventListener('click', () => onChoice(q, o.value, btn));
     wrap.append(btn);
@@ -543,7 +548,11 @@ function renderAnswer(q) {
   else if (q.type === 'spell') session.widget = keyboardWidget(q, { onSubmit, isLocked });
   else if (q.type === 'audio-choice') session.widget = audioChoiceWidget(q, { play: (key) => audio.play(key), onSubmit, isLocked });
   else if (q.type === 'trace') session.widget = traceWidget(q, { onSubmit, isLocked, playName: () => audio.play(q.prompt.audio) });
-  else if (q.type === 'record') session.widget = recordWidget(q, { audio, isLocked, onSubmit: (rating, times) => onRecorded(q, rating, times) });
+  else if (q.type === 'blend') {
+    session.widget = blendWidget(q, {
+      play: (key) => audio.play(key), playTogether: (keys) => audio.playSequence(keys, { gapMs: 60 }), onSubmit, isLocked
+    });
+  } else if (q.type === 'record') session.widget = recordWidget(q, { audio, isLocked, onSubmit: (rating, times) => onRecorded(q, rating, times) });
   else return renderOptions(q);
   return session.widget.node;
 }
@@ -755,7 +764,7 @@ function handleWrong(q, value, node, spell) {
     fb.className = 'feedback-panel feedback-try';
     const chosen = Array.isArray(value) ? value.join('') : String(value);
     const chosenKey = GRAPHEME_OPTIONS.has(q.activity) && gpc[chosen.toLowerCase()] ? clipKey('ph', gpc[chosen.toLowerCase()].ph)
-      : (q.activity === 'which-word' ? clipKey('w', chosen) : null);
+      : (['which-word', 'blend'].includes(q.activity) ? clipKey('w', chosen) : null);
     fb.replaceChildren(
       el('p', { class: 'feedback-title', text: 'ليس تمامًا — حاول مرة أخرى.' }),
       spell ? spellingDiff(spell) : null,

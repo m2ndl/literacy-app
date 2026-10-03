@@ -203,3 +203,19 @@ export const CAN_DO_STAGES = [
     ]
   }
 ];
+
+/**
+ * Sentence -> picture items for the placement test (units 3, 6 and 9). The first picture is right; the
+ * other two change one thing the sentence says (who, what, or how), so the whole sentence has to be read.
+ */
+export const PICTURES = [
+  { unit: 3, text: 'Dad got a cap.', pics: ['👨🧢', '👨🧦', '👩🧢'], ar: 'حصل أبي على قبعة.' },
+  { unit: 3, text: 'Mom is sick.', pics: ['👩🤒', '👨🤒', '👩😀'], ar: 'أمي مريضة.' },
+  { unit: 3, text: 'The cat can nap.', pics: ['🐈💤', '🐕💤', '🐈🍽️'], ar: 'القطة تستطيع أن تغفو.' },
+  { unit: 6, text: 'Max has a dog.', pics: ['👦🐕', '👦🐈', '👧🐕'], ar: 'لدى ماكس كلب.' },
+  { unit: 6, text: 'Sara is in the van.', pics: ['👧🚐', '👧🚌', '👦🚐'], ar: 'سارة في الشاحنة الصغيرة.' },
+  { unit: 6, text: 'The sun is hot.', pics: ['☀️🥵', '❄️🥶', '🌧️☔'], ar: 'الشمس حارّة.' },
+  { unit: 9, text: 'The fish is in the dish.', pics: ['🐟🍽️', '🐟🛁', '🐈🍽️'], ar: 'السمكة في الطبق.' },
+  { unit: 9, text: 'She has a laptop.', pics: ['👩💻', '👨💻', '👩🎒'], ar: 'لديها حاسوب محمول.' },
+  { unit: 9, text: 'The king has a ring.', pics: ['🤴💍', '👸💍', '🤴🔔'], ar: 'لدى الملك خاتم.' }
+];

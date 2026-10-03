@@ -98,7 +98,8 @@ export const ACTIVITY_META = {
   'word-build':        { title: 'ابنِ الكلمة',              desc: 'استمع ثم كوّن الكلمة صوتًا صوتًا.',                   icon: '🧩' },
   'missing-letter':    { title: 'الحرف الناقص',            desc: 'استمع وأكمل الحرف الناقص، وانتبه لحروف العلة.',      icon: '✍️' },
   'meaning':           { title: 'ما معنى الكلمة؟',         desc: 'اقرأ الكلمة واختر معناها بالعربية.',                  icon: '💡' },
-  'first-last-sound':  { title: 'الصوت الأول والأخير',     desc: 'حدّد الصوت في أول الكلمة أو في آخرها.',              icon: '🎯' },
+  'first-last-sound':  { title: 'أين الصوت؟',              desc: 'حدّد الصوت في أول الكلمة أو وسطها أو آخرها.',         icon: '🎯' },
+  'blend':             { title: 'اقرأ صوتًا صوتًا',          desc: 'اضغط على كل حرف لتسمع صوته، ثم اختر الكلمة.',         icon: '🔗' },
   'complete-sentence': { title: 'أكمل الجملة',             desc: 'استمع إلى الجملة واختر الكلمة الناقصة.',             icon: '📝' },
   'read-text':         { title: 'اقرأ وافهم',              desc: 'اقرأ نصًا قصيرًا وأجب بـ «نعم» أو «لا».',             icon: '📖' },
   'tracing':           { title: 'اكتب الحرف',              desc: 'شاهد كيف يُكتب الحرف، ثم تتبّعه بإصبعك، ثم اكتبه وحدك.', icon: '✏️', optional: true },
@@ -175,9 +176,9 @@ export const HINTS = {
 };
 
 // Order: hear and recognise -> build and write -> meaning -> sentences.
-const LETTER_UNIT = ['sound-match', 'capital-match', 'tracing', 'which-word', 'first-last-sound', 'word-build', 'missing-letter',
+const LETTER_UNIT = ['sound-match', 'capital-match', 'tracing', 'which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter',
   'dictation', 'meaning', 'heart-words', 'complete-sentence', 'sentence-build'];
-const DIGRAPH_UNIT = ['sound-match', 'which-word', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
+const DIGRAPH_UNIT = ['sound-match', 'which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
   'heart-words', 'complete-sentence', 'sentence-build'];
 // Unit 1 has too few sentences of three or more words for "sentence order".
 const FIRST_UNIT = LETTER_UNIT.filter(a => a !== 'sentence-build');

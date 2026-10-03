@@ -30,6 +30,9 @@ export const INSTRUCTIONS = {
   meaning: 'اقرأ الكلمة: ما معناها؟',
   'first-sound': 'استمع: ما الصوت الأول في الكلمة؟',
   'last-sound': 'استمع: ما الصوت الأخير في الكلمة؟',
+  'middle-sound': 'استمع: ما الصوت في وسط الكلمة؟',
+  blend: 'اضغط على كل حرف لتسمع صوته، ثم اختر الكلمة التي تكوّنها الأصوات.',
+  'sentence-picture': 'اقرأ الجملة، واختر الصورة المناسبة.',
   'complete-sentence': 'استمع إلى الجملة، واختر الكلمة الناقصة.',
   'read-text': 'اقرأ النص، ثم أجب: هل هذه الجملة صحيحة؟',
   dictation: 'استمع، ثم اكتب الكلمة.',
@@ -50,7 +53,9 @@ export const INSTRUCTIONS = {
 export const CHECK_SIZE = 12;
 const SUFFIX_TILES = ['ed', 'ing', 's', 'es', 'er', 'est', 'ly', 'ful'];
 
-export function createQuestionBank({ units, gpc, alphabet, perception = [], hasClip = () => true, sense = [], benchTexts = [], stages = [] }) {
+export function createQuestionBank({
+  units, gpc, alphabet, perception = [], hasClip = () => true, sense = [], benchTexts = [], stages = [], pictures = []
+}) {
   const lex = buildLexicon(units, gpc);
   const idx = (unitId) => units.findIndex(u => u.id === unitId);
   const unitOf = (unitId) => units[idx(unitId)];
@@ -284,20 +289,28 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
     };
   }
 
-  function firstLastItem(u, info, last, rng) {
+  /** Can the middle sound of this word be asked? Three sound units with a vowel in the middle (c-a-t, sh-i-p). */
+  const hasMiddle = (w) => {
+    const gs = graphemesOf(w);
+    return gs.length === 3 && gpc[gs[1]] && isVowel(gs[1]) && !/_e$/.test(gs[1]);
+  };
+
+  function firstLastItem(u, info, position, rng) {
     const gs = graphemesOf(info.w).filter(g => gpc[g]);
-    const target = last ? gs[gs.length - 1] : gs[0];
+    const target = position === 'last' ? gs[gs.length - 1] : position === 'middle' ? gs[1] : gs[0];
     // Options are shown by label, so never two keys with the same label (c / c2).
     const pool = taughtGraphemes(u.id).filter(g => !/_e$/.test(g));
-    const distractors = pickGraphemeDistractors(target, pool, 3, rng);
+    const distractors = position === 'middle'
+      ? vowelDistractors(target, pool.filter(g => isVowel(g)), 3, rng)
+      : pickGraphemeDistractors(target, pool, 3, rng);
     return {
-      key: `${u.id}:first-last-sound:${info.w}:${last ? 'last' : 'first'}`,
+      key: `${u.id}:first-last-sound:${info.w}:${position}`,
       unit: u.id,
       activity: 'first-last-sound',
       item: info.w,
       type: 'choice',
-      instruction: INSTRUCTIONS[last ? 'last-sound' : 'first-sound'],
-      prompt: { audio: clipKey('w', info.w), position: last ? 'last' : 'first' },
+      instruction: INSTRUCTIONS[`${position}-sound`],
+      prompt: { audio: clipKey('w', info.w), position },
       options: shuffle([target, ...distractors], rng).map(g => opt(g, label(g))),
       answer: target,
       focus: [target],
@@ -503,7 +516,61 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
   const wordBuild = (u, n, rng) => shuffle(unitWords(u), rng).slice(0, n).map(info => wordBuildItem(u, info, rng));
   const missingLetter = (u, n, rng) => shuffle(unitWords(u), rng).slice(0, n).map(info => missingLetterItem(u, info, rng));
   const meaning = (u, n, rng) => shuffle(unitWords(u), rng).slice(0, n).map(info => meaningItem(u, info, rng));
-  const firstLastSound = (u, n, rng) => shuffle(oneSyllable(unitWords(u)), rng).slice(0, n).map((info, k) => firstLastItem(u, info, k % 2 === 1, rng));
+  // First, last and middle sound in turn (the middle only where it is a single vowel).
+  const firstLastSound = (u, n, rng) => shuffle(oneSyllable(unitWords(u)), rng).slice(0, n).map((info, k) => {
+    const position = ['first', 'last', 'middle'][k % 3];
+    return firstLastItem(u, info, position === 'middle' && !hasMiddle(info.w) ? 'first' : position, rng);
+  });
+
+  // ---------------- blending: tap each sound, then choose the word ----------------
+  const soundClip = (g) => gpc[g] && clipKey('ph', gpc[g].ph);
+  const blendable = (w) => {
+    const gs = graphemesOf(w);
+    return gs.length >= 2 && gs.length <= 5 && gs.every(g => gpc[g] && !/_e$/.test(g) && hasClip(soundClip(g)));
+  };
+
+  function blendItem(u, info, rng) {
+    const w = info.w;
+    // Minimal-pair neighbours first (one sound different), then words of similar length.
+    const others = pickWordDistractors(w, oneSyllable(wordsUpTo(u.id)).map(x => x.w), 2, rng);
+    if (others.length < 2) return null;
+    const gs = graphemesOf(w);
+    return {
+      key: `${u.id}:blend:${w}`,
+      unit: u.id,
+      activity: 'blend',
+      item: w,
+      type: 'blend',
+      instruction: INSTRUCTIONS.blend,
+      prompt: { tiles: piecesOf(w).map((text, i) => ({ text, audio: soundClip(gs[i]), vowel: isVowel(gs[i]) })) },
+      options: shuffle([w, ...others.slice(0, 2)], rng).map(x => ({ value: x, audio: clipKey('w', x) })),
+      answer: w,
+      focus: gs.filter(g => gpc[g]),
+      memory: [`w:${w}`],
+      feedback: wordFeedback(w)
+    };
+  }
+
+  const blend = (u, n, rng) => shuffle(oneSyllable(unitWords(u)).filter(x => blendable(x.w)), rng)
+    .map(info => blendItem(u, info, rng)).filter(Boolean).slice(0, n);
+
+  // ---------------- sentence and picture (placement) ----------------
+  function pictureItem(u, x, rng) {
+    return {
+      key: `${u.id}:sentence-picture:${slugify(x.text)}`,
+      unit: u.id,
+      activity: 'sentence-picture',
+      item: x.text,
+      type: 'choice',
+      instruction: INSTRUCTIONS['sentence-picture'],
+      prompt: { statement: x.text },
+      options: shuffle(x.pics, rng).map(pic => opt(pic, pic, 'pic')),
+      answer: x.pics[0],
+      focus: [],
+      memory: [],
+      feedback: { audio: '', text: x.text, ar: x.ar, word: '', emoji: x.pics[0] }
+    };
+  }
   const completeSentence = (u, n, rng) => shuffle(u.sentences || [], rng).slice(0, n).map(s => completeSentenceItem(u, s, rng));
   const dictation = (u, n, rng) => shuffle(unitWords(u), rng).slice(0, n).map(info => dictationItem(u, info, rng));
 
@@ -614,6 +681,7 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
     'missing-letter': missingLetter,
     meaning,
     'first-last-sound': firstLastSound,
+    blend,
     'complete-sentence': completeSentence,
     'read-text': readText,
     dictation,
@@ -878,6 +946,9 @@ export function createQuestionBank({ units, gpc, alphabet, perception = [], hasC
     const heart = u.heart || [];
     if (u.id % 2 === 0 && heart.length) items.push(heartItem(u, pick(heart, rng), rng));
     else items.push(dictationItem(u, pick(unitWords(u), rng), rng));
+    // Three units read a sentence and choose its picture instead of a second sound or meaning item.
+    const pics = pictures.filter(x => x.unit === u.id);
+    if (pics.length && items.length > 1) items[1] = pictureItem(u, pick(pics, rng), rng);
     return items.filter(Boolean).map(q => ({ ...q, key: `place:${q.key}` }));
   }
 

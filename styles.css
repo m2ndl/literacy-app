@@ -410,7 +410,17 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--c-accent); outl
 .can-mark { color: var(--c-accent); font-weight: 800; }
 .check-result { display: flex; flex-direction: column; align-items: flex-start; }
 
+/* Blending, middle sound, sentence and picture */
+.blend { display: flex; flex-direction: column; align-items: center; gap: .8rem; width: 100%; }
+.blend-tiles { display: flex; justify-content: center; gap: .6rem; }
+.blend-tile { min-width: 4.2rem; height: 4.6rem; padding: 0 .6rem; font-size: 2.4rem; font-weight: 700; border-radius: .8rem; background: var(--c-soft); border: 2px solid var(--c-border); color: var(--c-text); }
+.blend-tile.vowel { color: var(--c-vowel); }
+.blend-tile.is-heard { border-color: var(--c-accent); box-shadow: 0 0 0 2px var(--c-accent) inset; }
+.option-pic { min-width: 6rem; }
+.pic-option { font-size: 2.6rem; line-height: 1.2; letter-spacing: .1em; }
+
 @media (max-width: 480px) {
+  .blend-tile { min-width: 3.4rem; height: 4rem; font-size: 2rem; }
   .drill-word { font-size: 2.4rem; }
   .drill-sentence { font-size: 1.4rem; }
   .read-aloud-text { font-size: 1.45rem; }
