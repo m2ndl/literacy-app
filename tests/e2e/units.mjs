@@ -1,5 +1,5 @@
 // Every activity of a few units, with a mix of right and wrong answers, then the unit check.
-import { newPage, check, closeBadges, runSession, progress, openWith, openUnit, unitsDone, question } from './harness.mjs';
+import { newPage, check, runSession, progress, openWith, openUnit, unitsDone, question, showAll } from './harness.mjs';
 
 const SKIP = new Set(['unit-check']);   // run last, once the other activities are done
 
@@ -14,8 +14,8 @@ async function runUnit(page, unitId) {
     const msg = (await page.innerText('#modal-message')).replace(/\s+/g, ' ');
     check(`unit ${unitId}: ${a} completes`, /اكتمل النشاط|أحسنت! قرأت/.test(msg), `${seen.length} answers`);
     await page.click('#modal-buttons button:last-child');
-    await closeBadges(page);
-    await page.waitForSelector('#lesson-view [data-activity]');
+    await page.waitForSelector('#lesson-view [data-activity]', { state: 'attached' });
+    await showAll(page);
   }
   await page.click('[data-activity="unit-check"]');
   await page.waitForSelector('#activity-content .instruction');
@@ -24,7 +24,6 @@ async function runUnit(page, unitId) {
   const p = await progress(page);
   check(`unit ${unitId}: unit check completes the unit`, p.completedUnits.includes(unitId) && p.unlockedUnit === unitId + 1);
   await page.click('.check-result .today-btn');
-  await closeBadges(page);
   await page.click('#back-button');
 }
 
@@ -43,6 +42,36 @@ export default async function units(browser, base) {
     check('unit 15: no page errors', page.errors.length === 0, page.errors.join(' | '));
     await page.context().close();
   }
+  // A calm path: one lesson card at home; in a unit, one "Continue" button through the required steps.
+  {
+    const page = await newPage(browser, base);
+    await openWith(page, '');
+    check('home shows one main card (today\'s lesson)', (await page.$$eval('#today-panel .today-main > *', ns => ns.length)) === 1
+      && (await page.innerText('[data-card="lesson"]')).includes('درس اليوم'));
+    await page.click('#menu-button');
+    check('rare menu items are folded under settings', await page.isVisible('#backup-button') && !(await page.isVisible('#reset-progress')));
+    await page.click('#menu-button');
+    await page.click('[data-card="lesson"] .continue-btn');
+    await page.waitForSelector('#lesson-view .continue-card');
+    check('a new unit opens on step 1 of 7, with the full activity list folded',
+      (await page.innerText('.continue-card')).includes('الخطوة ١ من ٧') && !(await page.isVisible('#lesson-view [data-activity="capital-match"]')));
+    await page.click('[data-continue]');
+    await page.waitForSelector('#activity-content .instruction');
+    const first = await question(page);
+    await runSession(page, () => true);
+    await page.waitForSelector('#message-modal:not(.hidden)');
+    await page.click('#modal-buttons button:first-child');     // "Continue"
+    await page.waitForSelector('#activity-content .instruction');
+    const second = await question(page);
+    check('Continue goes from the sounds straight to blending', first.activity === 'sound-match' && second.activity === 'blend', `${first.activity} -> ${second.activity}`);
+    await page.click('#back-button');
+    await page.waitForSelector('#lesson-view .continue-card');
+    check('the unit page now shows step 2', (await page.innerText('.continue-card')).includes('الخطوة ٢ من ٧'));
+    await page.click('#back-button');
+    check('home: the lesson card continues at step 2', (await page.innerText('[data-card="lesson"]')).includes('الخطوة ٢ من ٧'));
+    check('calm path: no page errors', page.errors.length === 0, page.errors.join(' | '));
+    await page.context().close();
+  }
   // Feedback details: dictation with a vowel left out, and tracing a mirrored letter.
   {
     const page = await newPage(browser, base);
@@ -56,6 +85,7 @@ export default async function units(browser, base) {
     await page.waitForSelector('.spell-diff');
     check('dictation names the missing vowel', (await page.innerText('#feedback')).includes('حرف العلة'));
     await page.click('#back-button');
+    await showAll(page);
     await page.click('[data-activity="tracing"]');
     await page.waitForSelector('.trace-canvas');
     const { answer } = await import('./harness.mjs');

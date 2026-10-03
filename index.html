@@ -79,12 +79,6 @@
     <!-- Header -->
     <header class="flex flex-wrap gap-3 justify-between items-center mb-8">
       <div class="flex items-center gap-4 flex-wrap">
-        <div class="flex items-center gap-1 text-yellow-500" title="النقاط">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-          </svg>
-          <span id="points-display" class="font-bold text-lg">0</span>
-        </div>
         <div class="flex items-center gap-1 text-red-500" title="أيام متتالية">
           <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.934l-6.794 12.42a1 1 0 00.385 1.45l.007.003c.274.12.586.166.904.166l4.593 0c1.061 0 1.928-.867 1.928-1.928V10a1 1 0 00-1-1h-1.534l.732-4.661c.04-.244.028-.488-.036-.722zM9 11a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
@@ -109,15 +103,19 @@
               لغتي الثانية.
             </a>
             <div class="py-1">
-              <button id="progress-report-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تقرير التقدّم</button>
-              <button id="achievements-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإنجازات</button>
-              <button id="audio-test-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🔊 اختبار الصوت</button>
-              <button id="important-note-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📌 ملاحظة مهمة</button>
-              <button id="placement-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🧭 اختبار تحديد المستوى</button>
+              <button id="progress-report-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📈 تقرير التقدّم</button>
               <button id="backup-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">💾 نسخة احتياطية</button>
               <button id="install-app-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
-              <button id="theme-toggle" type="button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" aria-pressed="false">🌙 تفعيل الوضع الداكن</button>
-              <button id="reset-progress" class="block w-full text-right px-4 py-2 text-sm text-red-700 hover:bg-red-50">إعادة تعيين التقدّم</button>
+              <!-- Used rarely: folded so the menu stays short. -->
+              <details id="settings-group" class="border-t">
+                <summary class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">⚙️ الإعدادات والمساعدة</summary>
+                <button id="audio-test-button" class="block w-full text-right px-6 py-2 text-sm text-gray-700 hover:bg-gray-100">🔊 اختبار الصوت</button>
+                <button id="important-note-button" class="block w-full text-right px-6 py-2 text-sm text-gray-700 hover:bg-gray-100">📌 ملاحظة مهمة</button>
+                <button id="placement-button" class="block w-full text-right px-6 py-2 text-sm text-gray-700 hover:bg-gray-100">🧭 اختبار تحديد المستوى</button>
+                <button id="achievements-button" class="block w-full text-right px-6 py-2 text-sm text-gray-700 hover:bg-gray-100">🏅 الإنجازات</button>
+                <button id="theme-toggle" type="button" class="block w-full text-right px-6 py-2 text-sm text-gray-700 hover:bg-gray-100" aria-pressed="false">🌙 تفعيل الوضع الداكن</button>
+                <button id="reset-progress" class="block w-full text-right px-6 py-2 text-sm text-red-700 hover:bg-red-50">إعادة تعيين التقدّم</button>
+              </details>
             </div>
           </div>
         </div>
@@ -130,7 +128,7 @@
       <!-- Dashboard View -->
       <div id="dashboard-view">
         <div id="today-panel" class="mb-8"></div>
-        <p class="text-lg text-gray-600 mb-6">أكمل أنشطة كل وحدة بنسبة ٨٠٪ على الأقل لتفتح الوحدة التالية.</p>
+        <p class="text-lg text-gray-600 mb-6">أكمل خطوات الوحدة واحدة بعد الأخرى، ثم اختبارها القصير، لتفتح الوحدة التالية.</p>
         <div id="unit-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       </div>
 
@@ -204,16 +202,6 @@
       </div>
     </div>
 
-    <!-- Achievement Unlocked Modal -->
-    <div id="achievement-unlocked-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true">
-      <div id="achievement-card" class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto achievement-unlocked-anim">
-        <h3 class="text-2xl font-bold text-yellow-500 mb-2">إنجاز جديد!</h3>
-        <div id="achievement-icon" class="w-24 h-24 mx-auto my-4"></div>
-        <h4 id="achievement-name" class="text-xl font-bold mb-2"></h4>
-        <p id="achievement-desc" class="text-gray-600 mb-6"></p>
-        <button id="achievement-close-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">رائع!</button>
-      </div>
-    </div>
   </div>
 
   <!-- App scripts (module) -->

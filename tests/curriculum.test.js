@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { units, gpc, ACTIVITY_META, PERCEPTION, STAGES } from '../data.js';
 import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES, BENCH_PSEUDO } from '../data-assess.js';
 import { buildLexicon, decodeWord, analyzeToken, checkSentence, contrastOf, sameSound, tokenize, segment } from '../phonics.js';
+import { OPTIONAL_ACTIVITIES, unitSteps, requiredActivities } from '../logic.js';
 
 const lex = buildLexicon(units, gpc);
 const ARABIC = /[؀-ۿ]/;
@@ -245,9 +246,23 @@ describe('ear-training sets', () => {
 });
 
 describe('activity metadata', () => {
-  it('marks tracing and reading aloud as optional, and only them', () => {
+  it('marks the extra-practice activities as optional, the same ones logic.js leaves out of a unit', () => {
     const optional = Object.entries(ACTIVITY_META).filter(([, m]) => m.optional).map(([k]) => k);
-    assert.deepEqual(optional, ['tracing', 'read-aloud']);
+    assert.deepEqual(new Set(optional), OPTIONAL_ACTIVITIES);
+    for (const a of ['sound-match', 'blend', 'which-word', 'meaning', 'dictation', 'complete-sentence', 'read-text']) {
+      assert.ok(!OPTIONAL_ACTIVITIES.has(a), `${a} should be required`);
+    }
+  });
+
+  it('keeps every unit to at most eight required steps, in teaching order, with the check last', () => {
+    for (const u of units) {
+      const steps = unitSteps(u);
+      assert.ok(steps.length >= 5 && steps.length <= 8, `unit ${u.id}: ${steps}`);
+      assert.equal(steps[steps.length - 1], 'unit-check');
+      assert.deepEqual(new Set(steps), new Set(requiredActivities(u)));
+      if (steps.includes('sound-match')) assert.equal(steps[0], 'sound-match', `unit ${u.id}: ${steps}`);
+      if (steps.includes('dictation') && steps.includes('meaning')) assert.ok(steps.indexOf('meaning') < steps.indexOf('dictation'));
+    }
   });
 
   it('ends every unit with reading aloud and the unit check', () => {

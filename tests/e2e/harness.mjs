@@ -87,23 +87,22 @@ export async function openWith(page, mutate = '') {
   }, { k: PROGRESS_KEY, src: mutate });
   await page.goto(page.base);
   await page.click('#start-learning-btn');
-  await closeBadges(page);
   await page.waitForSelector('#unit-grid .unit-card');
 }
 
 /** Progress with the first `n` units complete (unit n + 1 open). */
 export const unitsDone = (n) => `p.unlockedUnit = ${n + 1}; p.completedUnits = Array.from({ length: ${n} }, (_, i) => i + 1);`;
 
-export async function closeBadges(page) {
-  for (let i = 0; i < 6 && await page.isVisible('#achievement-unlocked-modal:not(.hidden)'); i++) {
-    await page.click('#achievement-close-btn');
-    await page.waitForTimeout(150);
-  }
-}
 
 export async function openUnit(page, unitId) {
   await page.click(`#unit-grid .unit-card >> nth=${unitId - 1}`);
-  await page.waitForSelector('#lesson-view [data-activity]');
+  await page.waitForSelector('#lesson-view [data-activity]', { state: 'attached' });
+  await showAll(page);
+}
+
+/** Unfold the folded lists (every activity of a unit, "More" on the home screen, settings in the menu). */
+export async function showAll(page) {
+  await page.evaluate(() => document.querySelectorAll('details').forEach(d => { d.open = true; }));
 }
 
 async function drawStrokes(page, strokes) {

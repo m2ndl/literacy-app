@@ -679,7 +679,7 @@ export function createQuestionBank({
 
   /**
    * Twelve mixed items covering the whole unit, given with no feedback until the end (assess.js):
-   * minimal pairs, meanings, dictation, a word-part item, two made-up words, a sentence or
+   * minimal pairs, meanings, dictation, two made-up words, a sentence or
    * text question, and the unit's signs, forms or new sounds.
    */
   function unitCheck(u, rng = Math.random) {
@@ -696,18 +696,17 @@ export function createQuestionBank({
     whichWord(u, 2, rng).forEach(add);
     for (let k = 0; k < 2; k++) add(meaningItem(u, nextWord(), rng));
     for (let k = 0; k < 2; k++) add(dictationItem(u, nextWord(), rng));
-    add(rng() < 0.5 ? missingLetterItem(u, nextWord(), rng) : wordBuildItem(u, nextWord(), rng));
     // Made-up words: the unit's own, else the latest ones taught (review units).
     const own = (u.pseudo || []).map(pw => ({ unit: u, pw }));
     const pseudoPool = own.length ? own : pseudoUpTo(u.id).slice(-8);
     shuffle(pseudoPool, rng).slice(0, 2).forEach(({ pw }) => add(pseudoItem(u, pw, rng)));
+    const texts = readText(u, 99, rng);
+    const last = texts.length ? pick(texts, rng) : completeSentence(u, 1, rng)[0];
     const extra = (u.signs || []).length ? signs(u, 1, rng)
       : (u.forms || []).length ? forms(u, 1, rng)
         : (u.graphemes || []).length ? soundMatch(u, 1, rng).slice(0, 1)
-          : sentenceBuild(u, 1, rng);
+          : completeSentence(u, 2, rng).filter(q => q.key !== last?.key);
     extra.slice(0, 1).forEach(add);
-    const texts = readText(u, 99, rng);
-    const last = texts.length ? pick(texts, rng) : completeSentence(u, 1, rng)[0];
     // Fill any gap with more meanings and dictation, keeping the reading question last.
     for (let k = 0; items.length < CHECK_SIZE - 1 && k < 20; k++) add(k % 2 ? dictationItem(u, nextWord(), rng) : meaningItem(u, nextWord(), rng));
     const mixed = shuffle(items, rng);
@@ -789,8 +788,9 @@ export function createQuestionBank({
 
   // ---------------- spaced review ----------------
   // Harder question types as an item becomes more secure (recognition -> recall).
-  const REVIEW_TYPES = [['meaning', 'which-word'], ['meaning', 'which-word'], ['which-word', 'missing-letter', 'word-build'],
-    ['missing-letter', 'word-build', 'dictation'], ['dictation', 'missing-letter'], ['dictation'], ['dictation']];
+  // Review uses only the formats every learner has met (the required steps of a unit).
+  const REVIEW_TYPES = [['meaning', 'which-word'], ['meaning', 'which-word'], ['which-word', 'meaning'],
+    ['meaning', 'dictation'], ['dictation'], ['dictation'], ['dictation']];
 
   /** One review question for an item key, in the context of the learner's current unit. */
   function buildItem(key, ctxUnitId, rng = Math.random, { box = 0 } = {}) {

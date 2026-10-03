@@ -1032,6 +1032,32 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
   - The words themselves (*the, I, is, you, said*…) stay in sentences and texts, because 179 of the 203 sentences use at least one. Learners hear every sentence whole, so these words are picked up by ear and sight, with no rule or exception to learn.
   - The decodability linter still lets them into sentences. Review items for them saved in old progress (`h:`) are no longer offered.
   - This supersedes the heart-word parts of sections 7, 9, 13 and 14.
+- **Less to manage at once** (owner decision: the learners are easily overloaded). Choice, reading and pressure are cut, not content.
+  - **Fewer required steps.** A unit now needs 5–8 steps instead of 9–14:
+    - sounds (sound-match);
+    - blending;
+    - which word;
+    - meaning;
+    - dictation;
+    - a sentence;
+    - the text, where the unit has one;
+    - the unit check.
+
+    Capital letters, first/last sound, word build, missing letter and sentence order overlap with these. They stay as optional practice. The unit check and review use only the required formats, so no test question comes in a format the learner has not practised.
+  - **One "Continue" button.**
+    - The unit page and the home screen show the next step only: "Step 3 of 7 — Which word did you hear? — Continue". After a step, "Continue" opens the next one.
+    - The full list of activities is folded under "all activities".
+    - The pronunciation tips fold away once the unit is under way, and long word lists show 12 words at a time.
+
+    This removes a choice among up to 14 tiles before every practice. Choice and split attention are extraneous load for novices (Sweller et al. 2019); a single recommended path is the guided sequence that works best for beginners (Kirschner et al. 2006).
+  - **Calmer home screen.**
+    - Only "Today's lesson", plus review when items are due.
+    - Ear training, weak sounds, fluency practice, stage tests and the backup reminder sit under "More".
+    - The menu keeps the progress report, backup and install. Sound test, note, placement test, achievements, dark mode and reset are folded under "Settings and help".
+  - **Less pressure.**
+    - Badges are recorded quietly, with no pop-up during practice, and the points counter is no longer in the header.
+    - Fluency practice is untimed by default: 20 words or 10 sentences, scored as "x of y right" and not recorded. The 60/90-second timer is a button the learner chooses, and only timed runs count as fluency scores.
+    - Stage benchmarks keep their timed parts because they are measures; they are optional and sit under "More".
 
 ---
 
@@ -1100,6 +1126,7 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Hall, G., & Cook, G. (2012). Own-language use in language teaching and learning. *Language Teaching, 45*(3), 271–308. https://doi.org/10.1017/S0261444812000067
 - Kang, S. H. K. (2016). Spaced repetition promotes efficient and effective learning: Policy implications for instruction. *Policy Insights from the Behavioral and Brain Sciences, 3*(1), 12–19. https://doi.org/10.1177/2372732215624708
 - Karpicke, J. D., & Roediger, H. L. (2008). The critical importance of retrieval for learning. *Science, 319*(5865), 966–968. https://doi.org/10.1126/science.1152408
+- Kirschner, P. A., Sweller, J., & Clark, R. E. (2006). Why minimal guidance during instruction does not work: An analysis of the failure of constructivist, discovery, problem-based, experiential, and inquiry-based teaching. *Educational Psychologist, 41*(2), 75–86. https://doi.org/10.1207/s15326985ep4102_1
 - Knowles, M. S., Holton, E. F., & Swanson, R. A. (2015). *The Adult Learner* (8th ed.). Routledge.
 - Leitner, S. (1972). *So lernt man lernen.* Herder.
 - † Kulik, C.-L. C., Kulik, J. A., & Bangert-Drowns, R. L. (1990). Effectiveness of mastery learning programs: A meta-analysis. *Review of Educational Research, 60*(2), 265–299. https://doi.org/10.3102/00346543060002265
@@ -1112,6 +1139,7 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - Settles, B., & Meeder, B. (2016). A trainable spaced repetition model for language learning. In *Proceedings of the 54th Annual Meeting of the ACL* (pp. 1848–1858). https://doi.org/10.18653/v1/P16-1174
 - Shute, V. J. (2008). Focus on formative feedback. *Review of Educational Research, 78*(1), 153–189. https://doi.org/10.3102/0034654307313795
 - Speer, R. (2022). *wordfreq* (Version 3) [Software and word-frequency data]. https://github.com/rspeer/wordfreq
+- † Sweller, J., van Merriënboer, J. J. G., & Paas, F. (2019). Cognitive architecture and instructional design: 20 years later. *Educational Psychology Review, 31*(2), 261–292. https://doi.org/10.1007/s10648-019-09465-5
 - Thomson, R. I. (2018). High variability [pronunciation] training (HVPT): A proven technique about which every language teacher and learner ought to know. *Journal of Second Language Pronunciation, 4*(2), 208–231. https://doi.org/10.1075/jslp.17038.tho
 
 ### Speech technology

@@ -1,5 +1,5 @@
 // First run: the start choice, the placement test, the iPhone guide and the in-app-browser banner.
-import { newPage, check, closeBadges, runSession, progress, devices } from './harness.mjs';
+import { newPage, check, runSession, progress, devices } from './harness.mjs';
 
 export default async function start(browser, base) {
   // Placement: right on units 1-3, wrong on unit 4 -> starts at unit 4, no points.
@@ -9,10 +9,8 @@ export default async function start(browser, base) {
     await page.click('#start-learning-btn');
     await page.waitForSelector('#message-modal:not(.hidden)');
     await page.click('#modal-buttons button:nth-child(2)');      // "I know some English"
-    await closeBadges(page);
     await page.waitForSelector('#message-modal:not(.hidden)');
     await page.click('#modal-buttons button:first-child');        // start the test
-    await closeBadges(page);
     await page.waitForSelector('#activity-content .instruction');
     const seen = await runSession(page, (q) => q.unit < 4, 40);
     const text = (await page.innerText('#modal-message')).replace(/\s+/g, ' ');
@@ -30,7 +28,6 @@ export default async function start(browser, base) {
     await page.click('#start-learning-btn');
     await page.waitForSelector('#message-modal:not(.hidden)');
     await page.click('#modal-buttons button:first-child');
-    await closeBadges(page);
     await page.waitForSelector('#install-view:not(.hidden)');
     check('iPhone guide explains Add to Home Screen', (await page.innerText('#install-view')).includes('إضافة إلى الشاشة الرئيسية'));
     await page.click('#install-view .next-btn');
