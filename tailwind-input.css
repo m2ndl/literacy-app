@@ -1,1 +1,14 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+/* Only scan the app's own markup and scripts (not docs, tools or audio). */
+@source "./index.html";
+@source "./app.js";
+@source "./theme.js";
+@source "./data.js";
+@source "./dom.js";
+@source "./widgets.js";
+@source "./tracing.js";
+@source "./backup-ui.js";
+@source "./platform.js";
+@source "./assess-ui.js";
+@source "./drill.js";
+@source "./recorder.js";

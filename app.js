@@ -1,1001 +1,1320 @@
-// app.js (ES module)
-import { appData, getAchievements } from './data.js';
-import { getDefaultProgress, validateProgress, shuffleArray, formatTime, getLearnedContent, computeStreak, pickDistractors, getPossibleActivities, isChunkComplete } from './logic.js';
+// app.js (ES module) - Interface for the course: units, lessons, activities, review, ear training,
+// placement, reports. Pedagogical design: see PEDAGOGY_PLAN.md.
+import { units, gpc, ALPHABET, ACTIVITY_META, HINTS, PERCEPTION, STAGES, getAchievements } from './data.js';
+import {
+  STORAGE_KEY, V4_KEY, V3_KEY, LEGACY_KEY, getDefaultProgress, loadProgressFrom, recordAttempt, topConfusions,
+  graphemeAccuracy, hasPassed, isUnitComplete, requiredActivities, nextUnitId, formatTime, computeStreak, PASS_MARK
+} from './logic.js';
+import {
+  dayNumber, learnItems, dueItems, weakTargets, recentConfusions, itemStatus, placementOutcome, recordPerceptionBlock
+} from './learner.js';
+import { createQuestionBank, PERCEPTION_VOICES } from './questions.js';
+import { clipKey, errorFocus, classifyError, compareSpelling, sameSound, isVowel, shuffle, toPhonemes } from './phonics.js';
+import * as audio from './audio.js';
+import { el, en, svgIcon, richArabic, wordNode, heartNode, section, toArabicDigits, configureWords } from './dom.js';
+import { buildWidget, keyboardWidget, audioChoiceWidget, blendWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
+import { traceWidget } from './tracing.js';
+import { renderBackup, backupDue } from './backup-ui.js';
+import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES, BENCH_PSEUDO } from './data-assess.js';
+import { recordCheck, checkPassed, wordsPerMinute, recordTextReading } from './assess.js';
+import { todayCards, reportSections, renderSpeedMenu } from './assess-ui.js';
+import { recordWidget, stopRecorder } from './recorder.js';
+import { platformInfo, renderInstallGuide, inAppBanner } from './platform.js';
 
-// -------------------- Optional UI Layers (conflict-safe) --------------------
-function ensureOptionalStyles() {
-  const cssFiles = ['./ui-overrides.css', './semantic-tokens.css'];
-  cssFiles.forEach((href) => {
-    if (document.querySelector(`link[href=\"${href}\"]`)) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-  });
-}
+const bank = createQuestionBank({
+  units, gpc, alphabet: ALPHABET, perception: PERCEPTION, hasClip: (k) => audio.hasClip(k),
+  sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES, benchPseudo: BENCH_PSEUDO
+});
+configureWords(bank.wordInfo);
+const achievements = getAchievements(units.length);
+const POINTS = { unit: 5, review: 5, weak: 5, perception: 1, placement: 0, check: 0, benchmark: 0, fix: 2 };
+const CHECK_BONUS = 20;                 // points for passing a unit check
+const ASSESSMENT_MODES = new Set(['placement', 'check', 'benchmark']);   // no feedback until the end
+const ITEMS_PER_ACTIVITY = 8;
+const REVIEW_SIZE = 12;
+// Activities whose prompt is heard (played automatically); "meaning" and texts are read first.
+const AUTOPLAY = new Set(['sound-match', 'which-word', 'word-build', 'missing-letter', 'first-last-sound', 'complete-sentence',
+  'dictation', 'heart-words', 'sentence-build', 'perception']);
+const GRAPHEME_OPTIONS = new Set(['sound-match', 'capital-match', 'missing-letter', 'first-last-sound', 'perception']);
+const TIMED = new Set(['choice', 'yesno']);   // response times are kept for recognition tasks only
 
-ensureOptionalStyles();
-import('./theme.js').catch((e) => console.warn('Optional module not loaded: theme.js', e));
-import('./activities-enhance.js').catch((e) => console.warn('Optional module not loaded: activities-enhance.js', e));
-
-// -------------------- Constants --------------------
-const PLAY_SVG = `<svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-  <path fill-rule="evenodd"
-        d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
-        clip-rule="evenodd"></path>
-</svg>`;
-
-// -------------------- Global State --------------------
-let achievements = getAchievements(appData.chunks.length);
-
-let userProgress = {
-  unlockedChunk: 1,
-  completedChunks: [],
-  completedActivities: {},
-  points: 0,
-  streak: 0,
-  lastLoginDate: null,
-  earnedAchievements: [],
-  timeSpent: 0,
-  version: 2
-};
-
-let femaleVoice = null;
-let currentActivity = {};
-let audioCtx = null;
+let progress = getDefaultProgress();
+let legacyFound = false;
+let session = null;
+let backTarget = null;
+let saveTimer = null;
 let learningTimer = null;
-let saveTimeout = null;
-let achievementQueue = [];
-let isShowingAchievement = false;
-let speechTimeout = null;
+let readerToken = 0;
+let slowWords = false;
+const achievementQueue = [];
+let showingAchievement = false;
+let activeDrill = null;                 // a timed drill in progress (stopped when the view changes)
 
-const THEME_STORAGE_KEY = 'literacyAppTheme';
-let currentTheme = 'light';
+const $ = (id) => document.getElementById(id);
+const unitById = (id) => units.find(u => u.id === id);
+const today = () => dayNumber();
+/** How a grapheme key is shown: a_e, ow (for ow2), y (for y2)... */
+const gLabel = (g) => (gpc[g] && gpc[g].label) || g;
+const unitOfGrapheme = (g) => units.find(u => (u.graphemes || []).includes(g))?.id ?? null;
 
-// -------------------- Audio Engine --------------------
-function initAudio() {
-  if (!audioCtx) {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) {
-      console.error('Audio context failed to initialize:', e);
-    }
-  }
-}
-function playSuccessSound() {
-  if (!audioCtx) return;
-  try {
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    oscillator.start(audioCtx.currentTime);
-    oscillator.stop(audioCtx.currentTime + 0.2);
-  } catch (e) { console.error('Error playing success sound:', e); }
-}
-function playFailureSound() {
-  if (!audioCtx) return;
-  try {
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    oscillator.type = 'sawtooth';
-    oscillator.frequency.setValueAtTime(120, audioCtx.currentTime);
-    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    oscillator.start(audioCtx.currentTime);
-    oscillator.stop(audioCtx.currentTime + 0.3);
-  } catch (e) { console.error('Error playing failure sound:', e); }
-}
-
-// -------------------- Persistence & Utilities --------------------
-function debouncedSave() {
-  if (saveTimeout) clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => {
-    try { localStorage.setItem('literacyAppProgress', JSON.stringify(userProgress)); }
+// ---------------------------------------------------------------------------
+// Persistence, header, timer, streak
+// ---------------------------------------------------------------------------
+function save(now = false) {
+  clearTimeout(saveTimer);
+  const write = () => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); }
     catch (e) { console.warn('Cannot save progress (private browsing?):', e); }
+  };
+  if (now) write(); else saveTimer = setTimeout(write, 800);
+}
+
+function updateHeader() {
+  $('points-display').textContent = progress.points;
+  $('streak-display').textContent = progress.streak;
+}
+
+function startTimer() {
+  clearInterval(learningTimer);
+  learningTimer = setInterval(() => {
+    progress.timeSpent++;
+    if (progress.timeSpent % 15 === 0) save();
   }, 1000);
 }
-function saveProgress() { debouncedSave(); }
 
-function loadProgress() {
-  try {
-    const saved = localStorage.getItem('literacyAppProgress');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      userProgress = validateProgress(parsed);
-    }
-  } catch (e) {
-    console.error('Error loading progress:', e);
-    userProgress = getDefaultProgress();
-  }
-}
-
-function updateHeaderStats() {
-  pointsDisplay.textContent = userProgress.points;
-  streakDisplay.textContent = userProgress.streak;
+function stopTimer() {
+  clearInterval(learningTimer);
+  learningTimer = null;
+  save(true);
 }
 
 function handleStreak() {
-  const updated = computeStreak(userProgress);
-  if (updated.lastLoginDate === userProgress.lastLoginDate && updated.streak === userProgress.streak) return;
-  userProgress.streak = updated.streak;
-  userProgress.lastLoginDate = updated.lastLoginDate;
+  const updated = computeStreak(progress);
+  if (updated.lastLoginDate === progress.lastLoginDate && updated.streak === progress.streak) return;
+  progress.streak = updated.streak;
+  progress.lastLoginDate = updated.lastLoginDate;
   checkAchievements();
-  saveProgress();
+  save();
 }
 
-function startLearningTimer() {
-  if (learningTimer) clearInterval(learningTimer);
-  learningTimer = setInterval(() => {
-    userProgress.timeSpent++;
-    if (userProgress.timeSpent % 10 === 0) saveProgress();
-  }, 1000);
+// ---------------------------------------------------------------------------
+// Views
+// ---------------------------------------------------------------------------
+const VIEWS = ['dashboard-view', 'lesson-view', 'activity-view', 'achievements-view', 'progress-report-view', 'important-note-view',
+  'audio-test-view', 'perception-view', 'backup-view', 'install-view'];
+
+function showView(id, title, back = null) {
+  readerToken++;
+  audio.stop();
+  cleanupWidgets();
+  stopRecorder();
+  activeDrill?.cancel();
+  activeDrill = null;
+  if (id !== 'activity-view') session = null;
+  VIEWS.forEach(v => $(v).classList.toggle('hidden', v !== id));
+  $('main-title').textContent = title;
+  backTarget = back;
+  $('back-button').classList.toggle('hidden', !back);
+  window.scrollTo(0, 0);
 }
-function stopLearningTimer() {
-  if (learningTimer) {
-    clearInterval(learningTimer);
-    learningTimer = null;
+
+function closeMenu() {
+  $('dropdown-menu').classList.add('hidden');
+  $('menu-button').setAttribute('aria-expanded', 'false');
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard
+// ---------------------------------------------------------------------------
+const ICONS = {
+  lock: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+  done: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+  open: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'
+};
+
+function unitSubtitle(u) {
+  if (u.review) return 'مراجعة ونصوص قصيرة';
+  if ((u.rules || []).includes('two-syllable')) return 'كلمات من مقطعين';
+  return '';
+}
+
+const reviewFilter = (k) => (bank.itemUnit(k) || 1) <= progress.unlockedUnit;
+const currentWeak = () => {
+  const taught = bank.taughtGraphemes(progress.unlockedUnit);
+  return weakTargets(progress.attempts).filter(t => taught.includes(t.target));
+};
+
+function todayCard({ icon, title, text, action, onClick, muted = false, id = null }) {
+  return el('div', { class: `today-card ${muted ? 'is-muted' : ''}`, 'data-card': id },
+    el('div', { class: 'today-head' }, el('span', { class: 'today-icon', 'aria-hidden': 'true', text: icon }), el('h3', { class: 'today-title' }, ...richArabic(title))),
+    el('p', { class: 'today-text' }, ...richArabic(text)),
+    action ? el('button', { class: 'today-btn', onclick: onClick }, action) : null);
+}
+
+function renderToday() {
+  const cards = [];
+  const due = dueItems(progress.items, today(), { filter: reviewFilter });
+  if (Object.keys(progress.items).length) {
+    cards.push(due.length
+      ? todayCard({ id: 'review', icon: '🔁', title: `مراجعة اليوم (${toArabicDigits(due.length)})`, text: 'أسئلة قصيرة عن أصوات وكلمات تعلّمتها، في الوقت المناسب قبل أن تنساها.', action: 'ابدأ المراجعة', onClick: startReview })
+      : todayCard({ id: 'review', icon: '✓', title: 'لا توجد مراجعة اليوم', text: 'أحسنت! ستظهر هنا الكلمات والأصوات عندما يحين وقت مراجعتها.', muted: true }));
   }
-  saveProgress();
-}
-
-// -------------------- Speech --------------------
-function loadAndSetVoice() {
-  if (!('speechSynthesis' in window)) { console.warn('Speech synthesis not supported'); return; }
-  const voices = window.speechSynthesis.getVoices();
-
-  femaleVoice = voices.find(v => v.name === 'Google UK English Female') ||
-                voices.find(v => v.name === 'Google US English') ||
-                voices.find(v => v.name?.includes('Samantha')) ||
-                voices.find(v => v.name?.includes('Microsoft Hazel')) ||
-                voices.find(v => v.name?.includes('Microsoft Zira')) ||
-                voices.find(v => v.lang === 'en-GB' && v.name?.includes('Female')) ||
-                voices.find(v => v.lang === 'en-US' && v.name?.includes('Female')) ||
-                voices.find(v => v.lang === 'en-GB') ||
-                voices.find(v => v.lang?.startsWith('en'));
-
-  if (!femaleVoice && voices.length > 0) femaleVoice = voices[0];
-}
-function speak(text, rate = 0.8) {
-  if (!('speechSynthesis' in window)) return;
-  try {
-    if (speechTimeout) { clearTimeout(speechTimeout); speechTimeout = null; }
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-GB';
-    u.rate = rate;
-    if (femaleVoice) u.voice = femaleVoice;
-    u.onerror = (e) => console.error('Speech error:', e?.error);
-    window.speechSynthesis.speak(u);
-  } catch (e) { console.error('Speech synthesis failed:', e); }
-}
-
-// -------------------- Achievements --------------------
-function checkAchievements() {
-  achievements.forEach(ach => {
-    if (!userProgress.earnedAchievements.includes(ach.id) && ach.condition(userProgress)) {
-      userProgress.earnedAchievements.push(ach.id);
-      achievementQueue.push(ach);
-    }
-  });
-  if (!isShowingAchievement && achievementQueue.length > 0) showNextAchievement();
-}
-function showNextAchievement() {
-  if (achievementQueue.length === 0) { isShowingAchievement = false; return; }
-  isShowingAchievement = true;
-  const ach = achievementQueue.shift();
-  showAchievementUnlockedModal(ach);
-}
-
-// -------------------- DOM Refs --------------------
-const landingPage = document.getElementById('landing-page');
-const startLearningBtn = document.getElementById('start-learning-btn');
-const appContainer = document.getElementById('app-container');
-const mainTitle = document.getElementById('main-title');
-const backButton = document.getElementById('back-button');
-const dashboardView = document.getElementById('dashboard-view');
-const lessonView = document.getElementById('lesson-view');
-const activityView = document.getElementById('activity-view');
-const achievementsView = document.getElementById('achievements-view');
-const progressReportView = document.getElementById('progress-report-view');
-const importantNoteView = document.getElementById('important-note-view');
-const chunkGrid = document.getElementById('chunk-grid');
-const messageModal = document.getElementById('message-modal');
-const modalMessage = document.getElementById('modal-message');
-const modalButtons = document.getElementById('modal-buttons');
-const activityProgress = document.getElementById('activity-progress');
-const appBody = document.querySelector('body');
-const menuButton = document.getElementById('menu-button');
-const dropdownMenu = document.getElementById('dropdown-menu');
-const pointsDisplay = document.getElementById('points-display');
-const streakDisplay = document.getElementById('streak-display');
-const achievementUnlockedModal = document.getElementById('achievement-unlocked-modal');
-const loadingIndicator = document.getElementById('loading-indicator');
-const themeToggleButton = document.getElementById('theme-toggle');
-
-function getSystemTheme() {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function getInitialTheme() {
-  try {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-  } catch (e) {
-    console.warn('Cannot read theme preference:', e);
+  const sets = bank.perceptionSets(progress.unlockedUnit);
+  cards.push(sets.length
+    ? todayCard({ id: 'ear', icon: '👂', title: 'تدريب الأذن', text: 'ميّز بين أصوات متقاربة (مثل pin / pen) بأربعة أصوات مختلفة.', action: 'تدرّب', onClick: renderPerceptionMenu })
+    : todayCard({ id: 'ear', icon: '👂', title: 'تدريب الأذن', text: 'يبدأ بعد الوحدة الثانية.', muted: true }));
+  const weak = currentWeak();
+  if (weak.length) {
+    const label = weak.map(t => (t.partner ? `${t.target} / ${t.partner}` : t.target)).join('، ');
+    cards.push(todayCard({ id: 'weak', icon: '🎯', title: 'نقاط ضعفي', text: `تدريب قصير على: ${label}`, action: 'تدرّب', onClick: startWeak }));
   }
-  return getSystemTheme();
-}
-
-function updateThemeToggleLabel() {
-  if (!themeToggleButton) return;
-  const isDark = currentTheme === 'dark';
-  themeToggleButton.textContent = isDark ? '☀️ تفعيل الوضع الفاتح' : '🌙 تفعيل الوضع الداكن';
-  themeToggleButton.setAttribute('aria-pressed', String(isDark));
-}
-
-function applyTheme(theme) {
-  currentTheme = theme === 'dark' ? 'dark' : 'light';
-  document.body.classList.toggle('dark-mode', currentTheme === 'dark');
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  updateThemeToggleLabel();
-}
-
-function toggleTheme() {
-  const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  applyTheme(nextTheme);
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-  } catch (e) {
-    console.warn('Cannot save theme preference:', e);
+  todayCards(assessContext()).forEach(c => cards.push(todayCard(c)));
+  if (backupDue(progress, today())) {
+    cards.push(todayCard({ id: 'backup', icon: '💾', title: 'احفظ نسخة من تقدّمك', text: 'التقدّم محفوظ على هذا الجهاز فقط. احفظ رمزًا احتياطيًا في مكان آمن.', action: 'نسخة احتياطية', onClick: () => renderBackup(backupContext()) }));
   }
+  return el('div', { class: 'today-grid' }, ...cards);
 }
 
-// -------------------- View Switching --------------------
-function showView(viewName) {
-  [dashboardView, lessonView, activityView, achievementsView, progressReportView, importantNoteView].forEach(v => v.classList.add('hidden'));
-  backButton.classList.add('hidden');
-
-  if (viewName === 'dashboard') {
-    dashboardView.classList.remove('hidden');
-    mainTitle.textContent = 'مسار التعلم';
-  } else if (viewName === 'lesson' || viewName === 'activity') {
-    backButton.classList.remove('hidden');
-    if (viewName === 'lesson') lessonView.classList.remove('hidden'); else activityView.classList.remove('hidden');
-  } else if (viewName === 'achievements') {
-    achievementsView.classList.remove('hidden');
-    backButton.classList.remove('hidden');
-    mainTitle.textContent = 'الإنجازات';
-  } else if (viewName === 'progress-report') {
-    progressReportView.classList.remove('hidden');
-    backButton.classList.remove('hidden');
-    mainTitle.textContent = 'تقرير التقدم';
-  } else if (viewName === 'important-note') {
-    importantNoteView.classList.remove('hidden');
-    backButton.classList.remove('hidden');
-    mainTitle.textContent = 'ملاحظة مهمة';
-  }
-}
-
-// -------------------- Rendering --------------------
 function renderDashboard() {
-  chunkGrid.innerHTML = '';
-  appData.chunks.forEach(chunk => {
-    const isLocked = chunk.id > userProgress.unlockedChunk;
-    const isCompleted = userProgress.completedChunks.includes(chunk.id);
-    const card = document.createElement('div');
-    card.className = `chunk-card p-6 border-2 rounded-xl shadow-sm cursor-pointer text-right ${isLocked ? 'locked' : ''} ${isCompleted ? 'completed' : 'bg-white'}`;
-    if (!isLocked) card.addEventListener('click', () => showLesson(chunk.id));
-
-    const statusIcon = isLocked
-      ? 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'
-      : isCompleted
-      ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-      : 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z';
-
-    const iconColor = isLocked ? 'text-gray-400' : isCompleted ? 'text-green-600' : 'text-blue-500';
-    const lettersDisplay = (chunk.letters && chunk.letters.length > 0) ? chunk.letters.join(', ') : 'مراجعة';
-
-    card.innerHTML = `
-      <div class="flex justify-between items-start">
-        <span class="text-sm font-semibold text-gray-500">${chunk.title}</span>
-        <svg class="w-6 h-6 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${statusIcon}"></path>
-        </svg>
-      </div>
-      <h3 class="text-xl font-bold mt-2 text-gray-800 english-content">${lettersDisplay}</h3>
-      ${chunk.letters && chunk.letters.length > 0 ? `
-        <div class="mt-4 flex flex-wrap gap-1 justify-end">
-          ${chunk.letters.map(l => `<span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full english-content">${l}</span>`).join('')}
-        </div>` : ''}`;
-
-    chunkGrid.appendChild(card);
+  $('today-panel').replaceChildren(renderToday());
+  const grid = $('unit-grid');
+  grid.replaceChildren();
+  units.forEach(u => {
+    const stage = STAGES.find(st => st.from === u.id);
+    if (stage) grid.append(el('h2', { class: 'stage-title', text: stage.title }));
+    const locked = u.id > progress.unlockedUnit;
+    const done = progress.completedUnits.includes(u.id);
+    const required = requiredActivities(u);
+    const count = (progress.completedActivities[u.id] || []).filter(a => required.includes(a)).length;
+    const icon = svgIcon(locked ? ICONS.lock : done ? ICONS.done : ICONS.open, `w-6 h-6 ${locked ? 'text-gray-400' : done ? 'text-green-600' : 'text-blue-500'}`);
+    const sub = unitSubtitle(u);
+    grid.append(el('button', {
+      class: `chunk-card unit-card p-6 border-2 rounded-xl shadow-sm text-right ${locked ? 'locked' : ''} ${done ? 'completed' : 'bg-white'}`,
+      disabled: locked,
+      'aria-label': `${u.title}${locked ? ' (مقفلة)' : done ? ' (مكتملة)' : ''}`,
+      onclick: () => showLesson(u.id)
+    },
+    el('div', { class: 'flex justify-between items-start' }, el('span', { class: 'text-sm font-semibold text-gray-500', text: u.title }), icon),
+    u.graphemes.length || (u.patterns || []).length
+      ? el('div', { class: 'unit-graphemes mt-3' }, ...(u.graphemes.length ? u.graphemes.map(gLabel) : u.patterns.map(p => p.p)).map(g => en(g, 'grapheme-pill')))
+      : el('div', { class: 'mt-3 text-lg font-bold text-gray-800', text: sub }),
+    el('div', { class: 'text-sm text-gray-500 mt-3', text: `${toArabicDigits(count)} / ${toArabicDigits(required.length)} أنشطة` })));
   });
+  showView('dashboard-view', 'مسار التعلّم');
 }
 
-function showLesson(chunkId) {
-  const chunk = appData.chunks.find(c => c.id === chunkId);
-  if (!chunk) return;
-
-  document.getElementById('lesson-title').textContent = chunk.title;
-  mainTitle.textContent = `درس: ${chunk.title}`;
-
-  const createSoundButton = (text, pronunciation) => {
-    const container = document.createElement('div');
-    container.className = 'flex flex-col items-center';
-
-    const mainBtn = document.createElement('button');
-    mainBtn.className = 'text-2xl font-bold bg-blue-100 text-blue-800 w-16 h-16 rounded-lg flex items-center justify-center hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500';
-    mainBtn.textContent = text;
-    mainBtn.setAttribute('aria-label', `Listen to ${text}`);
-    let isPlaying = false;
-    mainBtn.onclick = () => {
-      if (!isPlaying) {
-        isPlaying = true;
-        speak(pronunciation || text);
-        setTimeout(() => { isPlaying = false; }, 300);
-      }
-    };
-
-    const slowBtn = document.createElement('button');
-    slowBtn.className = 'text-xs text-gray-500 hover:text-blue-600 font-medium mt-1';
-    slowBtn.textContent = 'صوت بطيء';
-    slowBtn.setAttribute('aria-label', `Listen to ${text} slowly`);
-    let isPlayingSlow = false;
-    slowBtn.onclick = (e) => {
-      e.stopPropagation();
-      if (!isPlayingSlow) {
-        isPlayingSlow = true;
-        speak(pronunciation || text, 0.5);
-        setTimeout(() => { isPlayingSlow = false; }, 500);
-      }
-    };
-
-    container.appendChild(mainBtn);
-    container.appendChild(slowBtn);
-    return container;
-  };
-
-  const lettersContainer = document.getElementById('lesson-letters');
-  lettersContainer.innerHTML = '';
-
-  if (chunk.letters && chunk.letters.length > 0) {
-    chunk.letters.forEach(l => lettersContainer.appendChild(createSoundButton(l.toUpperCase() + l, l)));
-  } else {
-    lettersContainer.innerHTML = '<p class="text-gray-500">مراجعة - لا توجد حروف جديدة</p>';
-  }
-
-  const wordsContainer = document.getElementById('lesson-words');
-  wordsContainer.innerHTML = '';
-  (chunk.words || []).forEach(w => wordsContainer.appendChild(createSoundButton(w)));
-
-  renderActivities(chunkId);
-  showView('lesson');
+// ---------------------------------------------------------------------------
+// Lesson view
+// ---------------------------------------------------------------------------
+async function playSound(ph, kw) {
+  const key = clipKey('ph', ph);
+  await audio.initAudio();
+  if (audio.hasClip(key)) return audio.play(key);
+  // No clean recording of this sound on its own: teach it through its keyword.
+  return audio.play(clipKey('w', kw), { text: kw });
 }
 
-function renderActivities(chunkId) {
-  const container = document.getElementById('activities-container');
-  container.innerHTML = '';
-  const chunk = appData.chunks.find(c => c.id === chunkId);
-  const activities = [];
-
-  if (chunk.letters && chunk.letters.length > 0) {
-    activities.push({ id: 'sound-match', name: 'مطابقة صوت الحروف' });
-    activities.push({ id: 'capital-match', name: 'مطابقة الحروف الكبيرة والصغيرة' });
+function soundCard(g) {
+  const info = gpc[g];
+  const sounds = [info, ...(info.alt ? [info.alt] : [])];
+  const card = el('div', { class: 'sound-card' });
+  card.append(el('button', {
+    class: 'sound-main', 'aria-label': `استمع إلى صوت ${g}`, onclick: () => playSound(info.ph, info.kw)
+  }, en(g.length === 1 ? `${g.toUpperCase()}${g}` : gLabel(g), 'sound-letters'), el('span', { class: 'sound-play', 'aria-hidden': 'true', text: '🔊' })));
+  if (g.length === 1) {
+    card.append(el('button', { class: 'name-btn', onclick: () => audio.play(clipKey('ln', g)) }, 'اسم الحرف'));
   }
-  if ((chunk.words && chunk.words.length > 0) || (chunk.letterPairs && chunk.letterPairs.length > 0)) {
-    activities.push({ id: 'combined-sound-match', name: 'مطابقة أصوات الكلمات والمقاطع' });
-  }
-  if (chunk.words && chunk.words.length > 0) {
-    activities.push({ id: 'word-build', name: 'بناء الكلمات' });
-    activities.push({ id: 'fill-in-the-blank', name: 'إكمال الكلمة' });
-    activities.push({ id: 'word-match', name: 'مطابقة الكلمات' });
-    activities.push({ id: 'initial-sound', name: 'أوجد الصوت الأول' });
-  }
-  if (chunk.sentences && chunk.sentences.length > 0) {
-    activities.push({ id: 'sentence-build', name: 'بناء الجمل' });
-  }
-
-  container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
-  const completed = userProgress.completedActivities[chunkId] || [];
-
-  activities.forEach(activity => {
-    const isCompleted = completed.includes(activity.id);
-    const btn = document.createElement('button');
-    btn.className = `activity-btn p-4 rounded-lg text-right text-lg font-semibold shadow-sm ${isCompleted ? 'bg-green-200 text-green-800' : 'bg-white hover:bg-gray-100'}`;
-    btn.innerHTML = `<span class="block">${activity.name}</span> ${isCompleted ? '<span class="text-sm font-normal">مكتمل ✓</span>' : ''}`;
-    btn.onclick = () => startActivity(chunkId, activity.id);
-    container.appendChild(btn);
+  sounds.forEach((s, i) => {
+    if (i > 0) {
+      card.append(el('button', { class: 'name-btn', onclick: () => playSound(s.ph, s.kw) }, 'الصوت الثاني ', en(g)));
+    }
+    card.append(el('button', { class: 'keyword', onclick: () => audio.play(clipKey('w', s.kw), { text: s.kw }) },
+      el('span', { class: 'keyword-emoji', 'aria-hidden': 'true', text: s.emoji }), wordNode(s.kw)));
+    const note = s.ar ? `مثل «${s.ar}»` : info.newSound && i === 0 ? 'صوت جديد' : '';
+    if (note) card.append(el('span', { class: `sound-note ${s.ar ? '' : 'is-new'}`, text: note }));
   });
+  if (info.variantOf) card.append(el('span', { class: 'sound-note' }, 'نفس صوت ', en(info.variantOf)));
+  return card;
 }
 
-// -------------------- Modals & Pages --------------------
-function showModal(message) {
-  modalMessage.textContent = message;
-  modalButtons.innerHTML = `<button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">متابعة</button>`;
-  modalButtons.firstElementChild.onclick = () => {
-    messageModal.classList.add('hidden');
-    showLesson(currentActivity.chunkId);
-  };
-  messageModal.classList.remove('hidden');
+function wordChip(w) {
+  return el('button', {
+    class: 'word-chip', onclick: () => audio.play(clipKey('w', w.w), { slow: slowWords, text: w.w })
+  },
+  w.emoji ? el('span', { class: 'chip-emoji', 'aria-hidden': 'true', text: w.emoji }) : null,
+  wordNode(w.w, { syllables: !!w.split }),
+  el('span', { class: 'chip-ar', text: w.ar }));
 }
 
-function showConfirmationModal(message, onConfirm) {
-  modalMessage.textContent = message;
-  modalButtons.innerHTML = `
-    <div class="flex justify-center gap-4">
-      <button id="modal-cancel-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg">إلغاء</button>
-      <button id="modal-confirm-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg">تأكيد</button>
-    </div>`;
-  document.getElementById('modal-cancel-btn').onclick = () => messageModal.classList.add('hidden');
-  document.getElementById('modal-confirm-btn').onclick = () => { messageModal.classList.add('hidden'); onConfirm(); };
-  messageModal.classList.remove('hidden');
+function heartChip(h) {
+  return el('button', { class: 'word-chip heart-chip', onclick: () => audio.play(clipKey('w', h.w), { text: h.w }) },
+    el('span', { class: 'chip-emoji', 'aria-hidden': 'true', text: '♥' }), heartNode(h.mark), el('span', { class: 'chip-ar', text: h.ar }));
 }
 
-function renderAchievementsPage() {
-  const grid = document.getElementById('achievements-grid');
-  grid.innerHTML = '';
-  achievements.forEach(ach => {
-    const earned = userProgress.earnedAchievements.includes(ach.id);
-    const card = document.createElement('div');
-    card.className = `achievement-card text-center p-4 bg-white rounded-lg shadow-sm border ${earned ? 'border-yellow-400' : 'locked'}`;
-    card.innerHTML = `
-      <div class="w-16 h-16 mx-auto mb-3">${ach.icon}</div>
-      <h4 class="font-bold text-gray-800">${ach.name}</h4>
-      <p class="text-sm text-gray-500">${ach.description}</p>`;
-    grid.appendChild(card);
-  });
-  showView('achievements');
-}
-
-function renderProgressReportPage() {
-  document.getElementById('report-points').textContent = userProgress.points;
-  document.getElementById('report-streak').textContent = userProgress.streak;
-  document.getElementById('report-time').textContent = formatTime(userProgress.timeSpent);
-
-  const masteredLetters = new Set();
-  userProgress.completedChunks.forEach(chunkId => {
-    const chunk = appData.chunks.find(c => c.id === chunkId);
-    if (chunk && chunk.letters) chunk.letters.forEach(l => masteredLetters.add(l));
-  });
-
-  const arr = Array.from(masteredLetters).sort();
-  document.getElementById('report-letters-count').textContent = arr.length;
-  const lettersGrid = document.getElementById('report-letters-grid');
-  lettersGrid.innerHTML = '';
-  if (arr.length === 0) {
-    lettersGrid.innerHTML = `<p class="text-gray-500">لم تتقن أي حروف بعد. أكمل المجموعة الأولى للبدء!</p>`;
-  } else {
-    arr.forEach(letter => {
-      const el = document.createElement('span');
-      el.className = 'w-12 h-12 flex items-center justify-center bg-green-100 text-green-800 font-bold text-2xl rounded-md';
-      el.textContent = letter;
-      lettersGrid.appendChild(el);
-    });
-  }
-  showView('progress-report');
-}
-
-function renderImportantNotePage() {
-  showView('important-note');
-}
-
-function showAchievementUnlockedModal(achievement) {
-  document.getElementById('achievement-icon').innerHTML = achievement.icon;
-  document.getElementById('achievement-name').textContent = achievement.name;
-  document.getElementById('achievement-desc').textContent = achievement.description;
-  achievementUnlockedModal.classList.remove('hidden');
-}
-
-// -------------------- Activity Engine --------------------
-function startActivity(chunkId, activityType) {
-  const chunk = appData.chunks.find(c => c.id === chunkId);
-  let questions = [];
-  let title = '';
-
-  if (activityType === 'sound-match') {
-    questions = chunk.letters || [];
-    title = 'مطابقة صوت الحروف';
-  } else if (activityType === 'combined-sound-match') {
-    questions = [...(chunk.words || []), ...(chunk.letterPairs || [])];
-    title = 'مطابقة أصوات الكلمات والمقاطع';
-  } else if (['word-build','fill-in-the-blank','word-match','initial-sound'].includes(activityType)) {
-    questions = chunk.words || [];
-    if (activityType === 'word-build') title = 'بناء الكلمات';
-    if (activityType === 'fill-in-the-blank') title = 'إكمال الكلمة';
-    if (activityType === 'word-match') title = 'مطابقة الكلمات';
-    if (activityType === 'initial-sound') title = 'أوجد الصوت الأول';
-  } else if (activityType === 'sentence-build') {
-    questions = chunk.sentences || [];
-    title = 'بناء الجمل';
-  } else if (activityType === 'capital-match') {
-    questions = chunk.letters || [];
-    title = 'مطابقة الحروف الكبيرة والصغيرة';
-  }
-
-  if (!questions || questions.length === 0) {
-    showModal("لا توجد أسئلة لهذا النشاط.");
-    return;
-  }
-
-  currentActivity = {
-    chunkId,
-    activityType,
-    questions: shuffleArray(questions).slice(0, Math.min(5, questions.length)),
-    currentIndex: 0,
-    originalQuestionCount: 0,
-    questionsWithErrors: new Set(),
-    requeuedFromIndex: new Set()
-  };
-  currentActivity.originalQuestionCount = currentActivity.questions.length;
-
-  document.getElementById('activity-title').textContent = title;
-  mainTitle.textContent = 'نشاط';
-  showView('activity');
-  displayCurrentQuestion();
-}
-
-function displayCurrentQuestion() {
-  const { questions, currentIndex, activityType } = currentActivity;
-  activityProgress.textContent = `${currentIndex + 1} / ${questions.length}`;
-  const question = questions[currentIndex];
-  const container = document.getElementById('activity-content');
-  container.innerHTML = '';
-
-  if (activityType === 'sound-match' || activityType === 'combined-sound-match') {
-    renderSoundMatchUI(question, container);
-  } else if (activityType === 'word-build') renderWordBuildUI(question, container);
-  else if (activityType === 'fill-in-the-blank') renderFillInTheBlankUI(question, container);
-  else if (activityType === 'word-match') renderWordMatchUI(question, container);
-  else if (activityType === 'initial-sound') renderInitialSoundUI(question, container);
-  else if (activityType === 'sentence-build') renderSentenceBuildUI(question, container);
-  else if (activityType === 'capital-match') renderCapitalMatchUI(question, container);
-}
-
-function handleCorrectAnswer() {
-  playSuccessSound();
-  userProgress.points += 5;
-  updateHeaderStats();
-  appBody.classList.add('correct-flash');
-  setTimeout(() => appBody.classList.remove('correct-flash'), 700);
-
-  if (currentActivity.currentIndex >= currentActivity.questions.length - 1) {
-    const { chunkId, activityType, originalQuestionCount, questionsWithErrors } = currentActivity;
-    const accuracy = Math.round(((originalQuestionCount - questionsWithErrors.size) / originalQuestionCount) * 100);
-
-    if (accuracy < 70) {
-      showModal(`تحتاج إلى دقة ٧٠٪ على الأقل. حصلت على ${accuracy}٪. حاول مرة أخرى!`);
-      saveProgress();
+/** Time a silent reading of a text (repeated reading): words a minute, compared with last time. */
+function readingTimer(t, unitId) {
+  const id = `${unitId}:${t.id}`;
+  const words = t.sentences.reduce((n, s) => n + s.text.split(/\s+/).length, 0);
+  const out = el('span', { class: 'text-sm', 'aria-live': 'polite' });
+  let startedAt = null;
+  const btn = el('button', { class: 'small-btn' }, '⏱ قِس سرعتك');
+  btn.addEventListener('click', () => {
+    if (startedAt === null) {
+      audio.stop();
+      startedAt = performance.now();
+      btn.textContent = '⏹ انتهيت';
+      out.textContent = 'اقرأ النص كله بعينيك، ثم اضغط «انتهيت».';
       return;
     }
+    const wpm = wordsPerMinute(words, (performance.now() - startedAt) / 1000);
+    startedAt = null;
+    btn.textContent = '⏱ قِس مرة أخرى';
+    if (wpm === null) { out.textContent = 'كان ذلك سريعًا جدًا: اقرأ النص كله ثم اضغط «انتهيت».'; return; }
+    const before = recordTextReading(progress, { day: today(), id, wpm });
+    save(true);
+    out.textContent = `${toArabicDigits(wpm)} كلمة في الدقيقة` + (before ? ` (المرة السابقة: ${toArabicDigits(before.wpm)})` : '');
+  });
+  return el('div', { class: 'reader-timer' }, btn, out);
+}
 
-    if (!userProgress.completedActivities[chunkId]) userProgress.completedActivities[chunkId] = [];
-    if (!userProgress.completedActivities[chunkId].includes(activityType)) {
-      userProgress.completedActivities[chunkId].push(activityType);
+function textReader(t, unitId = null) {
+  const lines = t.sentences.map(s => el('button', {
+    class: 'reader-line', onclick: () => audio.play(clipKey('s', s.text), { text: s.text })
+  }, en(s.text), el('span', { class: 'reader-ar hidden', text: s.ar })));
+  const playAll = async () => {
+    const token = ++readerToken;
+    for (const line of lines) {
+      if (token !== readerToken) break;
+      line.classList.add('is-playing');
+      const s = t.sentences[lines.indexOf(line)];
+      await audio.play(clipKey('s', s.text), { text: s.text });
+      line.classList.remove('is-playing');
+      if (token !== readerToken) break;
+      await new Promise(r => setTimeout(r, 250));
     }
-
-    if (isChunkComplete(chunkId, userProgress.completedActivities)) {
-      if (!userProgress.completedChunks.includes(chunkId)) {
-        userProgress.completedChunks.push(chunkId);
-
-        // Unlock by array order (works even if IDs skip numbers)
-        const currentIdx = appData.chunks.findIndex(c => c.id === chunkId);
-        const nextChunk = appData.chunks[currentIdx + 1];
-
-        if (userProgress.unlockedChunk === chunkId && nextChunk) {
-          userProgress.unlockedChunk = nextChunk.id;
-          showModal(`عمل رائع! لقد فتحت ${nextChunk.title}.`);
-        } else {
-          showModal("اكتملت المجموعة! أحسنت صنعًا.");
-        }
-      } else {
-        showModal("اكتمل النشاط! عمل جيد.");
-      }
-    } else {
-      showModal("اكتمل النشاط! استمر في التقدم.");
-    }
-    checkAchievements();
-    saveProgress();
-  } else {
-    currentActivity.currentIndex++;
-    checkAchievements();
-    saveProgress();
-    setTimeout(displayCurrentQuestion, 700);
-  }
+  };
+  const toggleAr = el('button', { class: 'small-btn', onclick: () => lines.forEach(l => l.querySelector('.reader-ar').classList.toggle('hidden')) }, 'الترجمة');
+  return el('div', { class: 'reader' },
+    el('div', { class: 'reader-head' }, en(t.title, 'reader-title'),
+      el('div', { class: 'flex gap-2' }, el('button', { class: 'small-btn', onclick: playAll }, '🔊 استمع وتابع'), toggleAr)),
+    ...lines,
+    unitId ? readingTimer(t, unitId) : null);
 }
 
-function handleWrongAttempt() {
-  playFailureSound();
-  const idx = currentActivity.currentIndex;
-  if (idx < currentActivity.originalQuestionCount) {
-    currentActivity.questionsWithErrors.add(idx);
-  }
-  if (!currentActivity.requeuedFromIndex.has(idx)) {
-    currentActivity.requeuedFromIndex.add(idx);
-    currentActivity.questions.push(currentActivity.questions[idx]);
-  }
-}
-
-// -------------------- Activity Renderers --------------------
-function renderInitialSoundUI(word, container) {
-  const firstChar = word[0];
-  const correctLetter = firstChar.toLowerCase(); // normalize for capitals like Sara/Ali
-  const partialWord = '<span class="text-blue-500">_</span>' + word.substring(1);
-
-  const allLearnedLetters = getLearnedContent(currentActivity.chunkId, 'letters')
-    .map(l => l.toLowerCase()); // normalize pool
-  const distractors = allLearnedLetters.filter(l => l !== correctLetter);
-
-  let options = [correctLetter];
-  const maxOptions = Math.min(4, allLearnedLetters.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) {
-      options.push(randomDistractor);
-    }
-  }
-
-  container.innerHTML = `
-    <p class="text-xl mb-4">اختر الحرف الأول الصحيح لإكمال الكلمة.</p>
-    <div class="flex items-center justify-center gap-4 mb-8">
-      <div class="flex flex-col items-center gap-1">
-        <button id="play-word-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Listen to word">
-          ${PLAY_SVG}
-        </button>
-        <button id="play-word-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-      </div>
-      <p class="text-4xl font-bold tracking-widest english-content">${partialWord}</p>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-word-sound-btn').onclick = () => speak(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => speak(word, 0.5);
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(letter => {
-    const btn = document.createElement('button');
-    btn.className = 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = letter;
-    btn.onclick = () => {
-      if (letter.toLowerCase() === correctLetter) {
-        handleCorrectAnswer();
-      } else {
-        handleWrongAttempt();
-        btn.disabled = true;
-        btn.classList.add('incorrect');
-        setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500);
-      }
-    };
-    optionsContainer.appendChild(btn);
+function unitClipKeys(u) {
+  const keys = [];
+  u.graphemes.forEach(g => {
+    const info = gpc[g];
+    [info, info.alt].filter(Boolean).forEach(s => keys.push(clipKey('ph', s.ph), clipKey('w', s.kw)));
+    if (g.length === 1) keys.push(clipKey('ln', g));
   });
+  (u.words || []).forEach(w => keys.push(clipKey('w', w.w)));
+  (u.heart || []).forEach(h => keys.push(clipKey('w', h.w)));
+  (u.names || []).forEach(n => keys.push(clipKey('w', n.w)));
+  (u.contrasts || []).flat().forEach(w => keys.push(clipKey('w', w)));
+  (u.sentences || []).forEach(s => keys.push(clipKey('s', s.text)));
+  (u.texts || []).forEach(t => [...t.sentences, ...t.questions].forEach(s => keys.push(clipKey('s', s.text))));
+  return keys;
 }
 
-function renderSoundMatchUI(correctItem, container) {
-  const chunk = appData.chunks.find(c => c.id === currentActivity.chunkId);
-  let optionsPool;
-  const words = chunk.words || [];
-
-  if (currentActivity.activityType === 'sound-match') {
-    optionsPool = chunk.letters || [];
-  } else {
-    const isPair = (correctItem?.length > 1) && !words.includes(correctItem);
-    if (isPair) optionsPool = chunk.letterPairs || [];
-    else if (words.includes(correctItem)) optionsPool = words;
-    else optionsPool = chunk.letters || [];
+function showLesson(unitId) {
+  const u = unitById(unitId);
+  if (!u) return;
+  const root = $('lesson-view');
+  root.replaceChildren();
+  root.append(section('قبل أن تبدأ', el('ul', { class: 'tips-list' }, ...u.tips.map(t => el('li', {}, ...richArabic(t))))));
+  if (u.graphemes.length) {
+    root.append(section('أصوات جديدة', el('p', { class: 'section-help', text: 'اضغط على الحرف لتسمع صوته. في القراءة نستخدم الصوت، أما «اسم الحرف» فللتهجئة.' }),
+      el('div', { class: 'sound-grid' }, ...u.graphemes.map(soundCard))));
   }
-
-  let options = [correctItem];
-  const maxOptions = Math.min(4, optionsPool.length);
-  while (options.length < maxOptions) {
-    const randomItem = optionsPool[Math.floor(Math.random() * optionsPool.length)];
-    if (!options.includes(randomItem)) options.push(randomItem);
+  if ((u.patterns || []).length) {
+    root.append(section('أنماط جديدة', el('p', { class: 'section-help', text: 'اضغط على المثال لتسمعه، واقرأ الحروف معًا بلا حركة بينها.' }),
+      el('div', { class: 'word-grid' }, ...u.patterns.map(p => el('button', {
+        class: 'word-chip pattern-chip', onclick: () => audio.play(clipKey('w', p.ex), { text: p.ex })
+      }, en(p.p, 'pattern-label'), wordNode(p.ex))))));
   }
-
-  const promptText = (currentActivity.activityType === 'sound-match')
-    ? "استمع للصوت واختر الحرف الصحيح."
-    : "استمع للصوت واختر الإجابة الصحيحة.";
-
-  container.innerHTML = `
-    <p class="text-xl mb-6">${promptText}</p>
-    <div class="flex flex-col items-center gap-1 mb-8">
-      <button id="play-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play sound">
-        ${PLAY_SVG}
-      </button>
-      <button id="play-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-sound-btn').onclick = () => speak(correctItem);
-  document.getElementById('play-slow-sound-btn').onclick = () => speak(correctItem, 0.5);
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(item => {
-    const isWord = words.includes(item);
-    const btn = document.createElement('button');
-    btn.className = isWord
-      ? 'word-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content'
-      : 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = item;
-    btn.onclick = () => {
-      if (item === correctItem) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
-    };
-    optionsContainer.appendChild(btn);
-  });
-}
-
-function renderWordMatchUI(correctWord, container) {
-  const allLearnedWords = getLearnedContent(currentActivity.chunkId, 'words');
-  const distractors = allLearnedWords.filter(w => w !== correctWord && Math.abs(w.length - correctWord.length) <= 2);
-
-  let options = [correctWord];
-  const maxOptions = Math.min(4, allLearnedWords.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) options.push(randomDistractor);
+  if (u.words.length) {
+    const slowBtn = el('button', { class: `small-btn ${slowWords ? 'is-on' : ''}`, 'aria-pressed': String(slowWords) }, '🐢 استماع بطيء');
+    slowBtn.addEventListener('click', () => {
+      slowWords = !slowWords;
+      slowBtn.classList.toggle('is-on', slowWords);
+      slowBtn.setAttribute('aria-pressed', String(slowWords));
+    });
+    root.append(section('كلمات للقراءة',
+      el('div', { class: 'section-tools' }, el('p', { class: 'section-help', text: 'اقرأ الكلمة بنفسك أولًا، ثم اضغط لتسمعها. حروف العلة ملوّنة لتنتبه لها.' }), slowBtn),
+      el('div', { class: 'word-grid' }, ...u.words.map(wordChip))));
   }
-
-  container.innerHTML = `
-    <p class="text-xl mb-6">استمع واختر الكلمة الصحيحة.</p>
-    <div class="flex flex-col items-center gap-1 mb-8">
-      <button id="play-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play word">
-        ${PLAY_SVG}
-      </button>
-      <button id="play-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-sound-btn').onclick = () => speak(correctWord);
-  document.getElementById('play-slow-sound-btn').onclick = () => speak(correctWord, 0.5);
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(word => {
-    const btn = document.createElement('button');
-    btn.className = 'word-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = word;
-    btn.onclick = () => {
-      if (word === correctWord) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
-    };
-    optionsContainer.appendChild(btn);
-  });
-}
-
-function renderFillInTheBlankUI(word, container) {
-  const missingLetterIndex = Math.floor(Math.random() * word.length);
-  const correctLetter = word[missingLetterIndex];
-  const partialWord = word.substring(0, missingLetterIndex) + '<span class="text-blue-500">_</span>' + word.substring(missingLetterIndex + 1);
-
-  const allLearnedLetters = getLearnedContent(currentActivity.chunkId, 'letters');
-  const distractors = allLearnedLetters.filter(l => l !== correctLetter);
-
-  let options = [correctLetter];
-  const maxOptions = Math.min(4, allLearnedLetters.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) options.push(randomDistractor);
+  const heart = [...(u.heart || []), ...(u.names || []).map(n => ({ w: n.w, ar: n.ar, mark: n.w }))];
+  if (heart.length) {
+    root.append(section('كلمات القلب ♥', el('p', { class: 'section-help', text: 'كلمات شائعة جدًا لا تُقرأ بالقواعد التي تعلّمتها بعد. الجزء الملوّن هو الجزء الصعب: احفظه.' }),
+      el('div', { class: 'word-grid' }, ...heart.map(heartChip))));
   }
-
-  container.innerHTML = `
-    <p class="text-xl mb-4">استمع للكلمة واختر الحرف المفقود.</p>
-    <div class="flex items-center justify-center gap-4 mb-8">
-      <div class="flex flex-col items-center gap-1">
-        <button id="play-word-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play word">
-          ${PLAY_SVG}
-        </button>
-        <button id="play-word-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-      </div>
-      <p class="text-4xl font-bold tracking-widest english-content">${partialWord}</p>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-word-sound-btn').onclick = () => speak(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => speak(word, 0.5);
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(letter => {
-    const btn = document.createElement('button');
-    btn.className = 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = letter;
-    btn.onclick = () => {
-      if (letter === correctLetter) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
-    };
-    optionsContainer.appendChild(btn);
+  if ((u.signs || []).length) {
+    root.append(section('لافتات في الحرم الجامعي', el('p', { class: 'section-help', text: 'اللافتات تُكتب غالبًا بحروف كبيرة. اضغط على اللافتة لتسمعها.' }),
+      el('div', { class: 'sign-grid' }, ...u.signs.map(sg => el('button', { class: 'sign-chip', onclick: () => audio.play(clipKey('s', sg.say), { text: sg.say }) },
+        signPlate(sg.text, sg.kind), el('span', { class: 'chip-ar', text: sg.ar }))))));
+  }
+  (u.forms || []).forEach(f => {
+    root.append(section(`استمارة: ${f.ar}`, el('p', { class: 'section-help', text: 'تعرّف على خانات الاستمارة ومعانيها.' }),
+      formCard({ title: f.title, fields: f.fields.map(x => ({ label: x.label, value: '', ar: x.ar })) })));
   });
+  if ((u.texts || []).length) {
+    root.append(section('نصوص قصيرة', el('p', { class: 'section-help', text: 'اقرأ بنفسك، ثم استمع وتابع، ثم اقرأ مرة أخرى.' }), ...u.texts.map(t => textReader(t, u.id))));
+  }
+  const done = progress.completedActivities[u.id] || [];
+  root.append(section('أنشطة تدريبية', el('div', { id: 'activities-container', class: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5' },
+    ...u.activities.map(id => {
+      const meta = ACTIVITY_META[id];
+      const complete = done.includes(id);
+      const waiting = meta.check && !complete && !checkOpen(u);
+      const best = meta.check && progress.checks[u.id] ? progress.checks[u.id].best : null;
+      return el('button', {
+        class: `activity-btn enhanced ${complete ? 'activity-btn-complete' : 'activity-btn-default'}`,
+        'data-activity': id, onclick: () => startUnitActivity(u.id, id)
+      },
+      el('div', { class: 'flex items-start justify-between gap-3' },
+        el('div', { class: 'text-right' }, el('h4', { class: 'text-lg font-bold leading-7', text: meta.title }),
+          el('p', { class: 'mt-1 text-sm text-gray-500 font-medium' }, ...richArabic(meta.desc))),
+        el('span', { class: 'activity-icon', 'aria-hidden': 'true', text: meta.icon })),
+      el('div', { class: 'mt-4 flex items-center justify-between text-sm' },
+        el('span', { class: 'activity-chip', text: complete ? 'مكتمل ✓' : waiting ? 'بعد الأنشطة' : 'ابدأ' }),
+        meta.optional ? el('span', { class: 'optional-chip', text: 'اختياري' }) : null,
+        best !== null ? el('span', { class: 'optional-chip', text: `أفضل نتيجة: ${toArabicDigits(Math.round(best * 100))}٪` }) : null));
+    }))));
+  showView('lesson-view', u.title, renderDashboard);
+  audio.preload(unitClipKeys(u));
 }
 
-function renderWordBuildUI(word, container) {
-  const letters = shuffleArray(word.split(''));
-  container.innerHTML = `
-    <p class="text-xl mb-4">استمع للكلمة ثم كوّنها باستخدام هذه الحروف.</p>
-    <div class="flex flex-col items-center gap-1 mb-8">
-      <button id="play-word-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play word">
-        ${PLAY_SVG}
-      </button>
-      <button id="play-word-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-    </div>
-    <div id="answer-slots" class="flex justify-center gap-2 mb-8 english-content">
-      ${word.split('').map((_, i) => `<div class="letter-slot w-16 h-16 bg-gray-200 rounded-lg" data-index="${i}"></div>`).join('')}
-    </div>
-    <div id="letter-choices" class="flex justify-center gap-2 english-content">
-      ${letters.map((l, i) => `<button class="draggable-letter w-16 h-16 bg-blue-100 text-blue-800 text-3xl font-bold rounded-lg hover:bg-blue-200" data-letter="${l}" data-original-index="${i}">${l}</button>`).join('')}
-    </div>
-    <div id="retry-container" class="h-12 mt-4"></div>`;
-
-  document.getElementById('play-word-sound-btn').onclick = () => speak(word);
-  document.getElementById('play-word-slow-sound-btn').onclick = () => speak(word, 0.5);
-
-  const letterChoices = container.querySelectorAll('.draggable-letter');
-  const answerSlots = container.querySelectorAll('.letter-slot');
-  let builtWord = Array(word.length).fill(null);
-
-  letterChoices.forEach(btn => {
-    btn.onclick = () => {
-      if (btn.style.visibility === 'hidden') return;
-
-      const firstEmptyIndex = builtWord.indexOf(null);
-      if (firstEmptyIndex !== -1) {
-        btn.style.visibility = 'hidden';
-        const slot = answerSlots[firstEmptyIndex];
-        slot.textContent = btn.textContent;
-        slot.classList.add('bg-white','text-3xl','font-bold','flex','items-center','justify-center','filled');
-        slot.dataset.sourceButton = btn.dataset.originalIndex;
-        builtWord[firstEmptyIndex] = btn.textContent;
-
-        if (!builtWord.includes(null)) {
-          if (builtWord.join('') === word) {
-            handleCorrectAnswer();
-          } else {
-            handleWrongAttempt();
-            answerSlots.forEach(s => { s.classList.add('incorrect'); setTimeout(() => s.classList.remove('incorrect'), 500); });
-            const retryBtn = document.createElement('button');
-            retryBtn.textContent = 'حاول مرة أخرى';
-            retryBtn.className = 'bg-orange-400 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-lg';
-            retryBtn.onclick = displayCurrentQuestion;
-            document.getElementById('retry-container').appendChild(retryBtn);
-          }
-        }
-      }
-    };
-  });
-
-  answerSlots.forEach((slot, index) => {
-    slot.onclick = () => {
-      if (slot.classList.contains('filled')) {
-        const sourceButtonIndex = slot.dataset.sourceButton;
-        if (sourceButtonIndex !== undefined) {
-          const sourceButton = container.querySelector(`.draggable-letter[data-original-index="${sourceButtonIndex}"]`);
-          if (sourceButton) sourceButton.style.visibility = 'visible';
-        }
-        slot.textContent = '';
-        slot.classList.remove('bg-white','text-3xl','font-bold','flex','items-center','justify-center','filled');
-        delete slot.dataset.sourceButton;
-        builtWord[index] = null;
-      }
-    };
-  });
-}
-
-function renderSentenceBuildUI(sentence, container) {
-  if (!sentence || !sentence.missing) {
-    container.innerHTML = '<p class="text-xl text-red-500">خطأ في تحميل السؤال</p>';
+// ---------------------------------------------------------------------------
+// Sessions: one engine for unit activities, review, weak sounds, ear training and placement
+// ---------------------------------------------------------------------------
+/**
+ * opts: { mode: 'unit'|'review'|'weak'|'perception'|'placement', title, heading, back, unitId?, activityId?,
+ *         onFinish(session), onQueueEnd?(session) -> more questions or null, progressLabel?(session) }
+ */
+function startSession(questions, opts) {
+  audio.unlock();
+  if (!questions.length) {
+    showMessage('لا توجد أسئلة لهذا النشاط بعد.');
     return;
   }
+  $('activity-title').textContent = opts.heading;
+  showView('activity-view', opts.title, opts.back);
+  session = {
+    mode: opts.mode, unitId: opts.unitId ?? null, activityId: opts.activityId ?? null,
+    onFinish: opts.onFinish, onQueueEnd: opts.onQueueEnd || null, progressLabel: opts.progressLabel || null,
+    queue: questions.map(q => ({ q, delayed: false })),
+    index: 0, firstTry: 0, tries: 0, shownAt: 0, locked: false, confusions: {}, results: [], widget: null,
+    assessment: ASSESSMENT_MODES.has(opts.mode), singleTry: opts.mode === 'perception'
+  };
+  renderQuestion();
+}
 
-  const correctWord = sentence.missing;
-  const partialSentence = sentence.text.replace(correctWord, '<span class="text-blue-500 font-bold">_____</span>');
-  const allLearnedWords = getLearnedContent(currentActivity.chunkId, 'words');
-  const distractors = allLearnedWords.filter(w => w !== correctWord);
+const isLocked = () => !session || session.locked;
 
-  let options = [correctWord];
-  const maxOptions = Math.min(4, allLearnedWords.length);
-  const availableDistractors = [...distractors];
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    if (!options.includes(randomDistractor)) options.push(randomDistractor);
+function setProgressLabel() {
+  $('activity-progress').textContent = session.progressLabel
+    ? session.progressLabel(session)
+    : `${toArabicDigits(session.index + 1)} / ${toArabicDigits(session.queue.length)}`;
+}
+
+function ttsText(q) {
+  return q.prompt.statement || q.item;
+}
+
+function playPrompt(q, slow = false) {
+  if (q.activity === 'sound-match' && !audio.hasClip(q.prompt.audio)) {
+    return audio.play(clipKey('w', q.prompt.kw), { text: q.prompt.kw });
   }
-
-  container.innerHTML = `
-    <p class="text-lg text-gray-600 mb-4">${sentence.translation}</p>
-    <div class="flex items-center justify-center gap-4 mb-8">
-      <div class="flex flex-col items-center gap-1">
-        <button id="play-sentence-sound-btn" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full" aria-label="Play sentence">
-          ${PLAY_SVG}
-        </button>
-        <button id="play-sentence-slow-sound-btn" class="text-sm text-gray-500 hover:text-blue-600 font-medium">صوت بطيء</button>
-      </div>
-      <p class="text-3xl font-bold tracking-wider english-content">${partialSentence}</p>
-    </div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
-
-  document.getElementById('play-sentence-sound-btn').onclick = () => speak(sentence.text);
-  document.getElementById('play-sentence-slow-sound-btn').onclick = () => speak(sentence.text, 0.5);
-
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(word => {
-    const btn = document.createElement('button');
-    btn.className = 'word-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = word;
-    btn.onclick = () => {
-      if (word === correctWord) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
-    };
-    optionsContainer.appendChild(btn);
-  });
+  return audio.play(q.prompt.audio, { voice: q.prompt.voice || 'f', slow, text: ttsText(q) });
 }
 
-function renderCapitalMatchUI(letter, container) {
-  const allLearnedLetters = getLearnedContent(currentActivity.chunkId, 'letters');
-  const isQuestionUppercase = Math.random() < 0.5;
-  const questionLetter = isQuestionUppercase ? letter.toUpperCase() : letter.toLowerCase();
-  const correctLetter = isQuestionUppercase ? letter.toLowerCase() : letter.toUpperCase();
+function promptAudioButtons(q) {
+  const big = el('button', { class: 'play-btn', 'aria-label': 'استمع', onclick: () => playPrompt(q) },
+    svgIcon('M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z', 'w-9 h-9'));
+  const kind = q.prompt.audio.split(':')[0];
+  const slow = (kind === 'w' || kind === 's') && q.activity !== 'perception' && audio.hasClip(q.prompt.audio, 'fs')
+    ? el('button', { class: 'slow-btn', onclick: () => playPrompt(q, true) }, '🐢 بطيء') : null;
+  return el('div', { class: 'prompt-audio' }, big, slow);
+}
 
-  const availableDistractors = allLearnedLetters.filter(l => l !== letter);
-  let options = [correctLetter];
-  const maxOptions = Math.min(4, allLearnedLetters.length);
+/** A campus sign: capital letters on a coloured plate (red = stop / not allowed, green = go, blue = information). */
+function signPlate(text, kind = 'info') {
+  return el('span', { class: `sign-plate sign-${kind}`, lang: 'en', dir: 'ltr', text });
+}
 
-  while (options.length < maxOptions && availableDistractors.length > 0) {
-    const randomIndex = Math.floor(Math.random() * availableDistractors.length);
-    const randomDistractor = availableDistractors.splice(randomIndex, 1)[0];
-    const distractorOption = isQuestionUppercase ? randomDistractor.toLowerCase() : randomDistractor.toUpperCase();
-    if (!options.includes(distractorOption)) options.push(distractorOption);
+/** A simple form: labels, with the learner's values or empty lines. */
+function formCard(form) {
+  return el('div', { class: 'form-card english-content', dir: 'ltr', lang: 'en' },
+    el('div', { class: 'form-title', text: form.title }),
+    ...form.fields.map(f => el('div', { class: 'form-row' },
+      el('span', { class: 'form-label', text: `${f.label}:` }),
+      el('span', { class: `form-value ${f.value ? '' : 'is-empty'}`, text: f.value || '' }),
+      f.ar ? el('span', { class: 'form-ar', dir: 'rtl', lang: 'ar', text: f.ar }) : null)));
+}
+
+function renderPrompt(q) {
+  const box = el('div', { class: 'prompt' });
+  const p = q.prompt;
+  if (q.activity === 'sound-match' && !audio.hasClip(p.audio)) {
+    // No clean recording of the sound alone: the keyword is played instead.
+    const where = gpc[q.answer]?.vowel ? 'استمع إلى صوت حرف العلة في كلمة '
+      : !p.kw.startsWith(q.answer) && p.kw.endsWith(q.answer) ? 'استمع إلى آخر جزء في كلمة ' : 'استمع إلى أول صوت في كلمة ';
+    box.append(el('p', { class: 'prompt-note' }, where, en(p.kw)));
   }
+  if (q.type === 'trace') return box;
+  if (q.activity === 'pseudo') {
+    box.append(brandCard(wordNode(p.text, { split: p.split, cls: 'brand-name' })));
+    return box;
+  }
+  if (q.activity === 'read-aloud') {
+    box.append(el('p', { class: 'english-content prompt-sentence read-aloud-text', dir: 'ltr', lang: 'en' },
+      ...p.text.split(' ').flatMap((w, i) => [i ? ' ' : '', wordNode(w)])));
+    return box;
+  }
+  if (q.activity === 'sentence-picture') {
+    box.append(el('p', { class: 'english-content prompt-sentence', dir: 'ltr', lang: 'en', text: p.statement }));
+    return box;
+  }
+  if (q.activity === 'bench-text') {
+    box.append(el('div', { class: 'reader reader-compact' }, en(p.title, 'reader-title'),
+      ...p.sentences.map(s => el('p', { class: 'reader-line is-static' }, en(s.text)))),
+    el('div', { class: 'statement' }, en(p.statement)));
+    return box;
+  }
+  if (p.audio && !['meaning', 'read-text', 'signs', 'forms'].includes(q.activity)) box.append(promptAudioButtons(q));
+  if (q.activity === 'capital-match' || q.activity === 'meaning') {
+    box.append(q.activity === 'meaning' ? wordNode(p.text, { cls: 'prompt-big' }) : en(p.text, 'prompt-big'));
+  }
+  if (q.activity === 'sentence-build') box.append(el('p', { class: 'prompt-meaning' }, 'المعنى: ', p.ar));
+  if (q.activity === 'missing-letter') {
+    const word = el('bdi', { lang: 'en', dir: 'ltr', class: 'english-content prompt-word' });
+    p.parts.forEach(part => word.append(part.blank ? el('span', { class: 'blank', text: '_' }) : el('span', { class: isVowel(part.text) ? 'vowel' : null, text: part.text })));
+    box.append(word);
+  }
+  if (q.activity === 'first-last-sound') {
+    const slots = el('div', { class: 'position-hint', 'aria-hidden': 'true' });
+    for (let i = 0; i < 3; i++) {
+      const on = (p.position === 'first' && i === 0) || (p.position === 'middle' && i === 1) || (p.position === 'last' && i === 2);
+      slots.append(el('span', { class: on ? 'is-target' : null }));
+    }
+    box.append(slots);
+  }
+  if (q.activity === 'complete-sentence') {
+    const line = el('bdi', { lang: 'en', dir: 'ltr', class: 'english-content prompt-sentence' });
+    p.tokens.forEach((t, i) => {
+      if (i) line.append(' ');
+      line.append(i === p.blankIndex ? el('span', {}, p.before, el('span', { class: 'blank blank-word', text: '_____' }), p.after) : t);
+    });
+    box.append(line);
+  }
+  if (q.activity === 'signs') box.append(signPlate(p.sign, p.kind));
+  if (q.activity === 'forms') {
+    box.append(formCard(p.form));
+    if (p.statement) box.append(el('div', { class: 'statement' }, el('button', { class: 'small-btn', onclick: () => audio.play(p.audio, { text: p.statement }) }, '🔊'), en(p.statement)));
+  }
+  if (q.activity === 'read-text') {
+    const reader = el('div', { class: 'reader reader-compact' }, en(p.title, 'reader-title'),
+      ...p.sentences.map(s => el('button', { class: 'reader-line', onclick: () => audio.play(s.audio, { text: s.text }) }, en(s.text))));
+    box.append(reader,
+      el('div', { class: 'statement' }, el('button', { class: 'small-btn', onclick: () => audio.play(p.audio, { text: p.statement }) }, '🔊'), en(p.statement)));
+  }
+  return box;
+}
 
-  container.innerHTML = `
-    <p class="text-xl mb-6">اختر الحرف المطابق.</p>
-    <div class="text-8xl font-bold mb-8 english-content">${questionLetter}</div>
-    <div id="options-container" class="flex flex-wrap justify-center gap-4"></div>`;
+function optionLabel(q, o) {
+  if (o.lang === 'pic') return el('span', { class: 'pic-option', text: o.label });
+  if (o.lang !== 'en') return o.label;
+  if (['read-text', 'forms', 'bench-text'].includes(q.activity) || /\s/.test(o.label)) return en(o.label);
+  if (GRAPHEME_OPTIONS.has(q.activity) || q.activity === 'heart-words') return en(o.label);
+  return wordNode(o.label);
+}
 
-  const optionsContainer = document.getElementById('options-container');
-  shuffleArray(options).forEach(optionLetter => {
-    const btn = document.createElement('button');
-    btn.className = 'sound-option-btn font-bold bg-gray-100 text-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-200 english-content';
-    btn.textContent = optionLetter;
-    btn.onclick = () => {
-      if (optionLetter === correctLetter) handleCorrectAnswer();
-      else { handleWrongAttempt(); btn.disabled = true; btn.classList.add('incorrect'); setTimeout(() => { btn.classList.remove('incorrect'); btn.classList.add('opacity-50', 'cursor-not-allowed'); }, 500); }
-    };
-    optionsContainer.appendChild(btn);
+function renderOptions(q) {
+  const wrap = el('div', { class: `options ${GRAPHEME_OPTIONS.has(q.activity) ? 'options-grapheme' : 'options-word'}` });
+  q.options.forEach(o => {
+    const btn = el('button', {
+      class: `option-btn ${o.lang === 'ar' ? 'option-ar' : o.lang === 'pic' ? 'option-pic' : ''}`, 'data-value': String(o.value)
+    }, optionLabel(q, o));
+    btn.addEventListener('click', () => onChoice(q, o.value, btn));
+    wrap.append(btn);
+  });
+  return wrap;
+}
+
+function renderAnswer(q) {
+  const onSubmit = (value, node) => onChoice(q, value, node);
+  if (q.type === 'build') session.widget = buildWidget(q, { onSubmit, isLocked, words: q.activity === 'sentence-build' });
+  else if (q.type === 'spell') session.widget = keyboardWidget(q, { onSubmit, isLocked });
+  else if (q.type === 'audio-choice') session.widget = audioChoiceWidget(q, { play: (key) => audio.play(key), onSubmit, isLocked });
+  else if (q.type === 'trace') session.widget = traceWidget(q, { onSubmit, isLocked, playName: () => audio.play(q.prompt.audio) });
+  else if (q.type === 'blend') {
+    session.widget = blendWidget(q, {
+      play: (key) => audio.play(key), playTogether: (keys) => audio.playSequence(keys, { gapMs: 0 }), onSubmit, isLocked
+    });
+  } else if (q.type === 'record') session.widget = recordWidget(q, { audio, isLocked, onSubmit: (rating, times) => onRecorded(q, rating, times) });
+  else return renderOptions(q);
+  return session.widget.node;
+}
+
+function renderQuestion() {
+  cleanupWidgets();
+  stopRecorder();
+  const item = session.queue[session.index];
+  const q = item.q;
+  session.tries = 0;
+  session.locked = false;
+  session.widget = null;
+  session.shownAt = performance.now();
+  setProgressLabel();
+  const box = $('activity-content');
+  box.replaceChildren(
+    el('p', { class: 'instruction' }, ...richArabic(q.instruction)),
+    renderPrompt(q),
+    renderAnswer(q),
+    el('div', { id: 'feedback', class: 'feedback-panel', 'aria-live': 'polite' })
+  );
+  if (q.prompt.audio && AUTOPLAY.has(q.activity)) setTimeout(() => { if (session && session.queue[session.index] === item) playPrompt(q); }, 350);
+}
+
+/** The grapheme pair behind a wrong answer (for stats, hints and the report). */
+function confusionFor(q, value, spell) {
+  if (q.type === 'spell') return spell && spell.confusion;
+  const chosen = Array.isArray(value) ? value.join('') : String(value);
+  if (GRAPHEME_OPTIONS.has(q.activity)) return { target: String(q.answer).toLowerCase(), chosen: chosen.toLowerCase() };
+  if (q.activity === 'which-word' || q.activity === 'complete-sentence') {
+    const f = errorFocus(String(q.answer).toLowerCase(), chosen.toLowerCase());
+    return f && f.target.length <= 2 && f.chosen.length <= 2 ? { target: f.target, chosen: f.chosen } : null;
+  }
+  if (q.activity === 'word-build' && !q.answerTiles.some(t => t.length > 2)) {
+    const i = q.answerTiles.findIndex((t, k) => t !== value[k]);
+    return i >= 0 ? { target: q.answerTiles[i], chosen: value[i] } : null;
+  }
+  return null;
+}
+
+function pairHint(c) {
+  return HINTS.pairs[[c.target, c.chosen].sort().join('|')] || HINTS.types[classifyError(c.target, c.chosen)] || HINTS.types.other;
+}
+
+/** Two spellings of the same sounds (rane / rain, fone / phone)? */
+function soundsTheSame(target, typed) {
+  if (!typed || typed === target) return false;
+  try {
+    const plain = (w) => toPhonemes(w, gpc).replace(/[ˈˌ]/g, '');
+    return plain(typed) === plain(target);
+  } catch (e) {
+    return false;
+  }
+}
+
+function hintFor(q, value, spell) {
+  if (q.activity === 'meaning') return 'اقرأ الكلمة صوتًا صوتًا، ثم فكّر في معناها.';
+  if (q.activity === 'read-text') return 'اقرأ النص مرة أخرى، وابحث عن الكلمات المهمة.';
+  if (q.activity === 'heart-words') return 'هذه كلمة قلب: لا تُقرأ بالقواعد كلها. انظر إلى شكلها واحفظ الجزء الصعب.';
+  if (q.activity === 'sentence-build') return 'ابدأ بالكلمة التي أولها حرف كبير، وانتهِ بالكلمة التي فيها النقطة. استمع مرة أخرى.';
+  if (q.activity === 'signs') return 'اقرأ اللافتة كلمةً كلمة: الحروف الكبيرة هي الحروف نفسها (EXIT = exit).';
+  if (q.activity === 'forms') return q.prompt.statement ? 'اقرأ الخانة المطلوبة في الاستمارة وقارنها بالجملة.' : 'اقرأ كلمات الخانات، واختر الخانة التي تعني ما تحتاجه.';
+  if (q.type === 'trace') return 'ابدأ من النقطة الخضراء واتبع الأسهم، وابقَ قريبًا من الخط المنقّط.';
+  if (q.type === 'spell') {
+    if (soundsTheSame(q.answer, String(value))) return 'نطقك صحيح! لكن هذه الكلمة تُكتب بطريقة أخرى. انظر إلى الكلمة وتذكّر شكلها.';
+    const c = spell && spell.confusion;
+    if (c && sameSound(c.target, c.chosen)) return `الصوت صحيح، لكن الكتابة هنا ${c.target}.`;
+    if (c) return pairHint(c);
+    if (spell && spell.ops.some(o => o.op === 'miss' && isVowel(o.target))) return 'لا تنسَ حرف العلة: في الإنجليزية يُكتب كل حرف علة.';
+    return 'استمع صوتًا صوتًا، واكتب حرفًا (أو حرفين) لكل صوت.';
+  }
+  const c = confusionFor(q, value, spell);
+  return c ? pairHint(c) : HINTS.types.other;
+}
+
+function onChoice(q, value, node) {
+  if (!session || session.locked) return;
+  audio.unlock();
+  const item = session.queue[session.index];
+  const correct = bank.isCorrect(q, value);
+  const rt = Math.round(performance.now() - session.shownAt);
+  const spell = q.type === 'spell' ? compareSpelling(q.answer, value, q.graphemes) : null;
+  const confusion = correct ? null : confusionFor(q, value, spell);
+  const first = session.tries === 0 && !item.delayed;
+  recordAttempt(progress, {
+    u: q.unit ?? session.unitId, a: q.activity, i: q.item, n: session.tries, d: item.delayed, ok: correct,
+    c: Array.isArray(value) ? value.join(' ') : String(value), rt: document.hidden ? null : rt,
+    ...(session.mode !== 'unit' ? { m: session.mode } : {}),
+    focus: q.focus, confusion
+  });
+  if (first) {
+    session.results.push({ q, ok: correct, rt: document.hidden ? null : rt });
+    if (q.memory.length) learnItems(progress.items, q.memory, correct, { day: today(), rt: TIMED.has(q.type) && !document.hidden ? rt : null });
+  }
+  if (confusion) {
+    const k = `${confusion.target}|${confusion.chosen}`;
+    session.confusions[k] = (session.confusions[k] || 0) + 1;
+  }
+  if (session.assessment) handleAssessment(node);
+  else if (correct) handleCorrect(q, node);
+  else handleWrong(q, value, node, spell);
+  save();
+}
+
+/** Read aloud: the learner's own rating of their recording against the model (no right or wrong). */
+function onRecorded(q, rating, times) {
+  if (!session || session.locked) return;
+  session.locked = true;
+  const fmt1 = (v) => (Number.isFinite(v) ? v.toFixed(1) : '');
+  recordAttempt(progress, {
+    u: q.unit ?? session.unitId, a: q.activity, i: q.item, n: 0, ok: rating >= 1,
+    c: `${rating}|${fmt1(times?.learner)}|${fmt1(times?.model)}`, rt: null, focus: []
+  });
+  session.results.push({ q, ok: rating >= 1, rating, times });
+  if (rating >= 1) session.firstTry++;
+  save();
+  nextQuestion();
+}
+
+function handleAssessment(node) {
+  session.locked = true;
+  node?.classList?.add('is-chosen');
+  setTimeout(() => { if (session) nextQuestion(); }, 450);
+}
+
+function feedbackMeaning(q) {
+  const f = q.feedback;
+  if (q.activity === 'signs') return el('p', { class: 'feedback-word' }, signPlate(f.word, q.prompt.kind), ` — ${f.ar}`);
+  if (q.activity === 'forms' && !q.prompt.statement) return el('p', { class: 'feedback-word' }, en(f.word), ` — ${f.ar}`);
+  if (q.activity === 'forms') return el('p', { class: 'feedback-ar', text: f.ar });
+  if (q.activity === 'complete-sentence' || q.activity === 'read-text' || q.activity === 'sentence-build') {
+    return el('div', {}, q.activity === 'sentence-build' ? el('p', { class: 'feedback-word' }, en(f.text)) : null, el('p', { class: 'feedback-ar', text: f.ar }));
+  }
+  if (q.activity === 'capital-match') return el('p', { class: 'feedback-word' }, en(f.word));
+  if (q.activity === 'tracing') return el('p', { class: 'feedback-word' }, en(`${f.word.toUpperCase()} ${f.word}`));
+  if (q.activity === 'sound-match') return el('p', { class: 'feedback-word' }, 'كما في ', f.emoji ? `${f.emoji} ` : '', wordNode(f.word));
+  if (q.activity === 'heart-words') return el('p', { class: 'feedback-word' }, heartNode(f.mark), f.ar ? ` — ${f.ar}` : '');
+  if (q.activity === 'perception') return el('p', { class: 'feedback-word' }, wordNode(f.word));
+  return el('p', { class: 'feedback-word' }, f.emoji ? `${f.emoji} ` : '', wordNode(f.word), f.ar ? ` — ${f.ar}` : '');
+}
+
+function nextButton() {
+  return el('button', { class: 'next-btn', onclick: nextQuestion }, 'التالي ←');
+}
+
+function handleCorrect(q, node) {
+  const item = session.queue[session.index];
+  session.locked = true;
+  node?.classList?.add('is-right');
+  audio.cue('ok');
+  const firstTry = session.tries === 0;
+  if (firstTry && !item.delayed) {
+    session.firstTry++;
+    progress.points += POINTS[session.mode] ?? 0;
+    updateHeader();
+  }
+  const fb = $('feedback');
+  fb.className = 'feedback-panel feedback-ok';
+  fb.replaceChildren(el('p', { class: 'feedback-title', text: firstTry ? 'أحسنت!' : 'صحيح.' }), feedbackMeaning(q));
+  if (!['complete-sentence', 'read-text', 'which-word', 'perception', 'sentence-build'].includes(q.activity) && q.feedback.audio) {
+    setTimeout(() => audio.play(q.feedback.audio, { text: q.feedback.word }), 250);
+  }
+  if (firstTry) setTimeout(() => { if (session && session.queue[session.index] === item) nextQuestion(); }, q.activity === 'perception' ? 1100 : 1600);
+  else fb.append(nextButton());
+}
+
+/** Ear training: one try; a wrong answer plays both words in the same voice. */
+function handlePerceptionWrong(q, node) {
+  session.locked = true;
+  node?.classList?.add('is-wrong');
+  audio.cue('soft');
+  document.querySelectorAll('#activity-content .option-btn').forEach(b => { if (b.dataset.value === String(q.answer)) b.classList.add('reveal'); });
+  const voice = q.prompt.voice;
+  const [a, b] = q.prompt.pair;
+  const fb = $('feedback');
+  fb.className = 'feedback-panel feedback-reveal';
+  fb.replaceChildren(
+    el('p', { class: 'feedback-title' }, 'سمعت ', wordNode(q.item), ' (', en(q.answer), ').'),
+    el('p', { class: 'hint' }, ...richArabic(pairHint({ target: q.answer, chosen: q.options.find(o => o.value !== q.answer).value }))),
+    el('div', { class: 'compare' },
+      el('button', { class: 'small-btn', onclick: () => audio.play(clipKey('w', a), { voice }) }, '🔊 ', wordNode(a)),
+      el('button', { class: 'small-btn', onclick: () => audio.play(clipKey('w', b), { voice }) }, '🔊 ', wordNode(b))),
+    nextButton());
+  setTimeout(async () => {
+    if (!session || session.queue[session.index].q !== q) return;
+    await audio.play(clipKey('w', a), { voice });
+    await new Promise(r => setTimeout(r, 400));
+    if (session && session.queue[session.index].q === q) audio.play(clipKey('w', b), { voice });
+  }, 500);
+}
+
+function handleWrong(q, value, node, spell) {
+  if (session.singleTry) { handlePerceptionWrong(q, node); return; }
+  session.tries++;
+  audio.cue('soft');
+  const fb = $('feedback');
+  if (['choice', 'yesno'].includes(q.type) && node) {
+    node.classList.add('is-wrong');
+    node.disabled = true;
+  }
+  if (session.tries === 1) {
+    // Delayed test: the item comes back once at the end, with options in a new order.
+    const item = session.queue[session.index];
+    if (!item.delayed) {
+      const copy = { ...q, options: q.options ? shuffle(q.options) : undefined, tiles: q.tiles ? shuffle(q.tiles) : undefined };
+      session.queue.push({ q: copy, delayed: true });
+      setProgressLabel();
+    }
+    fb.className = 'feedback-panel feedback-try';
+    const chosen = Array.isArray(value) ? value.join('') : String(value);
+    const chosenKey = GRAPHEME_OPTIONS.has(q.activity) && gpc[chosen.toLowerCase()] ? clipKey('ph', gpc[chosen.toLowerCase()].ph)
+      : (['which-word', 'blend'].includes(q.activity) ? clipKey('w', chosen) : null);
+    fb.replaceChildren(
+      el('p', { class: 'feedback-title', text: 'ليس تمامًا — حاول مرة أخرى.' }),
+      spell ? spellingDiff(spell) : null,
+      el('p', { class: 'hint' }, ...richArabic(hintFor(q, value, spell))),
+      el('div', { class: 'compare' },
+        q.prompt.audio && !['meaning', 'pseudo'].includes(q.activity) && q.type !== 'trace' ? el('button', { class: 'small-btn', onclick: () => playPrompt(q) }, '🔊 استمع مرة أخرى') : null,
+        chosenKey && audio.hasClip(chosenKey) ? el('button', { class: 'small-btn', onclick: () => audio.play(chosenKey) }, '🔊 ما اخترته: ', en(chosen)) : null));
+    if (q.type === 'build' || q.type === 'spell') setTimeout(() => { if (session && session.queue[session.index].q === q) session.widget.reset(); }, 900);
+    else if (q.type === 'trace') session.widget.retry();
+    else if (AUTOPLAY.has(q.activity)) setTimeout(() => playPrompt(q), 600);
+    return;
+  }
+  // Second mistake: show the answer; the learner taps it (or "next") to continue.
+  fb.className = 'feedback-panel feedback-reveal';
+  fb.replaceChildren(el('p', { class: 'feedback-title', text: 'هذه هي الإجابة الصحيحة.' }),
+    spell ? spellingDiff(spell) : null,
+    el('p', { class: 'hint' }, ...richArabic(hintFor(q, value, spell))), feedbackMeaning(q));
+  if (['build', 'spell', 'trace'].includes(q.type)) {
+    if (q.type === 'build') session.widget.fill();
+    if (q.type === 'spell') session.widget.show(q.answer);
+    if (q.type === 'trace') session.widget.showModel();
+    session.locked = true;
+    fb.append(nextButton());
+    if (q.feedback.audio && q.type !== 'trace') audio.play(q.feedback.audio, { text: q.feedback.word || q.feedback.text });
+    return;
+  }
+  document.querySelectorAll('#activity-content .option-btn').forEach(b => {
+    if (b.dataset.value === String(q.answer)) b.classList.add('reveal');
+    else b.disabled = true;
+  });
+  fb.append(el('p', { class: 'section-help', text: 'اضغط على الإجابة المظلَّلة للمتابعة.' }));
+}
+
+function nextQuestion() {
+  if (!session) return;
+  session.index++;
+  if (session.index >= session.queue.length && session.onQueueEnd) {
+    const more = session.onQueueEnd(session) || [];
+    more.forEach(q => session.queue.push({ q, delayed: false }));
+  }
+  if (session.index >= session.queue.length) {
+    const s = session;
+    session = null;
+    cleanupWidgets();
+    save(true);
+    s.onFinish(s);
+  } else renderQuestion();
+}
+
+const topSessionConfusions = (s) => Object.entries(s.confusions).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k.split('|'));
+const confusionLine = (top) => (top.length ? el('p', { class: 'mt-3 text-base' }, 'انتبه إلى: ', ...top.flatMap(([a, b], i) => [i ? '، ' : '', en(`${a} / ${b}`)])) : null);
+const scoreLine = (right, total) => el('p', { text: `صحيح من المحاولة الأولى: ${toArabicDigits(right)} من ${toArabicDigits(total)} (${toArabicDigits(Math.round((right / Math.max(1, total)) * 100))}٪)` });
+
+// ---------------- unit activities ----------------
+/** The unit check opens when every other required activity is done (or the unit is already complete). */
+function checkOpen(u) {
+  if (progress.completedUnits.includes(u.id)) return true;
+  const done = progress.completedActivities[u.id] || [];
+  return requiredActivities(u).filter(a => !ACTIVITY_META[a].check).every(a => done.includes(a));
+}
+
+function startUnitActivity(unitId, activityId) {
+  const u = unitById(unitId);
+  if (ACTIVITY_META[activityId].check) {
+    if (!checkOpen(u)) {
+      showMessage(el('p', { class: 'text-base', text: 'أكمل أنشطة الوحدة الأخرى أولًا، ثم خذ اختبار الوحدة.' }));
+      return;
+    }
+    startSession(bank.unitCheck(u), {
+      mode: 'check', unitId, activityId, title: u.title, heading: ACTIVITY_META[activityId].title,
+      back: () => { audio.stop(); showLesson(unitId); },
+      onFinish: finishUnitCheck
+    });
+    return;
+  }
+  const questions = bank.build(unitId, activityId, { n: ITEMS_PER_ACTIVITY });
+  startSession(questions, {
+    mode: 'unit', unitId, activityId, title: u.title, heading: ACTIVITY_META[activityId].title,
+    back: () => { audio.stop(); showLesson(unitId); },
+    onFinish: finishUnitActivity
   });
 }
 
-// -------------------- Event Listeners & Init --------------------
-backButton.addEventListener('click', () => { showView('dashboard'); renderDashboard(); });
+/** Mark an activity done; complete the unit (and open the next) when nothing required is left. */
+function markActivityDone(unitId, activityId) {
+  const list = progress.completedActivities[unitId] || (progress.completedActivities[unitId] = []);
+  if (!list.includes(activityId)) list.push(activityId);
+  const u = unitById(unitId);
+  if (isUnitComplete(u, progress.completedActivities) && !progress.completedUnits.includes(unitId)) {
+    progress.completedUnits.push(unitId);
+    const next = nextUnitId(units, unitId);
+    if (next && progress.unlockedUnit < next) {
+      progress.unlockedUnit = next;
+      return `فتحت ${unitById(next).title}!`;
+    }
+    return 'أكملت الوحدة. أحسنت!';
+  }
+  return '';
+}
 
-menuButton.addEventListener('click', (event) => { event.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
-window.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
+/** What the right answer was, for the list of missed items after a unit check. */
+function answerLine(q) {
+  const play = (key, text) => (key ? el('button', { class: 'small-btn', onclick: () => audio.play(key, { text }) }, '🔊') : null);
+  const word = (w, ar) => el('span', {}, wordNode(w), ar ? ` = ${ar}` : '');
+  let content;
+  if (q.activity === 'pseudo') content = [brandCard(q.item), play(q.feedback.audio), el('span', { text: ' هذه القراءة الصحيحة.' })];
+  else if (['read-text', 'complete-sentence', 'forms', 'bench-text'].includes(q.activity) && q.prompt.statement) {
+    content = [en(q.prompt.statement), ` — ${q.answer === true ? 'نعم' : q.answer === false ? 'لا' : q.answer}`, play(q.feedback.audio, q.prompt.statement)];
+  } else if (q.activity === 'complete-sentence') content = [en(q.feedback.text || q.item), play(q.feedback.audio, q.item)];
+  else if (q.activity === 'signs') content = [en(q.item), ` = ${q.feedback.ar}`];
+  else if (q.activity === 'forms') content = [en(q.answer), ` (${q.feedback.ar})`];
+  else if (q.activity === 'sound-match') content = [en(q.answer), play(q.prompt.audio)];
+  else {
+    const w = q.feedback.word || q.item;
+    content = [word(w, q.feedback.ar || bank.wordInfo(w)?.ar), play(q.feedback.audio, w)];
+  }
+  return el('li', { class: 'missed-item' }, el('span', { class: 'missed-type', text: ACTIVITY_META[q.activity]?.title || '' }), ...content);
+}
 
-document.getElementById('progress-report-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderProgressReportPage(); });
-document.getElementById('achievements-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderAchievementsPage(); });
-document.getElementById('important-note-button').addEventListener('click', () => { dropdownMenu.classList.add('hidden'); renderImportantNotePage(); });
+function finishUnitCheck(s) {
+  const { unitId, activityId } = s;
+  const right = s.results.filter(r => r.ok).length;
+  const total = s.results.length;
+  const passed = checkPassed(right, total);
+  const firstPass = passed && !(progress.checks[unitId]?.passed);
+  recordCheck(progress, unitId, right, total, today());
+  let unlockedMsg = '';
+  if (passed) {
+    unlockedMsg = markActivityDone(unitId, activityId);
+    if (firstPass) { progress.points += CHECK_BONUS; updateHeader(); }
+  }
+  save(true);
+  const missed = s.results.filter(r => !r.ok).map(r => r.q);
+  const fix = () => startSession(missed.map(q => ({ ...q, key: q.key.replace(/^check:/, 'fix:') })), {
+    mode: 'fix', unitId, activityId: 'fix', title: unitById(unitId).title, heading: 'تدرّب على أخطائك',
+    back: () => showLesson(unitId),
+    onFinish: () => showMessage(el('p', { class: 'text-base', text: 'أحسنت. الآن أعد اختبار الوحدة بأسئلة جديدة.' }), [
+      { label: 'أعد الاختبار', onClick: () => startUnitActivity(unitId, activityId) },
+      { label: 'العودة إلى الوحدة', onClick: () => showLesson(unitId), secondary: true }])
+  });
+  $('activity-title').textContent = 'نتيجة اختبار الوحدة';
+  $('activity-progress').textContent = '';
+  showView('activity-view', unitById(unitId).title, () => showLesson(unitId));
+  $('activity-content').replaceChildren(el('div', { class: 'check-result' },
+    el('p', { class: 'text-2xl font-bold mb-2', text: passed ? 'نجحت في اختبار الوحدة ✓' : 'لم تصل إلى ٨٠٪ بعد' }),
+    el('p', { text: `صحيح: ${toArabicDigits(right)} من ${toArabicDigits(total)} (${toArabicDigits(Math.round((right / Math.max(1, total)) * 100))}٪)` }),
+    firstPass ? el('p', { class: 'text-base', text: `+${toArabicDigits(CHECK_BONUS)} نقطة` }) : null,
+    unlockedMsg ? el('p', { class: 'text-green-700 font-bold mt-2', text: unlockedMsg }) : null,
+    passed ? null : el('p', { class: 'text-gray-600 mt-2', text: 'هذا طبيعي: تدرّب على الأسئلة التي أخطأت فيها، ثم أعد الاختبار بأسئلة جديدة.' }),
+    missed.length ? el('div', { class: 'mt-4' }, el('h4', { class: 'font-bold mb-2', text: 'الأسئلة التي أخطأت فيها' }), el('ul', { class: 'missed-list' }, ...missed.map(answerLine))) : null,
+    el('div', { class: 'flex flex-wrap gap-2 mt-4' },
+      missed.length ? el('button', { class: passed ? 'small-btn' : 'today-btn', onclick: fix }, 'تدرّب على أخطائك') : null,
+      passed ? null : el('button', { class: 'small-btn', onclick: () => startUnitActivity(unitId, activityId) }, 'أعد الاختبار'),
+      el('button', { class: passed ? 'today-btn' : 'small-btn', onclick: () => { showLesson(unitId); checkAchievements(); } }, 'العودة إلى الوحدة'))));
+}
 
-if (themeToggleButton) {
-  themeToggleButton.addEventListener('click', () => {
-    dropdownMenu.classList.add('hidden');
-    toggleTheme();
+function finishReadAloud(s) {
+  const { unitId, activityId } = s;
+  const unlockedMsg = markActivityDone(unitId, activityId);
+  save(true);
+  const counts = [0, 1, 2].map(v => s.results.filter(r => r.rating === v).length);
+  const ratios = s.results.map(r => (r.times?.learner && r.times?.model ? r.times.learner / r.times.model : null)).filter(Boolean);
+  const ratio = ratios.length ? ratios.reduce((a, b) => a + b, 0) / ratios.length : null;
+  showMessage(el('div', {},
+    el('p', { class: 'text-2xl font-bold mb-2', text: 'أحسنت! قرأت بصوت عالٍ ✓' }),
+    el('p', { text: `مثل النموذج: ${toArabicDigits(counts[2])} — قريبة: ${toArabicDigits(counts[1])} — أحتاج تدريبًا: ${toArabicDigits(counts[0])}` }),
+    ratio ? el('p', { class: 'text-base mt-2', text: `في المتوسط استغرقت قراءتك ${toArabicDigits(ratio.toFixed(1)).replace('.', '٫')} ضعف وقت النموذج. مع التدريب يقترب هذا الرقم من ١.` }) : null,
+    unlockedMsg ? el('p', { class: 'text-green-700 font-bold mt-2', text: unlockedMsg }) : null,
+    el('p', { class: 'text-base text-gray-600 mt-2', text: 'اقرأ بصوت عالٍ كل يوم: القراءة المتكررة مع نموذج تزيد سرعتك ودقّتك.' })),
+  [{ label: 'مرة أخرى', onClick: () => startUnitActivity(unitId, activityId), secondary: true },
+    { label: 'العودة إلى الوحدة', onClick: () => { showLesson(unitId); checkAchievements(); } }]);
+}
+
+function finishUnitActivity(s) {
+  if (s.activityId === 'read-aloud') { finishReadAloud(s); return; }
+  const { unitId, activityId, firstTry } = s;
+  const total = s.results.length;
+  const passed = hasPassed(firstTry, total);
+  const unlockedMsg = passed ? markActivityDone(unitId, activityId) : '';
+  save(true);
+  const msg = el('div', {},
+    el('p', { class: 'text-2xl font-bold mb-2', text: passed ? 'اكتمل النشاط ✓' : 'تحتاج إلى تدريب إضافي' }),
+    scoreLine(firstTry, total),
+    passed ? null : el('p', { class: 'text-gray-600', text: `المطلوب ${toArabicDigits(Math.round(PASS_MARK * 100))}٪ على الأقل. الأخطاء جزء من التعلّم — حاول مرة أخرى.` }),
+    unlockedMsg ? el('p', { class: 'text-green-700 font-bold mt-2', text: unlockedMsg }) : null,
+    activityId === 'tracing' ? el('p', { class: 'text-base mt-2', text: 'اكتب الحروف على الورق أيضًا: الكتابة باليد تساعد على تذكّر شكل الحرف.' }) : null,
+    confusionLine(topSessionConfusions(s)));
+  // New badges are shown after the result, not on top of it.
+  showMessage(msg, [
+    { label: 'أعد المحاولة', onClick: () => { startUnitActivity(unitId, activityId); checkAchievements(); }, secondary: passed },
+    { label: 'العودة إلى الوحدة', onClick: () => { showLesson(unitId); checkAchievements(); }, secondary: !passed }
+  ]);
+}
+
+// ---------------- spaced review ----------------
+function startReview() {
+  const keys = shuffle(dueItems(progress.items, today(), { filter: reviewFilter, limit: REVIEW_SIZE }));
+  const seen = new Set();
+  const questions = keys.map(k => bank.buildItem(k, progress.unlockedUnit, Math.random, { box: progress.items[k].b }))
+    .filter(q => q && !seen.has(q.key) && seen.add(q.key));
+  startSession(questions, {
+    mode: 'review', title: 'مراجعة اليوم', heading: 'مراجعة', back: renderDashboard,
+    onFinish: (s) => {
+      const left = dueItems(progress.items, today(), { filter: reviewFilter }).length;
+      const tomorrow = dueItems(progress.items, today() + 1, { filter: reviewFilter }).length;
+      showMessage(el('div', {},
+        el('p', { class: 'text-2xl font-bold mb-2', text: 'انتهت المراجعة ✓' }),
+        scoreLine(s.firstTry, s.results.length),
+        el('p', { class: 'text-base mt-2', text: left ? `بقي ${toArabicDigits(left)} للمراجعة اليوم.` : `المراجعة القادمة: ${toArabicDigits(tomorrow)} غدًا.` }),
+        el('p', { class: 'text-base text-gray-600 mt-2', text: 'ما تجيب عنه صحيحًا يعود بعد مدة أطول، وما تخطئ فيه يعود غدًا.' })),
+      [{ label: left ? 'تابع المراجعة' : 'متابعة', onClick: () => { if (left) startReview(); else renderDashboard(); checkAchievements(); } }]);
+    }
   });
 }
 
-// Copy email functionality
-document.getElementById('copy-email-btn').addEventListener('click', async () => {
+// ---------------- weak sounds ----------------
+async function startWeak() {
+  await audio.initAudio();
+  const targets = currentWeak();
+  const questions = bank.weakPractice(targets, progress.unlockedUnit, { usable: audio.usable });
+  startSession(questions, {
+    mode: 'weak', title: 'نقاط ضعفي', heading: 'تدريب على الأصوات الصعبة', back: renderDashboard,
+    onFinish: (s) => showMessage(el('div', {},
+      el('p', { class: 'text-2xl font-bold mb-2', text: 'انتهى التدريب ✓' }),
+      scoreLine(s.firstTry, s.results.length),
+      confusionLine(topSessionConfusions(s))),
+    [{ label: 'تدريب آخر', onClick: startWeak, secondary: true }, { label: 'متابعة', onClick: renderDashboard }])
+  });
+}
+
+// ---------------- ear training ----------------
+const setUnlockUnit = (set) => Math.max(unitOfGrapheme(set.a), unitOfGrapheme(set.b));
+
+function trend(blocks) {
+  return blocks.slice(-5).map(b => `${toArabicDigits(b)}٪`).join(' ← ');
+}
+
+function renderPerceptionMenu() {
+  const root = $('perception-view');
+  const open = bank.perceptionSets(progress.unlockedUnit).map(s => s.id);
+  root.replaceChildren(
+    el('p', { class: 'section-help mb-4', text: 'استمع إلى كلمة بصوت متحدث مختلف في كل مرة، واختر الحرف الذي تسمعه. التدريب بأصوات كثيرة يساعد الأذن على التمييز بين الأصوات الجديدة. كل جولة ١٦ كلمة.' }),
+    el('div', { class: 'perception-grid' }, ...PERCEPTION.map(set => {
+      const stats = progress.perception[set.id];
+      const isOpen = open.includes(set.id);
+      const [a, b] = set.pairs[0];
+      return el('button', {
+        class: `perception-card ${isOpen ? '' : 'locked'}`, disabled: !isOpen, 'data-set': set.id,
+        onclick: () => startPerception(set.id)
+      },
+      el('span', { class: 'perception-letters' }, en(`${set.a} / ${set.b}`)),
+      el('span', { class: 'perception-example' }, wordNode(a), ' – ', wordNode(b)),
+      el('span', { class: 'perception-stats', text: !isOpen ? `بعد ${unitById(setUnlockUnit(set)).title}` : stats ? trend(stats.blocks) : 'جديد' }));
+    })));
+  showView('perception-view', 'تدريب الأذن', renderDashboard);
+}
+
+async function startPerception(setId) {
+  await audio.initAudio();
+  const set = PERCEPTION.find(s => s.id === setId);
+  const questions = bank.perceptionBlock(set, { usable: audio.usable });
+  audio.preload([...new Set(questions.map(q => q.prompt.audio))], PERCEPTION_VOICES);
+  startSession(questions, {
+    mode: 'perception', title: 'تدريب الأذن', heading: `${set.a} أم ${set.b}؟`, back: renderPerceptionMenu,
+    onFinish: (s) => {
+      const right = s.firstTry;
+      const total = s.results.length;
+      progress.perception = recordPerceptionBlock(progress.perception, set.id, right, total);
+      save(true);
+      const blocks = progress.perception[set.id].blocks;
+      showMessage(el('div', {},
+        el('p', { class: 'text-2xl font-bold mb-2', text: `${toArabicDigits(right)} من ${toArabicDigits(total)}` }),
+        blocks.length > 1 ? el('p', { class: 'text-base', text: `آخر الجولات: ${trend(blocks)}` }) : null,
+        el('p', { class: 'text-base text-gray-600 mt-2', text: 'التحسّن يأتي مع التكرار: جولة أو جولتان كل يوم أفضل من جولات كثيرة مرة واحدة.' })),
+      [{ label: 'جولة أخرى', onClick: () => startPerception(setId) }, { label: 'رجوع', onClick: renderPerceptionMenu, secondary: true }]);
+    }
+  });
+}
+
+// ---------------- placement test ----------------
+const CAN_DO = [
+  [0, 'سنبدأ معًا من الأصوات الأولى: s, a, t, i, n, p.'],
+  [1, 'تعرف أصوات عدد من الحروف، وتقرأ كلمات قصيرة مثل pin و map.'],
+  [4, 'تقرأ كلمات قصيرة بحروف علة مختلفة مثل pen و cup و bag.'],
+  [6, 'تقرأ كلمات وجملًا قصيرة فيها معظم أصوات الحروف.'],
+  [8, 'تقرأ كلمات من مقطعين وجملًا بسيطة.'],
+  // Counts of units passed: units 1-9 = 9, then 11-14 (clusters, endings), 15-20 (long vowels), 22-23.
+  [10, 'تقرأ كلمات تبدأ بحرفين ساكنين مثل stop و spin.'],
+  [13, 'تقرأ كلمات فيها حروف ساكنة متتالية ونهايات مثل hand و jumped و helping.'],
+  [16, 'تقرأ حروف العلة الطويلة مثل make و rain و night.'],
+  [19, 'تقرأ معظم حروف العلة الطويلة ونصوصًا قصيرة عن الحياة الجامعية.'],
+  [21, 'تقرأ كلمات طويلة مثل student و teacher، ولافتات واستمارات بسيطة.']
+];
+
+function introducePlacement() {
+  showMessage(el('div', { class: 'text-right' },
+    el('p', { class: 'font-bold mb-2', text: 'اختبار تحديد المستوى' }),
+    el('p', { class: 'text-base', text: 'اختبار قصير (حوالي ١٠ دقائق) يحدّد من أين تبدأ. يتوقف عندما تصل إلى الأصوات التي لم تتعلّمها بعد.' }),
+    el('p', { class: 'text-base mt-2', text: 'لن ترى الإجابات الصحيحة أثناء الاختبار. إذا لم تعرف الإجابة فاختر ما تظنّه — هذا طبيعي.' })),
+  [{ label: 'ابدأ الاختبار', onClick: startPlacement }, { label: 'إلغاء', onClick: () => {}, secondary: true }]);
+}
+
+async function startPlacement() {
+  await audio.initAudio();
+  const unitIds = bank.placementUnits();
+  const results = [];
+  let unitIndex = 0;
+  let unitStart = 0;
+  const label = () => `الجزء ${toArabicDigits(unitIndex + 1)} من ${toArabicDigits(unitIds.length)}`;
+  const first = bank.placementItems(unitIds[0]);
+  audio.preload(first.flatMap(q => [q.prompt.audio, ...(q.options || []).map(o => o.audio)]).filter(Boolean), ['f', 'm']);
+  startSession(first, {
+    mode: 'placement', title: 'اختبار تحديد المستوى', heading: 'أجب بما تعرفه', back: renderDashboard,
+    progressLabel: label,
+    onQueueEnd: (s) => {
+      const part = s.results.slice(unitStart);
+      results.push({ unit: unitIds[unitIndex], right: part.filter(r => r.ok).length, total: part.length });
+      const passedSoFar = placementOutcome(results, unitIds).passed.length === results.length;
+      if (!passedSoFar || unitIndex + 1 >= unitIds.length) return null;
+      unitIndex++;
+      unitStart = s.results.length;
+      const next = bank.placementItems(unitIds[unitIndex]);
+      audio.preload(next.flatMap(q => [q.prompt.audio, ...(q.options || []).map(o => o.audio)]).filter(Boolean), ['f', 'm']);
+      return next;
+    },
+    onFinish: () => finishPlacement(results, unitIds)
+  });
+}
+
+function finishPlacement(results, unitIds) {
+  const { passed, start } = placementOutcome(results, unitIds);
+  // After the last teaching unit, the learner goes on to the review unit.
+  const startUnit = passed.length === unitIds.length ? nextUnitId(units, unitIds[unitIds.length - 1]) || start : start;
+  passed.forEach(id => { if (!progress.completedUnits.includes(id)) progress.completedUnits.push(id); });
+  progress.unlockedUnit = Math.max(progress.unlockedUnit, startUnit);
+  progress.placement = { day: today(), start: startUnit, passed };
+  save(true);
+  const canDo = [...CAN_DO].reverse().find(([n]) => passed.length >= n)[1];
+  showMessage(el('div', { class: 'text-right' },
+    el('p', { class: 'text-2xl font-bold mb-2', text: 'نتيجة الاختبار' }),
+    el('p', { class: 'text-base' }, ...richArabic(canDo)),
+    passed.length ? el('p', { class: 'text-base mt-2', text: `أتقنت: ${passed.map(id => unitById(id).title).join('، ')}` }) : null,
+    el('p', { class: 'font-bold mt-2', text: `ابدأ من ${unitById(progress.unlockedUnit).title}.` }),
+    passed.length ? el('p', { class: 'text-base text-gray-600 mt-2', text: 'الوحدات السابقة مفتوحة إذا أردت مراجعتها.' }) : null),
+  [{ label: 'ابدأ', onClick: () => { checkAchievements(); showLesson(progress.unlockedUnit); } }]);
+}
+
+// ---------------------------------------------------------------------------
+// Modals
+// ---------------------------------------------------------------------------
+function showMessage(content, buttons = [{ label: 'متابعة', onClick: () => {} }]) {
+  const modal = $('message-modal');
+  $('modal-message').replaceChildren(content);
+  $('modal-buttons').replaceChildren(...buttons.map(b => el('button', {
+    class: b.secondary ? 'modal-btn modal-btn-secondary' : b.danger ? 'modal-btn modal-btn-danger' : 'modal-btn',
+    onclick: () => { modal.classList.add('hidden'); b.onClick(); }
+  }, b.label)));
+  modal.classList.remove('hidden');
+  $('modal-buttons').firstElementChild?.focus();
+}
+
+function confirmAction(message, onConfirm) {
+  showMessage(message, [
+    { label: 'إلغاء', onClick: () => {}, secondary: true },
+    { label: 'تأكيد', onClick: onConfirm, danger: true }
+  ]);
+}
+
+function checkAchievements() {
+  achievements.forEach(a => {
+    if (!progress.earnedAchievements.includes(a.id) && a.condition(progress)) {
+      progress.earnedAchievements.push(a.id);
+      achievementQueue.push(a);
+    }
+  });
+  if (!showingAchievement && achievementQueue.length) showNextAchievement();
+}
+
+function showNextAchievement() {
+  const a = achievementQueue.shift();
+  if (!a) { showingAchievement = false; return; }
+  showingAchievement = true;
+  $('achievement-icon').innerHTML = a.icon; // static SVG from data.js
+  $('achievement-name').textContent = a.name;
+  $('achievement-desc').textContent = a.description;
+  $('achievement-unlocked-modal').classList.remove('hidden');
+}
+
+// ---------------------------------------------------------------------------
+// Achievements, report, audio test
+// ---------------------------------------------------------------------------
+function renderAchievements() {
+  const grid = $('achievements-grid');
+  grid.replaceChildren(...achievements.map(a => {
+    const earned = progress.earnedAchievements.includes(a.id);
+    const icon = el('div', { class: 'w-16 h-16 mx-auto mb-3' });
+    icon.innerHTML = a.icon; // static SVG from data.js
+    return el('div', { class: `achievement-card text-center p-4 bg-white rounded-lg shadow-sm border ${earned ? 'border-yellow-400' : 'locked'}` },
+      icon, el('h4', { class: 'font-bold text-gray-800', text: a.name }), el('p', { class: 'text-sm text-gray-500', text: a.description }));
+  }));
+  showView('achievements-view', 'الإنجازات', renderDashboard);
+}
+
+function soundButton(g) {
+  const info = gpc[g];
+  if (!info) return en(g, 'report-g');
+  return el('button', { class: 'report-g', onclick: () => playSound(info.ph, info.kw) }, en(g), ' 🔊');
+}
+
+/** Item memory grouped by kind and status (new / learning / mastered). */
+function masterySummary() {
+  const out = { ph: { mastered: [], learning: [] }, w: { mastered: [], learning: [] }, h: { mastered: [], learning: [] } };
+  Object.entries(progress.items).forEach(([k, m]) => {
+    const [kind, ...rest] = k.split(':');
+    const status = itemStatus(m);
+    if (out[kind] && status !== 'new') out[kind][status].push(rest.join(':'));
+  });
+  return out;
+}
+
+function renderProgressReport() {
+  const root = $('progress-report-view');
+  const stat = (label, value, cls) => el('div', { class: 'bg-white p-4 rounded-lg shadow-sm' },
+    el('div', { class: 'text-sm text-gray-500', text: label }), el('div', { class: `text-2xl font-bold ${cls}`, text: value }));
+  const recent = recentConfusions(progress.attempts, { n: 5 });
+  const confusions = recent.length ? recent : topConfusions(progress, 5);
+  const accuracy = graphemeAccuracy(progress, 3);
+  const m = masterySummary();
+  const phToGrapheme = (ph) => Object.keys(gpc).find(g => gpc[g].ph === ph && !gpc[g].variantOf) || (ph === 'dh' ? 'th' : ph);
+  const weak = currentWeak();
+  const box = (n, label) => el('div', { class: 'mastery-box' }, el('div', { class: 'mastery-num', text: toArabicDigits(n) }), el('div', { text: label }));
+  root.replaceChildren(
+    el('div', { class: 'grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center' },
+      stat('النقاط', progress.points, 'text-yellow-500'),
+      stat('أيام متتالية', progress.streak, 'text-red-500'),
+      stat('وقت التعلّم', formatTime(progress.timeSpent), 'text-blue-500'),
+      stat('الوحدات المكتملة', `${progress.completedUnits.length} / ${units.length}`, 'text-green-600')),
+    el('div', { class: 'bg-white p-6 rounded-lg shadow-sm mb-6' },
+      el('h3', { class: 'text-lg font-bold mb-2', text: 'ما أتقنته' }),
+      el('p', { class: 'section-help', text: '«أتقنت» تعني: صحيح في ٩٠٪ من آخر ٨ محاولات أو أكثر، في يومين مختلفين على الأقل، وبسرعة.' }),
+      el('div', { class: 'mastery-grid' },
+        box(m.ph.mastered.length, 'أصوات أتقنتها'),
+        box(m.w.mastered.length, 'كلمات أتقنتها'),
+        box(m.h.mastered.length, 'كلمات قلب أتقنتها'),
+        box(m.ph.learning.length + m.w.learning.length + m.h.learning.length, 'قيد التعلّم')),
+      m.ph.mastered.length ? el('div', { class: 'accuracy-grid mt-3' }, ...m.ph.mastered.map(ph => el('span', { class: 'accuracy-chip is-good' }, en(phToGrapheme(ph))))) : null),
+    el('div', { class: 'bg-white p-6 rounded-lg shadow-sm mb-6' },
+      el('h3', { class: 'text-lg font-bold mb-2', text: 'أصوات تحتاج إلى تدريب' }),
+      confusions.length
+        ? el('ul', { class: 'confusion-list' }, ...confusions.map(c => el('li', {},
+          el('div', { class: 'confusion-pair' }, soundButton(c.target), el('span', { text: 'اختلطت مع' }), soundButton(c.chosen),
+            el('span', { class: 'text-gray-500 text-sm', text: `(${toArabicDigits(c.count)} مرات)` })),
+          el('p', { class: 'hint' }, ...richArabic(pairHint(c))))))
+        : el('p', { class: 'text-gray-500', text: 'لا توجد أخطاء متكررة بعد. استمر في الأنشطة وسيظهر هنا ما يحتاج إلى تدريب.' }),
+      weak.length ? el('button', { class: 'today-btn mt-3', onclick: startWeak }, 'تدرّب على هذه الأصوات') : null),
+    el('div', { class: 'bg-white p-6 rounded-lg shadow-sm mb-6' },
+      el('h3', { class: 'text-lg font-bold mb-2', text: 'دقّتك في كل صوت (من المحاولة الأولى)' }),
+      accuracy.length
+        ? el('div', { class: 'accuracy-grid' }, ...accuracy.map(a => el('div', {
+          class: `accuracy-chip ${a.accuracy >= 0.9 ? 'is-good' : a.accuracy >= 0.7 ? 'is-ok' : 'is-weak'}`
+        }, en(a.g), el('span', { text: `${toArabicDigits(Math.round(a.accuracy * 100))}٪` }))))
+        : el('p', { class: 'text-gray-500', text: 'ستظهر هنا دقّتك بعد بعض الأنشطة.' })),
+    Object.keys(progress.perception).length ? el('div', { class: 'bg-white p-6 rounded-lg shadow-sm' },
+      el('h3', { class: 'text-lg font-bold mb-2', text: 'تدريب الأذن (آخر الجولات)' }),
+      el('ul', { class: 'confusion-list' }, ...PERCEPTION.filter(s => progress.perception[s.id]).map(s => el('li', {},
+        el('div', { class: 'confusion-pair' }, en(`${s.a} / ${s.b}`), el('span', { text: trend(progress.perception[s.id].blocks) })))))) : null);
+  root.append(...reportSections(assessContext(), units));
+  showView('progress-report-view', 'تقرير التقدّم', renderDashboard);
+}
+
+async function renderAudioTest() {
+  const root = $('audio-test-view');
+  const out = el('pre', { class: 'diagnostics', dir: 'ltr' });
+  const refresh = () => { out.textContent = JSON.stringify(audio.diagnostics(), null, 2); };
+  root.replaceChildren(el('div', { class: 'bg-white p-6 rounded-lg shadow-sm space-y-4 leading-8' },
+    el('p', { text: 'اضغط على الأزرار لتتأكد أن الصوت يعمل على جهازك.' }),
+    el('div', { class: 'flex flex-wrap gap-3' },
+      el('button', { class: 'small-btn', onclick: async () => { await audio.play(clipKey('w', 'yes'), { text: 'yes' }); refresh(); } }, '🔊 كلمة: ', en('yes')),
+      el('button', { class: 'small-btn', onclick: async () => { await playSound('s', 'sun'); refresh(); } }, '🔊 صوت: ', en('s')),
+      el('button', { class: 'small-btn', onclick: async () => { await audio.play(clipKey('s', 'It is a pin.'), { text: 'It is a pin.' }); refresh(); } }, '🔊 جملة')),
+    el('p', { class: 'text-sm text-gray-600', text: 'إذا لم تسمع شيئًا: ارفع مستوى الصوت. في أجهزة iPhone القديمة، أطفئ زر الوضع الصامت. وإذا فتحت الرابط من داخل واتساب أو إنستغرام فافتحه في Safari أو Chrome.' }),
+    out));
+  await audio.initAudio();
+  refresh();
+  showView('audio-test-view', 'اختبار الصوت', renderDashboard);
+}
+
+// ---------------------------------------------------------------------------
+// Backup and install guide (see backup-ui.js and platform.js)
+// ---------------------------------------------------------------------------
+/** Shared state and helpers for the Phase 4 screens (assess-ui.js). */
+function assessContext() {
+  return {
+    getProgress: () => progress,
+    save, today, bank, stages: STAGES, canDo: CAN_DO_STAGES,
+    activityRoot: (title, heading, back) => {
+      showView('activity-view', title, back);
+      session = null;
+      $('activity-title').textContent = heading;
+      $('activity-progress').textContent = '';
+      return $('activity-content');
+    },
+    showMessage, renderDashboard, renderReport: renderProgressReport,
+    runQuestions: (questions, { title, heading, back, onDone }) => startSession(questions, { mode: 'benchmark', title, heading, back, onFinish: onDone }),
+    cue: (type) => audio.cue(type),
+    maxUnit: () => Math.max(0, ...progress.completedUnits),
+    track: (drill) => { activeDrill = drill; }
+  };
+}
+
+function backupContext() {
+  return {
+    getProgress: () => progress,
+    replaceProgress: (p) => { progress = p; save(true); updateHeader(); },
+    markBackedUp: () => { progress.lastBackupDay = today(); save(true); },
+    root: $('backup-view'),
+    showView: () => showView('backup-view', 'نسخة احتياطية', renderDashboard),
+    showMessage, confirmAction, renderDashboard, units
+  };
+}
+
+function openInstallGuide() {
+  renderInstallGuide($('install-view'), platformInfo(), { canPrompt: () => !!deferredPrompt, onInstall: promptInstall, onDone: renderDashboard });
+  showView('install-view', 'تثبيت التطبيق', renderDashboard);
+}
+
+// ---------------------------------------------------------------------------
+// Event listeners & init
+// ---------------------------------------------------------------------------
+$('back-button').addEventListener('click', () => { audio.stop(); (backTarget || renderDashboard)(); });
+$('menu-button').addEventListener('click', (event) => {
+  event.stopPropagation();
+  const menu = $('dropdown-menu');
+  menu.classList.toggle('hidden');
+  $('menu-button').setAttribute('aria-expanded', String(!menu.classList.contains('hidden')));
+});
+window.addEventListener('click', () => { if (!$('dropdown-menu').classList.contains('hidden')) closeMenu(); });
+$('progress-report-button').addEventListener('click', () => { closeMenu(); renderProgressReport(); });
+$('achievements-button').addEventListener('click', () => { closeMenu(); renderAchievements(); });
+$('audio-test-button').addEventListener('click', () => { closeMenu(); renderAudioTest(); });
+$('placement-button').addEventListener('click', () => { closeMenu(); introducePlacement(); });
+$('backup-button').addEventListener('click', () => { closeMenu(); renderBackup(backupContext()); });
+$('install-app-button').addEventListener('click', () => { closeMenu(); openInstallGuide(); });
+$('important-note-button').addEventListener('click', () => { closeMenu(); showView('important-note-view', 'ملاحظة مهمة', renderDashboard); });
+$('achievement-close-btn').addEventListener('click', () => { $('achievement-unlocked-modal').classList.add('hidden'); showNextAchievement(); });
+
+$('copy-email-btn').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText('hello@my2ndlang.com');
-    const toast = document.getElementById('copy-toast');
+    const toast = $('copy-toast');
     toast.classList.remove('hidden');
     setTimeout(() => toast.classList.add('hidden'), 1500);
   } catch (error) {
@@ -1003,85 +1322,93 @@ document.getElementById('copy-email-btn').addEventListener('click', async () => 
   }
 });
 
-document.getElementById('reset-progress').addEventListener('click', () => {
-  dropdownMenu.classList.add('hidden');
-  showConfirmationModal('هل أنت متأكد من رغبتك في إعادة تعيين كل تقدمك؟ لا يمكن التراجع عن هذا الإجراء.', () => {
-    try { localStorage.removeItem('literacyAppProgress'); } catch (e) { console.warn('Cannot clear localStorage (private browsing?):', e); }
-    userProgress = getDefaultProgress();
-    updateHeaderStats();
-    renderDashboard();
-  });
-});
-
-document.getElementById('unlock-all').addEventListener('click', () => {
-  dropdownMenu.classList.add('hidden');
-  showConfirmationModal('هل أنت متأكد من رغبتك في فتح جميع الوحدات؟', () => {
-    // unlock all by setting to the id of the last chunk
-    const last = appData.chunks[appData.chunks.length - 1];
-    userProgress.unlockedChunk = last ? last.id : userProgress.unlockedChunk;
-    saveProgress();
-    renderDashboard();
-  });
-});
-
-document.getElementById('achievement-close-btn').addEventListener('click', () => {
-  achievementUnlockedModal.classList.add('hidden');
-  showNextAchievement();
-});
-
-function init() {
-  applyTheme(getInitialTheme());
-  loadProgress();
-  handleStreak();
-  updateHeaderStats();
-
-  loadAndSetVoice();
-  if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
-    window.speechSynthesis.onvoiceschanged = loadAndSetVoice;
-  }
-
-  renderDashboard();
-  startLearningTimer();
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stopLearningTimer(); else startLearningTimer();
-  });
-
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  mediaQuery.addEventListener('change', () => {
+$('reset-progress').addEventListener('click', () => {
+  closeMenu();
+  confirmAction('هل أنت متأكد من رغبتك في إعادة تعيين كل تقدّمك؟ لا يمكن التراجع عن هذا الإجراء.', () => {
     try {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-      if (!savedTheme) applyTheme(getSystemTheme());
-    } catch (e) {
-      applyTheme(getSystemTheme());
-    }
+      [STORAGE_KEY, V4_KEY, V3_KEY, LEGACY_KEY].forEach(k => localStorage.removeItem(k));
+    } catch (e) { console.warn('Cannot clear localStorage (private browsing?):', e); }
+    progress = getDefaultProgress();
+    progress.seenNotices.push('new-course', 'ios-install');
+    updateHeader();
+    renderDashboard();
+    showStartChoice();
   });
+});
 
-  window.addEventListener('beforeunload', () => {
-    stopLearningTimer();
-    if (saveTimeout) clearTimeout(saveTimeout);
-    try { localStorage.setItem('literacyAppProgress', JSON.stringify(userProgress)); }
-    catch (e) { console.warn('Cannot save progress on unload (private browsing?):', e); }
-  });
+/** First visit: complete beginners start at unit 1; others can take the placement test. */
+function showStartChoice() {
+  if (progress.seenNotices.includes('start-choice') || progress.attempts.length || progress.placement) return;
+  progress.seenNotices.push('start-choice');
+  save();
+  showMessage(el('div', { class: 'text-right' },
+    el('p', { class: 'font-bold mb-2', text: 'كيف تريد أن تبدأ؟' }),
+    el('p', { class: 'text-base', text: 'إذا كانت الإنجليزية جديدة عليك تمامًا، فابدأ من الوحدة الأولى. وإذا كنت تعرف بعض الحروف والكلمات، فاختبار قصير يحدّد لك من أين تبدأ.' })),
+  [{ label: 'أنا مبتدئ: الوحدة الأولى', onClick: () => maybeShowInstallGuide(() => showLesson(1)) },
+    { label: 'أعرف بعض الإنجليزية: اختبار قصير', onClick: () => maybeShowInstallGuide(introducePlacement), secondary: true }]);
 }
 
-// Landing actions
-applyTheme(getInitialTheme());
+/** iPhone/iPad in Safari (not installed): explain Home Screen install once, before the first lesson. */
+function maybeShowInstallGuide(next) {
+  const info = platformInfo();
+  if (info.ios && !info.standalone && !info.inApp && !progress.seenNotices.includes('ios-install')) {
+    progress.seenNotices.push('ios-install');
+    save();
+    renderInstallGuide($('install-view'), info, { canPrompt: () => false, onInstall: promptInstall, onDone: next });
+    showView('install-view', 'قبل أن تبدأ', null);
+    return;
+  }
+  next();
+}
+
+function showNewCourseNotice(next) {
+  if (!legacyFound || progress.seenNotices.includes('new-course')) { next(); return; }
+  progress.seenNotices.push('new-course');
+  save();
+  showMessage(el('div', { class: 'text-right' },
+    el('p', { class: 'font-bold mb-2', text: 'تحديث جديد للبرنامج' }),
+    el('p', { class: 'text-base', text: 'صمّمنا المنهج من جديد للطلاب البالغين: أصوات حقيقية للحروف، وكلمات مفيدة مع معانيها، وتدريب على الفروق الصعبة للمتحدثين بالعربية.' }),
+    el('p', { class: 'text-base mt-2', text: 'لأن الوحدات تغيّرت، يبدأ تقدّمك من جديد. إذا كنت تعرف أصوات الحروف فجرّب «اختبار تحديد المستوى».' })),
+  [{ label: 'لنبدأ', onClick: next }]);
+}
+
+function init() {
+  const loaded = loadProgressFrom(safeStorage());
+  progress = loaded.progress;
+  legacyFound = loaded.legacyFound;
+  handleStreak();
+  updateHeader();
+  renderDashboard();
+  startTimer();
+  audio.initAudio();
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopTimer(); else startTimer(); });
+  // iOS doesn't reliably fire beforeunload: save on pagehide too.
+  window.addEventListener('pagehide', () => stopTimer());
+  window.addEventListener('beforeunload', () => stopTimer());
+  showNewCourseNotice(showStartChoice);
+}
+
+function safeStorage() {
+  try { return window.localStorage; } catch (e) { return { getItem: () => null }; }
+}
+
 document.getElementById('landing-year').textContent = new Date().getFullYear();
 
-startLearningBtn.addEventListener('click', () => {
-  document.getElementById('landing-year').textContent = new Date().getFullYear();
-  landingPage.classList.add('hidden');
-  appContainer.classList.remove('hidden');
-  appContainer.classList.add('fade-in');
+$('start-learning-btn').addEventListener('click', () => {
+  audio.unlock();
+  $('landing-page').classList.add('hidden');
+  $('app-container').classList.remove('hidden');
+  $('app-container').classList.add('fade-in');
   init();
-  initAudio();
 });
+
+// In-app browsers (Instagram, Facebook, TikTok...) can lose progress and can't install the app.
+const banner = inAppBanner(platformInfo());
+if (banner) $('landing-page').prepend(banner);
 
 // -------------------- PWA Installation --------------------
 let deferredPrompt = null;
 
-// Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js')
@@ -1090,46 +1417,17 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Capture the install prompt
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  // Show install button
-  const installButton = document.getElementById('install-app-button');
-  if (installButton) {
-    installButton.classList.remove('hidden');
-  }
 });
 
-// Handle install button click
-document.getElementById('install-app-button')?.addEventListener('click', async () => {
-  dropdownMenu.classList.add('hidden');
-  
-  if (!deferredPrompt) {
-    alert('التطبيق مثبت بالفعل أو غير متاح للتثبيت');
-    return;
-  }
-  
-  // Show the install prompt
+async function promptInstall() {
+  if (!deferredPrompt) return false;
   deferredPrompt.prompt();
-  
-  // Wait for the user to respond
-  const { outcome } = await deferredPrompt.userChoice;
-  console.log(`User response: ${outcome}`);
-  
-  // Clear the deferred prompt
+  const choice = await deferredPrompt.userChoice;
   deferredPrompt = null;
-  
-  // Hide the install button
-  document.getElementById('install-app-button').classList.add('hidden');
-});
+  return !!choice && choice.outcome === 'accepted';
+}
 
-// Hide install button if app is already installed
-window.addEventListener('appinstalled', () => {
-  console.log('PWA was installed');
-  const installButton = document.getElementById('install-app-button');
-  if (installButton) {
-    installButton.classList.add('hidden');
-  }
-  deferredPrompt = null;
-});
+window.addEventListener('appinstalled', () => { deferredPrompt = null; });

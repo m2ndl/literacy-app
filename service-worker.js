@@ -1,101 +1,125 @@
-// service-worker.js - Minimal PWA service worker for offline functionality
-// Bump CACHE_NAME whenever this file changes so old caches get cleaned up.
-const CACHE_NAME = 'lughatii-v3';
-// Paths are relative to this file so they work when the app is served from a sub-folder
-// (e.g. GitHub Pages: /literacy-app/).
+// service-worker.js - Offline support.
+// Bump SHELL_CACHE whenever app files change. Audio clips live in their own cache: their URLs
+// carry a content hash (?v=...), so app updates don't throw away audio the learner downloaded.
+const SHELL_CACHE = 'lughatii-v8';
+const AUDIO_CACHE = 'lughatii-audio-v1';
+const PREFIX = 'lughatii-';
+const NETWORK_TIMEOUT_MS = 4000;
+
+// Paths are relative to this file so the app works from a sub-folder (e.g. GitHub Pages).
 const urlsToCache = [
   './',
   './index.html',
   './app.js',
   './logic.js',
+  './learner.js',
   './data.js',
+  './data-stages3-5.js',
+  './data-assess.js',
+  './assess.js',
+  './assess-ui.js',
+  './drill.js',
+  './recorder.js',
+  './phonics.js',
+  './questions.js',
+  './audio.js',
+  './dom.js',
+  './widgets.js',
+  './tracing.js',
+  './backup.js',
+  './backup-ui.js',
+  './platform.js',
   './theme.js',
-  './activities-enhance.js',
   './styles.css',
   './tailwind.css',
   './ui-overrides.css',
   './semantic-tokens.css',
+  './fonts/andika.css',
+  './fonts/andika-400.woff2',
+  './fonts/andika-700.woff2',
+  './audio/manifest.json',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  // External resources
+  // External resources (may fail, that's OK)
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap'
 ];
 
-// Install event - cache all static assets
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        // Cache internal files, external ones might fail and that's OK
-        return Promise.allSettled(
-          urlsToCache.map(url =>
-            cache.add(url).catch(() =>
-              console.log('Failed to cache:', url)
-            )
-          )
-        );
-      })
+    caches.open(SHELL_CACHE).then(cache => Promise.allSettled(
+      urlsToCache.map(url => cache.add(url).catch(() => console.log('Failed to cache:', url)))
+    ))
   );
-  // Force the service worker to activate immediately
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Only delete this app's old caches; other apps on the same origin (GitHub Pages) keep theirs.
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then(names => Promise.all(
+      names
+        .filter(n => n.startsWith(PREFIX) && n !== SHELL_CACHE && n !== AUDIO_CACHE)
+        .map(n => caches.delete(n))
+    ))
   );
-  // Take control of all pages immediately
   self.clients.claim();
 });
 
-// Fetch event - network first so updates show up right away; the cache is only used offline
 self.addEventListener('fetch', event => {
   const request = event.request;
-
-  // Skip non-GET requests
   if (request.method !== 'GET') return;
-
-  // Only handle our own files and Google Fonts. Everything else (e.g. the analytics
-  // script) is left to the browser so a slow third-party server can't hold up the app.
   const url = new URL(request.url);
   const isOwnFile = url.origin === self.location.origin;
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
-  if (!isOwnFile && !isFont) return;
+  if (!isOwnFile && !isFont) return; // e.g. analytics: leave to the browser
 
-  event.respondWith(
-    fetch(request)
-      .then(response => {
-        // Keep a copy of good responses for offline use
-        if (response.status === 200 && (response.type === 'basic' || response.type === 'cors')) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, responseToCache));
-        }
-        return response;
-      })
-      .catch(async () => {
-        // Offline - use the cached copy (or the app shell for page loads)
-        const cached = await caches.match(request) ||
-          (request.mode === 'navigate' && await caches.match('./index.html'));
-        return cached || Response.error();
-      })
-  );
+  const isAudioClip = isOwnFile && url.pathname.includes('/audio/') && !url.pathname.endsWith('manifest.json');
+  event.respondWith(isAudioClip ? cacheFirst(request) : networkFirst(request));
 });
 
-// Listen for messages from the app
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+// Audio clips never change at a given URL, so serve them from the cache when we have them.
+async function cacheFirst(request) {
+  const cache = await caches.open(AUDIO_CACHE);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  try {
+    const response = await fetch(request);
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  } catch (e) {
+    return Response.error();
   }
+}
+
+// App files: network first so updates show up, falling back to the cache when offline or slow.
+function networkFirst(request) {
+  return new Promise(resolve => {
+    let settled = false;
+    const fromCache = async () => (await caches.match(request)) ||
+      (request.mode === 'navigate' ? await caches.match('./index.html') : undefined);
+    const timer = setTimeout(async () => {
+      const cached = await fromCache();
+      if (cached && !settled) { settled = true; resolve(cached); }
+    }, NETWORK_TIMEOUT_MS);
+    fetch(request)
+      .then(response => {
+        if (response.status === 200 && (response.type === 'basic' || response.type === 'cors')) {
+          const copy = response.clone();
+          caches.open(SHELL_CACHE).then(cache => cache.put(request, copy));
+        }
+        if (!settled) { settled = true; clearTimeout(timer); resolve(response); }
+      })
+      .catch(async () => {
+        clearTimeout(timer);
+        if (settled) return;
+        settled = true;
+        resolve((await fromCache()) || Response.error());
+      });
+  });
+}
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });

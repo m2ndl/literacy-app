@@ -1,7 +1,7 @@
 {
-  "name": "لغتي الثانية - تعليم القراءة الإنجليزية",
+  "name": "لغتي الثانية - تعلّم قراءة الإنجليزية",
   "short_name": "لغتي الثانية",
-  "description": "برنامج تفاعلي لتعلم الأبجدية الإنجليزية خطوة بخطوة",
+  "description": "برنامج لتعلّم قراءة الإنجليزية من الصفر للطلاب الجامعيين والبالغين المتحدثين بالعربية",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f9fafb",
@@ -9,7 +9,10 @@
   "orientation": "any",
   "dir": "rtl",
   "lang": "ar",
-  "categories": ["education", "kids", "learning"],
+  "categories": [
+    "education",
+    "learning"
+  ],
   "icons": [
     {
       "src": "icon-192.png",

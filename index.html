@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>لغتي الثانية. | برنامج تعليم الحروف الإنجليزية</title>
+  <title>لغتي الثانية | تعلّم قراءة الإنجليزية من الصفر</title>
+  <meta name="description" content="برنامج مجاني لتعلّم قراءة الإنجليزية من الصفر للطلاب الجامعيين والبالغين المتحدثين بالعربية: أصوات الحروف، والكلمات، والجمل خطوة بخطوة، ويعمل دون إنترنت.">
 
   <!-- Tailwind (compiled) and Fonts -->
   <link rel="stylesheet" href="./tailwind.css">
@@ -12,6 +13,8 @@
   <!-- Google Fonts load without blocking the page (media="print" switches to "all" once loaded) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- Andika: a typeface for beginning readers, used for all English text (self-hosted) -->
+  <link rel="stylesheet" href="./fonts/andika.css">
 
   <!-- PWA Support -->
   <link rel="manifest" href="./manifest.json">
@@ -21,48 +24,44 @@
   <!-- App styles -->
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./ui-overrides.css">
+  <link rel="stylesheet" href="./semantic-tokens.css">
 </head>
 <body class="bg-gray-50 text-gray-800">
+  <a href="#main-content" class="skip-link">تخطَّ إلى المحتوى</a>
 
   <!-- Landing Page -->
   <div id="landing-page" class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-700 p-8 text-white text-center">
     <main class="flex-grow flex flex-col items-center justify-center">
       <div class="max-w-2xl">
-        <h1 class="text-5xl md:text-7xl font-bold mb-4">أطلق قدراتك في القراءة</h1>
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">تعلّم قراءة الإنجليزية من الصفر</h1>
         <p class="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-          أداة تفاعلية لتعلم الأبجدية الإنجليزية خطوة بخطوة.
+          برنامج للطلاب الجامعيين والبالغين: أصوات الحروف، ثم الكلمات، ثم الجمل والنصوص — خطوة بخطوة.
         </p>
         <button id="start-learning-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg transform hover:scale-105 transition-transform duration-300">
-          ابدأ رحلتك التعليمية
+          ابدأ التعلّم
         </button>
 
         <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="flex flex-col items-center">
-            <div class="w-12 h-12 mb-3 text-green-400">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-              </svg>
+            <div class="w-12 h-12 mb-3 text-green-400" aria-hidden="true">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M18.364 5.636a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"></path></svg>
             </div>
-            <h3 class="font-bold">تمارين تفاعلية</h3>
-            <p class="text-sm text-gray-300">أنشطة متنوعة لترسيخ التعلم.</p>
+            <h3 class="font-bold">أصوات أمريكية واضحة</h3>
+            <p class="text-sm text-gray-300">تسمع صوت كل حرف، وكل كلمة وجملة.</p>
           </div>
           <div class="flex flex-col items-center">
-            <div class="w-12 h-12 mb-3 text-purple-400">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-              </svg>
+            <div class="w-12 h-12 mb-3 text-purple-400" aria-hidden="true">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
-            <h3 class="font-bold">تعلم بالسرعة التي تناسبك</h3>
-            <p class="text-sm text-gray-300">تقدم في الدروس حسب قدرتك.</p>
+            <h3 class="font-bold">مصمّم للمتحدثين بالعربية</h3>
+            <p class="text-sm text-gray-300">تدريب على الفروق الصعبة مثل pin / pen و p / b.</p>
           </div>
           <div class="flex flex-col items-center">
-            <div class="w-12 h-12 mb-3 text-yellow-400">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+            <div class="w-12 h-12 mb-3 text-yellow-400" aria-hidden="true">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
             </div>
-            <h3 class="font-bold">تتبع تقدمك</h3>
-            <p class="text-sm text-gray-300">شاهد إنجازاتك ونقاطك تنمو.</p>
+            <h3 class="font-bold">يعمل دون إنترنت</h3>
+            <p class="text-sm text-gray-300">بلا تسجيل دخول، وتقدّمك محفوظ على جهازك.</p>
           </div>
         </div>
       </div>
@@ -80,14 +79,14 @@
     <!-- Header -->
     <header class="flex flex-wrap gap-3 justify-between items-center mb-8">
       <div class="flex items-center gap-4 flex-wrap">
-        <div class="flex items-center gap-1 text-yellow-500">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+        <div class="flex items-center gap-1 text-yellow-500" title="النقاط">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
           </svg>
           <span id="points-display" class="font-bold text-lg">0</span>
         </div>
-        <div class="flex items-center gap-1 text-red-500">
-          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+        <div class="flex items-center gap-1 text-red-500" title="أيام متتالية">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
             <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.934l-6.794 12.42a1 1 0 00.385 1.45l.007.003c.274.12.586.166.904.166l4.593 0c1.061 0 1.928-.867 1.928-1.928V10a1 1 0 00-1-1h-1.534l.732-4.661c.04-.244.028-.488-.036-.722zM9 11a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 10a3 3 0 116 0 3 3 0 01-6 0z"></path>
           </svg>
@@ -100,119 +99,97 @@
           رجوع &rarr;
         </button>
         <div class="relative">
-          <button id="menu-button" class="p-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" aria-label="القائمة">
-            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button id="menu-button" class="p-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" aria-label="القائمة" aria-haspopup="true" aria-expanded="false">
+            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
           </button>
-          <div id="dropdown-menu" class="hidden absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 border border-gray-200">
+          <div id="dropdown-menu" class="hidden absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg z-20 border border-gray-200">
             <a href="https://www.my2ndlang.blog" target="_blank" rel="noopener noreferrer" class="block px-4 py-3 text-sm text-gray-800 font-bold border-b">
               لغتي الثانية.
             </a>
             <div class="py-1">
-              <button id="progress-report-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تقرير التقدم</button>
+              <button id="progress-report-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">تقرير التقدّم</button>
               <button id="achievements-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">الإنجازات</button>
+              <button id="audio-test-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🔊 اختبار الصوت</button>
               <button id="important-note-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📌 ملاحظة مهمة</button>
-              <button id="install-app-button" class="hidden w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
+              <button id="placement-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">🧭 اختبار تحديد المستوى</button>
+              <button id="backup-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">💾 نسخة احتياطية</button>
+              <button id="install-app-button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">📱 تثبيت التطبيق</button>
               <button id="theme-toggle" type="button" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" aria-pressed="false">🌙 تفعيل الوضع الداكن</button>
-              <button id="unlock-all" class="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">فتح الكل</button>
-              <button id="reset-progress" class="block w-full text-right px-4 py-2 text-sm text-red-700 hover:bg-red-50">إعادة تعيين التقدم</button>
+              <button id="reset-progress" class="block w-full text-right px-4 py-2 text-sm text-red-700 hover:bg-red-50">إعادة تعيين التقدّم</button>
             </div>
           </div>
         </div>
       </div>
     </header>
 
-    <main id="main-content">
-      <h1 id="main-title" class="text-3xl font-bold text-gray-900 mb-8">مسار التعلم</h1>
+    <main id="main-content" tabindex="-1">
+      <h1 id="main-title" class="text-3xl font-bold text-gray-900 mb-8">مسار التعلّم</h1>
 
       <!-- Dashboard View -->
       <div id="dashboard-view">
-        <p class="text-lg text-gray-600 mb-6">اختر مجموعة دروس للبدء. أكمل كل مجموعة لفتح التالية.</p>
-        <div id="chunk-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div id="today-panel" class="mb-8"></div>
+        <p class="text-lg text-gray-600 mb-6">أكمل أنشطة كل وحدة بنسبة ٨٠٪ على الأقل لتفتح الوحدة التالية.</p>
+        <div id="unit-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       </div>
 
-      <!-- Lesson View -->
-      <div id="lesson-view" class="hidden">
-        <h2 id="lesson-title" class="text-2xl font-bold mb-2"></h2>
-        <p class="text-gray-600 mb-6">انقر على حرف أو كلمة لسماع صوتها.</p>
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <div class="mb-6">
-            <h3 class="font-semibold text-lg mb-3 text-gray-700">حروف جديدة</h3>
-            <div id="lesson-letters" class="flex flex-wrap gap-4 english-content"></div>
-          </div>
-          <div>
-            <h3 class="font-semibold text-lg mb-3 text-gray-700">كلمات للممارسة</h3>
-            <div id="lesson-words" class="flex flex-wrap gap-4 english-content"></div>
-          </div>
-        </div>
-        <div class="mt-8">
-          <h3 class="font-semibold text-xl mb-4 text-center text-gray-800">أنشطة تدريبية</h3>
-          <div id="activities-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </div>
-      </div>
+      <!-- Lesson View (rendered by app.js) -->
+      <div id="lesson-view" class="hidden"></div>
 
       <!-- Activity View -->
-      <div id="activity-view" class="hidden text-center">
-        <div class="flex justify-between items-center mb-4">
+      <div id="activity-view" class="hidden">
+        <div class="flex justify-between items-center mb-4 gap-4">
           <h2 id="activity-title" class="text-2xl font-bold"></h2>
-          <div id="activity-progress" class="text-lg font-medium text-gray-600"></div>
+          <div id="activity-progress" class="text-lg font-medium text-gray-600" aria-live="polite"></div>
         </div>
-        <div id="activity-content" class="bg-white p-8 rounded-lg shadow-lg min-h-[350px] flex flex-col justify-center items-center"></div>
+        <div id="activity-content" class="activity-card bg-white p-6 sm:p-8 rounded-lg shadow-lg min-h-[350px] flex flex-col justify-center items-center text-center"></div>
       </div>
 
       <!-- Achievements View -->
       <div id="achievements-view" class="hidden">
-        <h2 class="text-2xl font-bold mb-6">الإنجازات</h2>
         <div id="achievements-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       </div>
 
-      <!-- Progress Report View -->
-      <div id="progress-report-view" class="hidden">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-sm text-gray-500">النقاط</div>
-            <div id="report-points" class="text-2xl font-bold text-yellow-500">0</div>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-sm text-gray-500">السلسلة</div>
-            <div id="report-streak" class="text-2xl font-bold text-red-500">0</div>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-sm text-gray-500">وقت التعلم</div>
-            <div id="report-time" class="text-2xl font-bold text-blue-500">0د 0ث</div>
-          </div>
-          <div class="bg-white p-4 rounded-lg shadow-sm">
-            <div class="text-sm text-gray-500">الحروف المتقنة</div>
-            <div id="report-letters-count" class="text-2xl font-bold text-green-500">0</div>
-          </div>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow-sm">
-          <h3 class="text-lg font-bold mb-4">الحروف التي أتقنتها</h3>
-          <div id="report-letters-grid" class="flex flex-wrap gap-2 justify-center english-content"></div>
-        </div>
-      </div>
+      <!-- Progress Report View (rendered by app.js) -->
+      <div id="progress-report-view" class="hidden"></div>
+
+      <!-- Audio Test View (rendered by app.js) -->
+      <div id="audio-test-view" class="hidden"></div>
+
+      <!-- Ear training, backup and install guide (rendered by app.js) -->
+      <div id="perception-view" class="hidden"></div>
+      <div id="backup-view" class="hidden"></div>
+      <div id="install-view" class="hidden"></div>
 
       <!-- Important Note View -->
       <div id="important-note-view" class="hidden">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">ملاحظة مهمة</h2>
         <div class="bg-white p-6 rounded-lg shadow-sm space-y-4 leading-8 text-gray-700">
           <p>
-            البرنامج لا يتطلب تسجيل دخول، ويتم حفظ بيانات تقدمك عبر متصفح الجهاز الذي تستخدمه الآن.
-            في حال تغيير المتصفح أو الجهاز ستبدأ من جديد. إذا أردت متابعة التقدم نفسه،
-            عليك استخدام نفس المتصفح.
+            البرنامج لا يتطلب تسجيل دخول، ويُحفظ تقدّمك في المتصفح على هذا الجهاز فقط.
+            إذا غيّرت المتصفح أو الجهاز فستبدأ من جديد.
           </p>
           <p>
-            ويمكنك أيضاً اختيار <b>"فتح الكل"</b> من القائمة الجانبية للانتقال مباشرةً لأي درس في حال بدأت من جهاز جديد.
+            <b>على iPhone:</b> أضف البرنامج إلى الشاشة الرئيسية (زر المشاركة ثم «إضافة إلى الشاشة الرئيسية»)،
+            لأن Safari قد يحذف بيانات المواقع التي لا تُفتح لمدة أسبوع.
           </p>
           <p>
-            إذا لاحظت أخطاء أو كان لديك أي ملاحظات أرحب بتواصلك معي عبر الإيميل
+            احفظ <b>«نسخة احتياطية»</b> من القائمة من وقت لآخر: رمز قصير تسترجع به تقدّمك على أي جهاز.
+          </p>
+          <p>
+            إذا كنت تعرف بعض الإنجليزية فجرّب <b>«اختبار تحديد المستوى»</b> من القائمة ليحدّد لك الوحدة المناسبة.
+          </p>
+          <p>
+            الأصوات مولَّدة آليًا بنموذج النطق المفتوح Kokoro (بلهجة أمريكية)، وتُفحص كل كلمة وجملة آليًا قبل نشرها.
+          </p>
+          <p>
+            إذا لاحظت أخطاء أو كان لديك أي ملاحظات أرحب بتواصلك عبر البريد
             <span class="text-gray-500">—</span>
             <span class="font-bold">hello@my2ndlang.com</span> :
           </p>
           <div class="flex items-center gap-3">
-            <input id="email-field" class="bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 w-full sm:w-auto" value="hello@my2ndlang.com" readonly>
-            <button id="copy-email-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">نسخ الإيميل</button>
+            <input id="email-field" class="bg-gray-50 px-3 py-2 rounded-lg border border-gray-200 w-full sm:w-auto" value="hello@my2ndlang.com" readonly aria-label="البريد الإلكتروني">
+            <button id="copy-email-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">نسخ البريد</button>
           </div>
           <div id="copy-toast" class="text-green-600 text-sm hidden">✅ تم نسخ البريد إلى الحافظة</div>
         </div>
@@ -220,15 +197,15 @@
     </main>
 
     <!-- Message Modal -->
-    <div id="message-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto">
-        <p id="modal-message" class="text-xl font-medium mb-6"></p>
-        <div id="modal-buttons"></div>
+    <div id="message-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="modal-message">
+      <div class="modal-card bg-white p-8 rounded-lg shadow-2xl text-center max-w-md mx-auto">
+        <div id="modal-message" class="text-xl font-medium mb-6 leading-9"></div>
+        <div id="modal-buttons" class="flex flex-wrap justify-center gap-3"></div>
       </div>
     </div>
 
     <!-- Achievement Unlocked Modal -->
-    <div id="achievement-unlocked-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+    <div id="achievement-unlocked-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50" role="dialog" aria-modal="true">
       <div id="achievement-card" class="bg-white p-8 rounded-lg shadow-2xl text-center max-w-sm mx-auto achievement-unlocked-anim">
         <h3 class="text-2xl font-bold text-yellow-500 mb-2">إنجاز جديد!</h3>
         <div id="achievement-icon" class="w-24 h-24 mx-auto my-4"></div>
@@ -237,20 +214,11 @@
         <button id="achievement-close-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg">رائع!</button>
       </div>
     </div>
-
-    <!-- Loading Indicator -->
-    <div id="loading-indicator" class="hidden fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div class="bg-white p-4 rounded-lg">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    </div>
-
   </div>
 
   <!-- App scripts (module) -->
   <script type="module" src="./theme.js"></script>
   <script type="module" src="./app.js"></script>
-  <script type="module" src="./activities-enhance.js"></script>
   <script async src="https://cdn.counter.dev/script.js" data-id="35518a59-3260-4067-a297-1de0e9870d4a" data-utcoffset="3"></script>
 </body>
 </html>
