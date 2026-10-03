@@ -9,7 +9,7 @@ The generator is re-run whenever the curriculum in `data.js` changes.
 | Accent | American English. Short *o* is normalised to /ɑ/ (as in many US accents), e.g. *dog, long, off*, but not before *r* (*for, or*). |
 | Voices | `f` = af_heart (main), `m` = am_michael (second talker for words), `fs` = af_heart slowed to 0.8× with a pitch-preserving time-stretch (the "slow" button). Kokoro's own slow speed adds a short "uh" before the word, so it is not used. `f2` = af_sarah and `m2` = am_fenrir: extra talkers for ear training (see *Voice choice*). |
 | Format | MP3, mono, 24 kHz, 48 kbps. Plays on every iPhone and Android browser. |
-| Size | ≈ 16.8 MB (3,369 files, 24 units). Cached per unit by the service worker as the learner reaches it. |
+| Size | ≈ 18.5 MB (3,757 files, 24 units). Cached per unit by the service worker as the learner reaches it. |
 
 ## What gets generated
 
@@ -19,7 +19,7 @@ The generator is re-run whenever the curriculum in `data.js` changes.
 - **`ln`**: letter names (*ay, bee, see* …), used for spelling.
 - **`w`**: words, keywords and heart words.
 - **`s`**: sentences, text sentences, comprehension statements, campus signs (*Wait here*, *No entry*) and form statements.
-- **`p`**: made-up words for the placement test (*nis, kep, tobnap* and their misread versions). They are synthesised straight from phonemes built from their letters (`toPhonemes` in `phonics.js`), so no dictionary guess is involved, and they are not checked by the speech recogniser (it would hear real words). They were checked against the misaki American lexicon so that none is, or sounds like, a real word. From unit 11 some misread versions carry their own phonemes, e.g. *sinep* /sɪnˈɛp/ for *snep*: the vowel an Arabic speaker may insert into a consonant cluster.
+- **`p`**: made-up words (*nis, kep, tobnap* and their misread versions) for the placement test, unit checks and stage benchmarks; `BENCH_PSEUDO` in `data-assess.js` holds the ones used only in the benchmarks. They are synthesised straight from phonemes built from their letters (`toPhonemes` in `phonics.js`), so no dictionary guess is involved, and they are not checked by the speech recogniser (it would hear real words). They were checked against the misaki American lexicon so that none is, or sounds like, a real word. From unit 11 some misread versions carry their own phonemes, e.g. *sinep* /sɪnˈɛp/ for *snep*: the vowel an Arabic speaker may insert into a consonant cluster.
 - Ear-training words (`PERCEPTION` in `data.js`) are `w` clips in four voices: `f`, `m`, `f2`, `m2`.
 
 The app finds each clip through `audio/manifest.json`, which records each clip's duration and a content hash. The hash is added to the URL so the cache updates when a clip changes.
@@ -36,15 +36,16 @@ A TTS model cannot say a lone consonant (it produces vowel-like noise), so each 
 For every sound, several source words are tried. Each cut is then glued into test words (e.g. **p + e + n**) and the speech recogniser must hear the right word (the **blend test**). The best cut is kept.
 
 Long vowels, diphthongs and *r*-vowels (Stage 4) are also synthesised **on their own** (*eye*, *oh*, *ow*, *or*). Their blend test uses words like **t + long-i + m** (*time*).
-- Glued diphthongs are hard for the recogniser. A vowel said on its own has no cut that can go wrong, so it is accepted if the recogniser hears it alone as its name (*I/eye*, *oh*, *you*, *ow*, *all*…) even when its blend score is low. The result is recorded under `alone` in `qa-report.json`.
+- Glued diphthongs are hard for the recogniser. So a vowel cut (or a vowel said on its own) is also accepted if the recogniser hears it alone as its name (*I/eye*, *oh*, *e*, *oo*, *you*, *ow*, *all*, *shun*…), even when its blend score is low. Among the cuts heard that way, the one that blends best is kept. The result is recorded under `alone` in `qa-report.json`.
+- A candidate can name another voice as a third element. Long *e* and long *oo* (*af_bella*) and short *oo* (*af_sarah*) are cut from other voices, because the main voice's cuts were less clear (`voice` in `qa-report.json`).
 - Consonants and short vowels are scored only on the short-vowel test words. This way, adding long-vowel words cannot reject a consonant cut that was fine.
 
-A sound that never passes is left out. The app then teaches it through its keyword: "the first sound in *three*", "the vowel in *home*", "the last part of *station*". Currently **38 of 46 sounds pass**: 29 of the 31 unit 1–10 sounds (*th*, /θ/ and /ð/, is taught through *three* and *this*) and 9 of the 15 later ones (long *o*, long *e*, both *oo* sounds, *aw* and *-tion* are taught through their keywords).
+A sound that never passes is left out. The app then teaches it through its keyword: "the first sound in *three*", "the vowel in *home*", "the last part of *station*". Currently **44 of 46 sounds pass**: all but *th* (/θ/ and /ð/), which is taught through *three* and *this*. *-tion* is the stressed syllable "shun", because unstressed /ʃən/ alone is heard as "Shen".
 
 ## Quality checks
 
 - Every word and sentence is transcribed back with Whisper small.en (via sherpa-onnx). The results are in `tools/audio/qa-report.json`.
-- **Heteronyms.** A word said alone has no context, so `WORD_PHONEMES` in `generate.py` fixes the meaning taught in `data.js`: *close* /kloʊz/, *use* /juːz/, *live* /lɪv/.
+- **Heteronyms and function words.** A word said alone has no context, so `WORD_PHONEMES` in `generate.py` fixes the meaning taught in `data.js` (*close* /kloʊz/, *use* /juːz/, *live* /lɪv/) and the strong form of function words (*an* /æn/, *than* /ðæn/).
 - Isolated words are hard for any recogniser: it adds "a"/"the", prefers names (*Ollie* for *Ali*), or picks a more frequent neighbour (*Ben* for *bin*). So read the failure list as a list of clips to listen to, not as errors.
 - **Voice choice.** Ten American Kokoro voices were compared on 44 minimal-pair words (isolated and in a carrier sentence). The two best were then compared on all 189 curriculum words: af_heart was recognised exactly for 154 and af_sarah for 155. With no real difference in clarity, af_heart was kept because it is rated the most natural voice.
 - The sound cuts also pass acoustic sanity checks: voicing share and spectral centre.

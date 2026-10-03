@@ -2,7 +2,7 @@
 
 **Purpose:** review the app as a literacy course and plan how to make it the best possible English reading app for **college-level EFL learners at CEFR pre-A1 whose first language is Arabic**.
 **Audience:** the app owner, teachers who recommend the app, and developers.
-**Status:** this document is the plan. Phases 1–4 (sections 12–15) are implemented in this repository; Phase 4's benchmarks still need validating in a pilot. Phase 5 is a proposal.
+**Status:** this document is the plan. Phases 1–4 (sections 12–15) and the follow-up in section 16 are implemented in this repository; Phase 4's benchmarks still need validating in a pilot. Phase 5 is a proposal.
 
 Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 
@@ -25,7 +25,8 @@ Companion document: [`EVALUATION.md`](./EVALUATION.md) (technical/code review).
 13. [Phase 2 — the learner model](#13-phase-2--the-learner-model)
 14. [Phase 3 — the full course (Stages 3–5)](#14-phase-3--the-full-course-stages-35)
 15. [Phase 4 — fluency and assessment](#15-phase-4--fluency-and-assessment)
-16. [References](#16-references)
+16. [After Phase 4: gaps closed and a safety net](#16-after-phase-4-gaps-closed-and-a-safety-net)
+17. [References](#17-references)
 
 ---
 
@@ -210,12 +211,12 @@ Names (*Ali, Sara* and a few others) are flagged as name-words for cultural rele
 | **Word build** | Only the needed letters, so trial and error worked | One tile per grapheme (*ck, sh, th* are single tiles) plus 1–2 distractor tiles, usually a vowel | Dictation with the QWERTY keyboard |
 | **Missing letter** | Random letter removed | **Vowel-biased**: most blanks are vowels, with vowel distractors | — |
 | **What does it mean?** (replaces "word match") | Random distractors | Read the English word → choose its Arabic meaning | — |
-| **First/last sound** | First sound only | Alternates first and last sound | Middle sound |
+| **First/last sound** | First sound only | Alternates first and last sound | Middle sound (built, section 16) |
 | **Complete the sentence** ("أكمل الجملة", was "بناء الجمل") | Mislabelled; translation visible | Translation shown **after** answering; same-word-class distractors | Real word-order building (adjective before noun) |
 | *New in Phase 2* | | | Dictation, heart-word spelling, sentence order, letter formation (optional), ear training, placement test (section 13) |
 | *New in Phase 3* | | | Read the sign, forms, multiple-choice text questions; word build and missing letter with vowel teams and word parts (section 14) |
 | *New in Phase 4* | | | Unit check; read aloud and compare (optional); timed word and sentence drills; timed text reading; stage benchmarks; can-do self-assessment (section 15) |
-| *Later* | | | Blending (tap each sound → word), timed reading, record-and-compare |
+| *Later* | | | Blending (built, section 16); timed reading and record-and-compare (built, section 15) |
 
 ### Feedback and error correction (Phase 1)
 
@@ -291,7 +292,7 @@ Every answer is logged locally with item, choice, correctness and response time.
 - a 5-word dictation;
 - 3 sentences matched to pictures.
 
-It places the learner at the first unit not yet mastered and lets them test out of units, replacing "unlock all". The built version covers letter sounds, minimal pairs, made-up words, heart words and dictation; sentence–picture matching is not built yet (it needs pictures for whole sentences).
+It places the learner at the first unit not yet mastered and lets them test out of units, replacing "unlock all". The built version covers letter sounds, minimal pairs, made-up words, heart words and dictation, and, in units 3, 6 and 9, a sentence matched to one of three pictures (section 16).
 
 **Ongoing tracking.** Logged from Phase 1 and used for adaptation from Phase 2: accuracy, response time and confusion pairs for each grapheme and word.
 - Mastery rule (Phase 2): ≥ 90% correct over the last ≥ 8 first tries, spread over ≥ 2 days, and an average response under 3 s on recognition tasks. The time counts from when the item appears, so it includes about 1 s of audio (≈ 2 s after the audio ends).
@@ -731,7 +732,7 @@ Computed by `tests/curriculum.test.js` and `tools/content/metrics.py` (`tools/co
 | Items available per activity | ≥ 4 options | **met** (tested for every unit × activity × 5 seeds) |
 | Heart-word strand | ≈ 100 | **105** |
 | Texts with comprehension | every unit from 10 | **met**: 22 texts, 66 questions |
-| Words in the top 1,000 (from unit 3) | ≥ 70% | **not met: 45%** (50% counting word families) |
+| Words in the top 1,000 (from unit 3) | ≥ 70% | **not met: 45%** (50% counting word families); 55% / 59% after section 16 |
 
 **Why the frequency target is not met.** The frequency list is `wordfreq`'s English top-1,000, used as a stand-in for the NGSL (Browne, Culligan & Phillips 2013); the two overlap heavily, but this should be re-checked against the NGSL itself. Three things keep the share down:
 1. The most frequent words (*have, said, would, people*) are mostly irregular. They are taught as **heart words**, which this metric does not count.
@@ -883,7 +884,7 @@ The roadmap's "done when" is **benchmarks validated in a pilot**, which needs le
   - It can be taken whenever the stage is open, for example as a "before" measure. Each sitting records whether the stage was already finished, so before/after comparisons are possible.
 - **Not a gate.** The criteria are not validated, so they hold no learner back. The unit checks are the gate.
 - **The texts.** They are not used anywhere else (the linter checks this) and are decodable at the stage's last unit.
-- **A limitation.** The made-up words come from the stage's pool, which the placement test and unit checks also use, so a learner may have met some of them. New made-up words, with their audio, would make part 3 cleaner (pilot item).
+- **A limitation.** The made-up words come from the stage's pool, which the placement test and unit checks also use, so a learner may have met some of them. Since section 16, the benchmark uses 32 made-up words kept for it alone.
 
 **Can-do statements and frameworks.** The statements are the course's own Arabic wording (`CAN_DO_STAGES`). Each names the descriptor family it was written from, for the Tier 1 raters to check. This is not a claim of equivalence, and the benchmark is not a CEFR test.
 
@@ -956,7 +957,71 @@ The sample is the Tier 3 pilot (section 10): at least 30 learners, because corre
 
 ---
 
-## 16. References
+## 16. After Phase 4: gaps closed and a safety net
+
+Phase 5 needs learners. Until the pilot can run, this round closes gaps that earlier phases reported, adds the activities section 7 left for "later", and puts the browser tests into the repository.
+
+### New activities
+- **Blending (اقرأ صوتًا صوتًا)**, units 1–8 and 11–14.
+  - The word is shown as separate letter tiles; tapping a tile plays its sound.
+  - "All sounds" plays them back to back with no gap. This is as close as recorded single sounds get to connected phonation ("sssaaannn"), which teaches decoding of new words better than sounds with breaks between them (Gonzalez-Frey & Ehri 2021).
+  - Three spoken words then appear, and the learner chooses the one the sounds make. The wrong choices are minimal-pair neighbours first.
+  - Only words whose every sound has a clean recording are used, so no sound is ever replaced by a guess.
+- **Middle sound.** "Where is the sound?" (was "first and last sound") now asks for the first, the last *and the middle* sound. The middle is always a vowel, with other vowels as the choices: the vowel letters Arabic speakers tend to skip (Ryan & Meara 1991).
+- **Sentence and picture in the placement test** (the part of the original design in section 9 that was still missing).
+  - Units 3, 6 and 9 each have a sentence to read and three pictures that differ in one thing the sentence says, e.g. *Dad got a cap.*: 👨🧢 / 👨🧦 / 👩🧢.
+  - It replaces one of the unit's five items, so the test length does not change.
+
+### Content gaps closed
+- **Six more single sounds** now have a recording: long *o* and long *e*, both *oo* sounds, *aw* and *-tion*. That makes **44 of 46**; only *th* (both sounds) is still taught through its keyword.
+  - The search tried more source words and four voices for each sound.
+  - A cut is kept if the speech recogniser hears it alone as the sound's name ("Oh", "e", "oo", "shun"), or if it passes the usual test of glueing it into words (*foot, good, look*; *talk, saw, paw, jaw*).
+  - Long *e* and long *oo* are in the *af_bella* voice and short *oo* in *af_sarah*, because the main voice's cuts were less clear. Every other sound is in the main voice.
+  - *-tion* is the stressed syllable "shun". Unstressed /ʃən/ alone was heard as "Shen".
+  - For *th* in *this*, two of four test words were recognised. But both were *that* and *then*, which are frequent enough for the recogniser to accept a plain d, so it was not counted as a pass.
+- **Made-up words kept for the stage benchmarks.**
+  - 32 new made-up words, 8 per stage (`BENCH_PSEUDO` in `data-assess.js`), used nowhere else.
+  - So part 3 of a benchmark now measures decoding of words the learner has never seen (the limitation noted in section 15).
+  - Each was checked against the American pronunciation dictionary: it is not a real word and does not sound like one.
+  - Their foils follow the same rules as the course's: a vowel misreading, and a consonant confusion or an inserted vowel (*glep / gilep*). Stage 4 adds the closed-syllable misreading of an open syllable (*ro·mel / rommel*).
+- **More frequent vocabulary.**
+  - 106 frequent words were added across units 1–23, with Arabic meanings: *fact, past, cost, film, trust, life, safe, three, please, street, night, book, car, price, choice, report, result*…
+  - Three rare words used nowhere else were removed (*zigzag, denim, jog*).
+  - Near-synonyms are grouped (*big / large / huge*, *fast / quick*, *shop / store*), so they are never offered as each other's wrong answer.
+  - Words whose spelling would mislead at that point were left out, e.g. *truth* (u says /uː/), *rule* and *record* (two pronunciations).
+
+  | Measure (from unit 3) | Phase 3 | Now |
+  |---|---|---|
+  | Listed words in the top 1,000 | 45% | 55% |
+  | … counting word families | 50% | 59% |
+  | … in the top 3,000 families | 80% | 84% |
+  | Running words in the top 1,000 families | 84% | 84% |
+
+  The 70% target is still not met. The remaining rare words (188) carry the minimal pairs, sentences and texts. The frequent words still missing are irregular (taught as heart words), inflections of words already taught, or not suitable for a course. The proposal in section 14 stands.
+
+### Safety net
+- **Browser tests in the repository.** `tests/e2e` (`npm run test:e2e`) runs the app in Chromium through Playwright against a local server. Four scenarios run in parallel:
+  - first run and placement, the iPhone guide and the in-app browser banner;
+  - every activity of units 1 and 15 and their unit checks;
+  - review, weak sounds, ear training, the report, and backup and restore;
+  - unit checks, drills, reading aloud, a stage benchmark and the text timer.
+
+  Every scenario also fails on any page error.
+- **GitHub Actions** (`.github/workflows/test.yml`) runs the unit and content tests and the browser tests on every push and pull request.
+
+### Verification
+- `npm test`: 476 tests. New: blending items (every sound recorded, three spoken choices), middle-sound items (always a vowel), sentence-and-picture placement items, benchmark made-up words (decodable at the stage end, used nowhere else) and the audio coverage of all of them.
+- `npm run test:e2e`: 67 browser checks, including blending in unit 1. They pass locally and run on every push in GitHub Actions.
+- **Audio:** 1,684 clips in 3,757 files, 18.5 MB (budget 20 MB). Recogniser checks on the new clips:
+  - Of the new words, 18 were misheard in both voices. Most are homophones or digits (*past → passed*, *sea → C*, *three → 3*, *role → roll*) or the recogniser's f/v confusion (*fast → vast*).
+  - *an* and *than* had been synthesised in their weak forms (/ən/, /ðən/); they now use the strong forms.
+  - One made-up word (*jick*) was heard as a real word and was replaced (*vush*).
+  - Three made-up words are still written the same as a foil by the recogniser (*drup/drop*, *bife/bive*, *snoper/snopper*), but their sounds differ (/ʌ/ vs /ɑ/, /f/ vs /v/, /oʊ/ vs /ɑ/).
+- **Still to do by a person:** listen to the new single sounds (`audio/f/ph/`) and to *law, huge, stage, each, choice*, which the recogniser heard oddly in both voices.
+
+---
+
+## 17. References
 
 References were checked against DOI, ERIC or publisher records. Those marked † were located through web-search records of the publisher page but not re-opened for this document.
 
@@ -978,6 +1043,7 @@ References were checked against DOI, ERIC or publisher records. Those marked †
 - DfES (2007). *Letters and Sounds: Principles and Practice of High Quality Phonics.* Department for Education and Skills.
 - Ehri, L. C. (2014). Orthographic mapping in the acquisition of sight word reading, spelling memory, and vocabulary learning. *Scientific Studies of Reading, 18*(1), 5–21. https://doi.org/10.1080/10888438.2013.819356
 - Engelmann, S., & Carnine, D. (1982). *Theory of Instruction: Principles and Applications.* Irvington.
+- Gonzalez-Frey, S. M., & Ehri, L. C. (2021). Connected phonation is more effective than segmented phonation for teaching beginning readers to decode unfamiliar words. *Scientific Studies of Reading, 25*(3), 272–285. ERIC EJ1295469.
 - Goswami, U., & Bryant, P. (1990). *Phonological Skills and Learning to Read.* Lawrence Erlbaum.
 - † Fuchs, L. S., Fuchs, D., Hosp, M. K., & Jenkins, J. R. (2001). Oral reading fluency as an indicator of reading competence: A theoretical, empirical, and historical analysis. *Scientific Studies of Reading, 5*(3), 239–256. https://doi.org/10.1207/S1532799XSSR0503_3
 - Gough, P. B., & Tunmer, W. E. (1986). Decoding, reading, and reading disability. *Remedial and Special Education, 7*(1), 6–10. https://doi.org/10.1177/074193258600700104
