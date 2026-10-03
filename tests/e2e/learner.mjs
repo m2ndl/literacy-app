@@ -1,7 +1,7 @@
 // The learner model: daily review, weak sounds, ear training, the report, and backup -> reset -> restore.
-import { newPage, check, closeBadges, runSession, progress, openWith, unitsDone, modalOpen } from './harness.mjs';
+import { newPage, check, runSession, progress, openWith, unitsDone, modalOpen, showAll } from './harness.mjs';
 
-const ITEMS = ['w:pin', 'w:map', 'w:cat', 'w:pen', 'w:sit', 'w:top', 'w:net', 'w:dog', 'ph:ae', 'ph:ih', 'h:the', 'h:you'];
+const ITEMS = ['w:pin', 'w:map', 'w:cat', 'w:pen', 'w:sit', 'w:top', 'w:net', 'w:dog', 'ph:ae', 'ph:ih'];
 
 export default async function learner(browser, base) {
   const page = await newPage(browser, base);
@@ -16,16 +16,16 @@ export default async function learner(browser, base) {
   check('review runs mixed item types', r.length >= 8 && new Set(r.map(x => x.activity)).size >= 2, [...new Set(r.map(x => x.activity))].join(','));
   check('review reschedules items', Object.values(after.items).filter(m => m.due === 0).length < ITEMS.length);
   await page.click('#modal-buttons button');
-  await closeBadges(page);
 
-  // Weak sounds (i/e confused four times)
+  // Weak sounds (i/e confused four times), under "More"
+  await showAll(page);
   await page.click('.today-card[data-card="weak"] .today-btn');
   const w = await runSession(page, () => true, 15);
   check('weak-sound practice includes ear training', w.length >= 5 && w.some(x => x.activity === 'perception'), [...new Set(w.map(x => x.activity))].join(','));
   await page.click('#modal-buttons button:last-child');
-  await closeBadges(page);
 
   // Ear training: one 16-trial round
+  await showAll(page);
   await page.click('.today-card[data-card="ear"] .today-btn');
   await page.waitForSelector('.perception-card');
   await page.click('.perception-card[data-set="i-e"]');
@@ -35,7 +35,6 @@ export default async function learner(browser, base) {
   const ps = (await progress(page)).perception['i-e'];
   check('ear training records a 16-trial round in several voices', e.length === 16 && ps?.n === 16 && voices.size >= 2, [...voices].join(','));
   await page.click('#modal-buttons button:last-child');
-  await closeBadges(page);
 
   // Report
   await page.click('#back-button');
@@ -52,11 +51,11 @@ export default async function learner(browser, base) {
   const code = await page.inputValue('#backup-view textarea');
   const before = await progress(page);
   await page.click('#menu-button');
+  await showAll(page);
   await page.click('#reset-progress');
   await page.click('#modal-buttons .modal-btn-danger');
   await page.waitForTimeout(300);
   if (await modalOpen(page)) await page.click('#modal-buttons button:first-child');
-  await closeBadges(page);
   await page.waitForTimeout(300);
   await page.click('#back-button').catch(() => {});
   await page.click('#menu-button');

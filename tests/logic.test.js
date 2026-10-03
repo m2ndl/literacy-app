@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   STORAGE_KEY, V4_KEY, V3_KEY, LEGACY_KEY, PASS_MARK, MAX_ATTEMPTS,
   getDefaultProgress, validateProgress, loadProgressFrom, recordAttempt, topConfusions, graphemeAccuracy,
-  hasPassed, getPossibleActivities, isUnitComplete, nextUnitId,
+  hasPassed, getPossibleActivities, isUnitComplete, nextUnitId, unitSteps, nextStep,
   shuffleArray, formatTime, computeStreak, pickDistractors
 } from '../logic.js';
 import { units, getAchievements } from '../data.js';
@@ -266,6 +266,30 @@ describe('formatTime', () => {
     assert.equal(formatTime(3661), '1س 1د 1ث');
     assert.equal(formatTime(0), '0ث');
     assert.equal(formatTime(3600), '1س 0د 0ث');
+  });
+});
+
+describe('unit steps (the Continue button)', () => {
+  const u = { id: 3, activities: ['sound-match', 'capital-match', 'which-word', 'blend', 'word-build', 'dictation', 'meaning',
+    'complete-sentence', 'sentence-build', 'read-aloud', 'unit-check'] };
+
+  it('lists only required activities, in teaching order, the check last', () => {
+    assert.deepEqual(unitSteps(u), ['sound-match', 'blend', 'which-word', 'meaning', 'dictation', 'complete-sentence', 'unit-check']);
+  });
+
+  it('points to the first step not done, even when later ones were done out of order', () => {
+    assert.equal(nextStep(u, {}), 'sound-match');
+    assert.equal(nextStep(u, { 3: ['sound-match', 'which-word', 'capital-match'] }), 'blend');
+    assert.equal(nextStep(u, { 3: unitSteps(u).slice(0, -1) }), 'unit-check');
+  });
+
+  it('has no next step once the unit is complete', () => {
+    assert.equal(nextStep(u, { 3: ['sound-match'] }, [3]), null);
+    assert.equal(nextStep(u, { 3: unitSteps(u) }), null);
+  });
+
+  it('completes a unit without the optional practice', () => {
+    assert.ok(isUnitComplete(u, { 3: unitSteps(u) }));
   });
 });
 

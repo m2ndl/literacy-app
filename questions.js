@@ -36,7 +36,6 @@ export const INSTRUCTIONS = {
   'complete-sentence': 'استمع إلى الجملة، واختر الكلمة الناقصة.',
   'read-text': 'اقرأ النص، ثم أجب: هل هذه الجملة صحيحة؟',
   dictation: 'استمع، ثم اكتب الكلمة.',
-  'heart-words': 'استمع: كيف تُكتب هذه الكلمة؟',
   'sentence-build': 'استمع، ثم رتّب الكلمات لتكوّن الجملة.',
   tracing: 'شاهد كيف يُكتب الحرف، ثم تتبّعه، ثم اكتبه وحدك.',
   pseudo: 'هذا اسم منتج جديد. استمع إلى الخيارات الثلاثة: أيّها يقرأ الاسم بشكل صحيح؟',
@@ -71,15 +70,11 @@ export function createQuestionBank({
   const spellings = (list) => list.filter(g => !/[0-9]/.test(g) && !/_e$/.test(g));
   const signsUpTo = (unitId) => upTo(unitId).flatMap(u => u.signs || []);
   const wordsUpTo = (unitId) => upTo(unitId).flatMap(u => u.words || []);
-  const heartUpTo = (unitId) => upTo(unitId).flatMap(u => u.heart || []);
   const allWords = wordsUpTo(lastUnit.id);
-  const allHeart = heartUpTo(lastUnit.id);
   const wordInfo = (w) => allWords.find(x => x.w === w) || { w, ar: '' };
-  const heartInfo = (w) => allHeart.find(x => x.w === w) || null;
   const oneSyllable = (list) => list.filter(w => !w.split);
   // Words practised in a unit: its own words, or the whole pool in a review unit.
   const unitWords = (u) => (u.review ? wordsUpTo(u.id) : u.words || []);
-  const unitHeart = (u) => (u.review ? heartUpTo(u.id) : u.heart || []);
   /** Sound units (graphemes, e.g. a_e) and spelling chunks (pieces, e.g. a ... e, ed) of a course word. */
   const analyze = (w) => {
     const r = decodeWord(w, lastUnit.id, lex);
@@ -113,7 +108,6 @@ export function createQuestionBank({
     const v = rest.join(':');
     if (kind === 'ph') return units.find(u => (u.graphemes || []).some(g => gpc[g].ph === v || gpc[g].alt?.ph === v))?.id ?? null;
     if (kind === 'w') return units.find(u => (u.words || []).some(x => x.w === v))?.id ?? null;
-    if (kind === 'h') return units.find(u => (u.heart || []).some(x => x.w === v))?.id ?? null;
     return null;
   }
 
@@ -375,34 +369,7 @@ export function createQuestionBank({
     };
   }
 
-  /** Heart-word spellings that look alike: shared letters, same first letter, similar length. */
-  function lookAlikes(w, pool, rng) {
-    const letters = new Set(w.toLowerCase());
-    const score = (x) => [...new Set(x.toLowerCase())].filter(c => letters.has(c)).length
-      + (x[0].toLowerCase() === w[0].toLowerCase() ? 1 : 0) - Math.abs(x.length - w.length) * 0.5 + rng() * 0.5;
-    return pool.filter(x => x.toLowerCase() !== w.toLowerCase()).sort((a, b) => score(b) - score(a));
-  }
 
-  function heartItem(u, h, rng) {
-    const heart = heartUpTo(u.id).map(x => x.w);
-    const decodable = oneSyllable(wordsUpTo(u.id)).map(x => x.w);
-    const distractors = [...lookAlikes(h.w, heart, rng).slice(0, 3)];
-    if (distractors.length < 3) distractors.push(...lookAlikes(h.w, decodable, rng).filter(x => !distractors.includes(x)).slice(0, 3 - distractors.length));
-    return {
-      key: `${u.id}:heart-words:${h.w}`,
-      unit: u.id,
-      activity: 'heart-words',
-      item: h.w,
-      type: 'choice',
-      instruction: INSTRUCTIONS['heart-words'],
-      prompt: { audio: clipKey('w', h.w) },
-      options: shuffle([h.w, ...distractors], rng).map(x => opt(x)),
-      answer: h.w,
-      focus: [],
-      memory: [`h:${h.w}`],
-      feedback: { audio: clipKey('w', h.w), word: h.w, ar: h.ar, mark: h.mark, emoji: '' }
-    };
-  }
 
   function sentenceBuildItem(u, s, rng) {
     const tokens = s.text.split(/\s+/);
@@ -575,12 +542,7 @@ export function createQuestionBank({
   const completeSentence = (u, n, rng) => shuffle(u.sentences || [], rng).slice(0, n).map(s => completeSentenceItem(u, s, rng));
   const dictation = (u, n, rng) => shuffle(unitWords(u), rng).slice(0, n).map(info => dictationItem(u, info, rng));
 
-  function heartWords(u, n, rng) {
-    // The unit's own heart words first, then earlier ones for review.
-    const own = shuffle(unitHeart(u), rng);
-    const earlier = shuffle(heartUpTo(u.id).filter(h => !own.includes(h)), rng);
-    return take([...own, ...earlier], n).map(h => heartItem(u, h, rng));
-  }
+
 
   const sentenceTokens = (s) => s.text.split(/\s+/).length;
   const sentenceBuild = (u, n, rng) => shuffle((u.sentences || []).filter(s => sentenceTokens(s) >= 3 && sentenceTokens(s) <= 7), rng)
@@ -686,7 +648,6 @@ export function createQuestionBank({
     'complete-sentence': completeSentence,
     'read-text': readText,
     dictation,
-    'heart-words': heartWords,
     'sentence-build': sentenceBuild,
     tracing,
     signs,
@@ -718,7 +679,7 @@ export function createQuestionBank({
 
   /**
    * Twelve mixed items covering the whole unit, given with no feedback until the end (assess.js):
-   * minimal pairs, meanings, dictation, a word-part item, a heart word, two made-up words, a sentence or
+   * minimal pairs, meanings, dictation, two made-up words, a sentence or
    * text question, and the unit's signs, forms or new sounds.
    */
   function unitCheck(u, rng = Math.random) {
@@ -735,20 +696,17 @@ export function createQuestionBank({
     whichWord(u, 2, rng).forEach(add);
     for (let k = 0; k < 2; k++) add(meaningItem(u, nextWord(), rng));
     for (let k = 0; k < 2; k++) add(dictationItem(u, nextWord(), rng));
-    add(rng() < 0.5 ? missingLetterItem(u, nextWord(), rng) : wordBuildItem(u, nextWord(), rng));
-    const heart = unitHeart(u).length ? unitHeart(u) : heartUpTo(u.id);
-    if (heart.length) add(heartItem(u, pick(heart, rng), rng));
     // Made-up words: the unit's own, else the latest ones taught (review units).
     const own = (u.pseudo || []).map(pw => ({ unit: u, pw }));
     const pseudoPool = own.length ? own : pseudoUpTo(u.id).slice(-8);
     shuffle(pseudoPool, rng).slice(0, 2).forEach(({ pw }) => add(pseudoItem(u, pw, rng)));
+    const texts = readText(u, 99, rng);
+    const last = texts.length ? pick(texts, rng) : completeSentence(u, 1, rng)[0];
     const extra = (u.signs || []).length ? signs(u, 1, rng)
       : (u.forms || []).length ? forms(u, 1, rng)
         : (u.graphemes || []).length ? soundMatch(u, 1, rng).slice(0, 1)
-          : sentenceBuild(u, 1, rng);
+          : completeSentence(u, 2, rng).filter(q => q.key !== last?.key);
     extra.slice(0, 1).forEach(add);
-    const texts = readText(u, 99, rng);
-    const last = texts.length ? pick(texts, rng) : completeSentence(u, 1, rng)[0];
     // Fill any gap with more meanings and dictation, keeping the reading question last.
     for (let k = 0; items.length < CHECK_SIZE - 1 && k < 20; k++) add(k % 2 ? dictationItem(u, nextWord(), rng) : meaningItem(u, nextWord(), rng));
     const mixed = shuffle(items, rng);
@@ -830,8 +788,9 @@ export function createQuestionBank({
 
   // ---------------- spaced review ----------------
   // Harder question types as an item becomes more secure (recognition -> recall).
-  const REVIEW_TYPES = [['meaning', 'which-word'], ['meaning', 'which-word'], ['which-word', 'missing-letter', 'word-build'],
-    ['missing-letter', 'word-build', 'dictation'], ['dictation', 'missing-letter'], ['dictation'], ['dictation']];
+  // Review uses only the formats every learner has met (the required steps of a unit).
+  const REVIEW_TYPES = [['meaning', 'which-word'], ['meaning', 'which-word'], ['which-word', 'meaning'],
+    ['meaning', 'dictation'], ['dictation'], ['dictation'], ['dictation']];
 
   /** One review question for an item key, in the context of the learner's current unit. */
   function buildItem(key, ctxUnitId, rng = Math.random, { box = 0 } = {}) {
@@ -839,10 +798,6 @@ export function createQuestionBank({
     const [kind, ...rest] = key.split(':');
     const v = rest.join(':');
     if (kind === 'ph') return soundItem(ctx, v, rng);
-    if (kind === 'h') {
-      const h = heartInfo(v);
-      return h ? heartItem(ctx, h, rng) : null;
-    }
     if (kind !== 'w') return null;
     const info = allWords.find(x => x.w === v);
     if (!info) return null;
@@ -946,9 +901,7 @@ export function createQuestionBank({
       if (q) { items.push(q); break; }
     }
     if ((u.pseudo || []).length) items.push(pseudoItem(u, pick(u.pseudo, rng), rng));
-    const heart = u.heart || [];
-    if (u.id % 2 === 0 && heart.length) items.push(heartItem(u, pick(heart, rng), rng));
-    else items.push(dictationItem(u, pick(unitWords(u), rng), rng));
+    items.push(dictationItem(u, pick(unitWords(u), rng), rng));
     // Three units read a sentence and choose its picture instead of a second sound or meaning item.
     const pics = pictures.filter(x => x.unit === u.id);
     if (pics.length && items.length > 1) items[1] = pictureItem(u, pick(pics, rng), rng);
@@ -980,7 +933,7 @@ export function createQuestionBank({
   return {
     build, buildItem, isCorrect, weakPractice, perceptionSets, perceptionBlock, placementItems, placementUnits, itemUnit,
     unitCheck, wordFlash, sentenceSense, benchmark,
-    lex, taughtGraphemes, keyboardLetters, wordsUpTo, unitWords, wordInfo, heartInfo
+    lex, taughtGraphemes, keyboardLetters, wordsUpTo, unitWords, wordInfo
   };
 }
 

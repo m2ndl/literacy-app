@@ -31,11 +31,6 @@ body { font-family: 'Tajawal', 'Inter', sans-serif; }
 .word-option-btn { padding: 0.75rem 1.5rem; font-size: 1.5rem; }
 
 .achievement-card.locked { filter: grayscale(1); opacity: 0.5; }
-.achievement-unlocked-anim { animation: achievement-pop 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
-@keyframes achievement-pop {
-  0% { transform: scale(0.5); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
 
 .fade-in { animation: fadeIn 1s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -63,7 +58,6 @@ body.dark-mode #app-container .chunk-card,
 body.dark-mode #app-container #activity-content,
 body.dark-mode #app-container #dropdown-menu,
 body.dark-mode #message-modal > div,
-body.dark-mode #achievement-card,
 body.dark-mode #loading-indicator > div {
   background-color: #111827 !important;
   color: #e5e7eb;
@@ -82,8 +76,7 @@ body.dark-mode #app-container .text-gray-600,
 body.dark-mode #app-container .text-gray-700,
 body.dark-mode #app-container .text-gray-800,
 body.dark-mode #app-container .text-gray-900,
-body.dark-mode #message-modal .text-gray-800,
-body.dark-mode #achievement-card .text-gray-600 {
+body.dark-mode #message-modal .text-gray-800 {
   color: #d1d5db !important;
 }
 
@@ -93,8 +86,7 @@ body.dark-mode #app-container .border-gray-200,
 body.dark-mode #app-container .border-gray-300,
 body.dark-mode #app-container .border-gray-600,
 body.dark-mode #dropdown-menu,
-body.dark-mode #message-modal > div,
-body.dark-mode #achievement-card {
+body.dark-mode #message-modal > div {
   border-color: #374151 !important;
 }
 
@@ -126,7 +118,6 @@ body.dark-mode .letter-slot.filled:hover {
   --c-border: #e5e7eb;
   --c-accent: #2563eb;
   --c-vowel: #c2410c;          /* vowel letters stand out (vowel blindness) */
-  --c-tricky: #be185d;         /* the tricky part of a heart word */
   --c-ok-bg: #dcfce7;  --c-ok-text: #166534;
   --c-try-bg: #fef3c7; --c-try-text: #92400e;
   --c-wrong: #fca5a5;
@@ -140,7 +131,6 @@ body.dark-mode {
   --c-border: #374151;
   --c-accent: #60a5fa;
   --c-vowel: #fdba74;
-  --c-tricky: #f9a8d4;
   --c-ok-bg: #064e3b;  --c-ok-text: #d1fae5;
   --c-try-bg: #451a03; --c-try-text: #fde68a;
   --c-wrong: #7f1d1d;
@@ -150,7 +140,6 @@ body.dark-mode {
 /* English text: a typeface designed for beginning readers */
 .english-content { font-family: 'Andika', 'Inter', system-ui, sans-serif; unicode-bidi: isolate; }
 .vowel { color: var(--c-vowel); }
-.tricky { color: var(--c-tricky); text-decoration: underline wavy; text-underline-offset: 4px; }
 .syllable-dot { color: var(--c-muted); padding: 0 .15em; }
 
 .skip-link { position: absolute; right: -999px; top: 0; background: var(--c-accent); color: #fff; padding: .5rem 1rem; z-index: 100; }
@@ -195,7 +184,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--c-accent); outl
 .word-chip .word { font-size: 1.5rem; font-weight: 700; }
 .chip-emoji { font-size: 1.1rem; line-height: 1; }
 .chip-ar { font-size: .8rem; color: var(--c-muted); margin-top: .1rem; }
-.heart-chip .chip-emoji { color: var(--c-tricky); }
 
 .reader { border: 1px solid var(--c-border); border-radius: .9rem; padding: 1rem; margin-bottom: 1rem; text-align: left; }
 .reader-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: .5rem; }
@@ -273,6 +261,29 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--c-accent); outl
 .today-title { font-size: 1.1rem; font-weight: 700; }
 .today-text { color: var(--c-muted); font-size: .95rem; flex: 1; }
 .today-btn { align-self: flex-start; background: var(--c-accent); color: #fff; font-weight: 700; padding: .5rem 1.2rem; border-radius: .6rem; }
+
+/* One next step at a time (unit page and "Today's lesson") */
+.continue-card { background: var(--c-surface); border: 2px solid var(--c-accent); border-radius: 1.1rem; padding: 1.2rem 1.3rem;
+  display: flex; flex-direction: column; gap: .45rem; margin-bottom: 1.5rem; }
+.continue-card.is-done { border-color: var(--c-ok-text); }
+.lesson-card { border: 2px solid var(--c-accent); }
+.continue-step { color: var(--c-muted); font-size: .95rem; font-weight: 600; }
+.continue-title { font-size: 1.35rem; font-weight: 800; }
+.continue-desc { color: var(--c-muted); }
+.continue-btn { align-self: flex-start; background: var(--c-accent); color: #fff; font-weight: 800; font-size: 1.2rem;
+  padding: .7rem 2rem; border-radius: .8rem; margin-top: .35rem; }
+.step-dots { display: flex; gap: .35rem; flex-wrap: wrap; }
+.step-dot { width: .7rem; height: .7rem; border-radius: 999px; background: var(--c-border); }
+.step-dot.is-done { background: var(--c-ok-text); }
+.step-dot.is-next { background: var(--c-accent); }
+.today-main { grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+/* Folded lists: every activity of a unit, extra practice on the home screen */
+.all-activities, .more-practice { margin-top: 1.5rem; }
+.all-activities-summary { cursor: pointer; font-weight: 700; color: var(--c-muted); padding: .6rem .2rem; list-style-position: inside; }
+details[open] > .all-activities-summary { margin-bottom: .75rem; }
+.unit-tips > summary { color: var(--c-text); }
+.more-words { margin-top: .75rem; }
+.more-words[hidden] { display: none; }
 .optional-chip { background: var(--c-soft); color: var(--c-muted); border-radius: 999px; padding: .1rem .6rem; font-size: .8rem; }
 
 /* Ear training */

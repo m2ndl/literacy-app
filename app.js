@@ -3,7 +3,7 @@
 import { units, gpc, ALPHABET, ACTIVITY_META, HINTS, PERCEPTION, STAGES, getAchievements } from './data.js';
 import {
   STORAGE_KEY, V4_KEY, V3_KEY, LEGACY_KEY, getDefaultProgress, loadProgressFrom, recordAttempt, topConfusions,
-  graphemeAccuracy, hasPassed, isUnitComplete, requiredActivities, nextUnitId, formatTime, computeStreak, PASS_MARK
+  graphemeAccuracy, hasPassed, isUnitComplete, requiredActivities, unitSteps, nextStep, nextUnitId, formatTime, computeStreak, PASS_MARK
 } from './logic.js';
 import {
   dayNumber, learnItems, dueItems, weakTargets, recentConfusions, itemStatus, placementOutcome, recordPerceptionBlock
@@ -11,7 +11,7 @@ import {
 import { createQuestionBank, PERCEPTION_VOICES } from './questions.js';
 import { clipKey, errorFocus, classifyError, compareSpelling, sameSound, isVowel, shuffle, toPhonemes } from './phonics.js';
 import * as audio from './audio.js';
-import { el, en, svgIcon, richArabic, wordNode, heartNode, section, toArabicDigits, configureWords } from './dom.js';
+import { el, en, svgIcon, richArabic, wordNode, section, toArabicDigits, configureWords } from './dom.js';
 import { buildWidget, keyboardWidget, audioChoiceWidget, blendWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
 import { traceWidget } from './tracing.js';
 import { renderBackup, backupDue } from './backup-ui.js';
@@ -31,10 +31,11 @@ const POINTS = { unit: 5, review: 5, weak: 5, perception: 1, placement: 0, check
 const CHECK_BONUS = 20;                 // points for passing a unit check
 const ASSESSMENT_MODES = new Set(['placement', 'check', 'benchmark']);   // no feedback until the end
 const ITEMS_PER_ACTIVITY = 8;
+const WORD_BATCH = 12;          // words shown at once in a unit's word list
 const REVIEW_SIZE = 12;
 // Activities whose prompt is heard (played automatically); "meaning" and texts are read first.
 const AUTOPLAY = new Set(['sound-match', 'which-word', 'word-build', 'missing-letter', 'first-last-sound', 'complete-sentence',
-  'dictation', 'heart-words', 'sentence-build', 'perception']);
+  'dictation', 'sentence-build', 'perception']);
 const GRAPHEME_OPTIONS = new Set(['sound-match', 'capital-match', 'missing-letter', 'first-last-sound', 'perception']);
 const TIMED = new Set(['choice', 'yesno']);   // response times are kept for recognition tasks only
 
@@ -46,8 +47,6 @@ let saveTimer = null;
 let learningTimer = null;
 let readerToken = 0;
 let slowWords = false;
-const achievementQueue = [];
-let showingAchievement = false;
 let activeDrill = null;                 // a timed drill in progress (stopped when the view changes)
 
 const $ = (id) => document.getElementById(id);
@@ -69,8 +68,8 @@ function save(now = false) {
   if (now) write(); else saveTimer = setTimeout(write, 800);
 }
 
+// Points are still counted (achievements), but not shown all the time: less to watch while learning.
 function updateHeader() {
-  $('points-display').textContent = progress.points;
   $('streak-display').textContent = progress.streak;
 }
 
@@ -120,6 +119,7 @@ function showView(id, title, back = null) {
 
 function closeMenu() {
   $('dropdown-menu').classList.add('hidden');
+  $('settings-group').open = false;
   $('menu-button').setAttribute('aria-expanded', 'false');
 }
 
@@ -138,7 +138,8 @@ function unitSubtitle(u) {
   return '';
 }
 
-const reviewFilter = (k) => (bank.itemUnit(k) || 1) <= progress.unlockedUnit;
+// 'h:' items are left over from the heart-word activity, which was removed: they are no longer reviewed.
+const reviewFilter = (k) => !k.startsWith('h:') && (bank.itemUnit(k) || 1) <= progress.unlockedUnit;
 const currentWeak = () => {
   const taught = bank.taughtGraphemes(progress.unlockedUnit);
   return weakTargets(progress.attempts).filter(t => taught.includes(t.target));
@@ -151,28 +152,56 @@ function todayCard({ icon, title, text, action, onClick, muted = false, id = nul
     action ? el('button', { class: 'today-btn', onclick: onClick }, action) : null);
 }
 
-function renderToday() {
-  const cards = [];
-  const due = dueItems(progress.items, today(), { filter: reviewFilter });
-  if (Object.keys(progress.items).length) {
-    cards.push(due.length
-      ? todayCard({ id: 'review', icon: '🔁', title: `مراجعة اليوم (${toArabicDigits(due.length)})`, text: 'أسئلة قصيرة عن أصوات وكلمات تعلّمتها، في الوقت المناسب قبل أن تنساها.', action: 'ابدأ المراجعة', onClick: startReview })
-      : todayCard({ id: 'review', icon: '✓', title: 'لا توجد مراجعة اليوم', text: 'أحسنت! ستظهر هنا الكلمات والأصوات عندما يحين وقت مراجعتها.', muted: true }));
+/** The unit to work on now: the newest open unit, else the first one not finished. */
+function currentUnit() {
+  const open = unitById(progress.unlockedUnit);
+  if (open && !progress.completedUnits.includes(open.id)) return open;
+  return units.find(u => u.id <= progress.unlockedUnit && !progress.completedUnits.includes(u.id)) || null;
+}
+
+/** "Today's lesson": one big button that carries on where the learner stopped. */
+function lessonCard() {
+  const u = currentUnit();
+  if (!u) {
+    return todayCard({ id: 'lesson', icon: '🎓', title: 'أكملت كل الوحدات!', text: 'راجع ما تعلّمته، وتدرّب على الطلاقة من «المزيد».' });
   }
-  const sets = bank.perceptionSets(progress.unlockedUnit);
-  cards.push(sets.length
-    ? todayCard({ id: 'ear', icon: '👂', title: 'تدريب الأذن', text: 'ميّز بين أصوات متقاربة (مثل pin / pen) بأربعة أصوات مختلفة.', action: 'تدرّب', onClick: renderPerceptionMenu })
-    : todayCard({ id: 'ear', icon: '👂', title: 'تدريب الأذن', text: 'يبدأ بعد الوحدة الثانية.', muted: true }));
+  const steps = unitSteps(u);
+  const next = nextStep(u, progress.completedActivities, progress.completedUnits);
+  const started = (progress.completedActivities[u.id] || []).length > 0;
+  return el('div', { class: 'today-card lesson-card', 'data-card': 'lesson' },
+    el('p', { class: 'continue-step', text: 'درس اليوم' }),
+    el('h3', { class: 'continue-title', text: u.title }),
+    el('p', { class: 'continue-desc', text: started && next
+      ? `الخطوة ${toArabicDigits(steps.indexOf(next) + 1)} من ${toArabicDigits(steps.length)}: ${ACTIVITY_META[next].title}` : unitSubtitle(u) }),
+    // A new unit opens on its page first, so the learner meets its sounds and words before practising.
+    el('button', { class: 'continue-btn', onclick: () => (started ? continueUnit(u.id) : showLesson(u.id)) }, started ? 'تابع ←' : 'ابدأ ←'));
+}
+
+function renderToday() {
+  const main = [lessonCard()];
+  const due = dueItems(progress.items, today(), { filter: reviewFilter });
+  if (due.length) {
+    main.push(todayCard({ id: 'review', icon: '🔁', title: `مراجعة اليوم (${toArabicDigits(due.length)})`, text: 'أسئلة قصيرة عن أصوات وكلمات تعلّمتها، قبل أن تنساها.', action: 'ابدأ المراجعة', onClick: startReview }));
+  }
+  // Everything else waits, folded, under "More".
+  const more = [];
+  if (bank.perceptionSets(progress.unlockedUnit).length) {
+    more.push(todayCard({ id: 'ear', icon: '👂', title: 'تدريب الأذن', text: 'ميّز بين أصوات متقاربة (مثل pin / pen) بأربعة أصوات مختلفة.', action: 'تدرّب', onClick: renderPerceptionMenu }));
+  }
   const weak = currentWeak();
   if (weak.length) {
     const label = weak.map(t => (t.partner ? `${t.target} / ${t.partner}` : t.target)).join('، ');
-    cards.push(todayCard({ id: 'weak', icon: '🎯', title: 'نقاط ضعفي', text: `تدريب قصير على: ${label}`, action: 'تدرّب', onClick: startWeak }));
+    more.push(todayCard({ id: 'weak', icon: '🎯', title: 'نقاط ضعفي', text: `تدريب قصير على: ${label}`, action: 'تدرّب', onClick: startWeak }));
   }
-  todayCards(assessContext()).forEach(c => cards.push(todayCard(c)));
+  todayCards(assessContext()).forEach(c => more.push(todayCard(c)));
   if (backupDue(progress, today())) {
-    cards.push(todayCard({ id: 'backup', icon: '💾', title: 'احفظ نسخة من تقدّمك', text: 'التقدّم محفوظ على هذا الجهاز فقط. احفظ رمزًا احتياطيًا في مكان آمن.', action: 'نسخة احتياطية', onClick: () => renderBackup(backupContext()) }));
+    more.push(todayCard({ id: 'backup', icon: '💾', title: 'احفظ نسخة من تقدّمك', text: 'التقدّم محفوظ على هذا الجهاز فقط. احفظ رمزًا احتياطيًا في مكان آمن.', action: 'نسخة احتياطية', onClick: () => renderBackup(backupContext()) }));
   }
-  return el('div', { class: 'today-grid' }, ...cards);
+  return el('div', {},
+    el('div', { class: 'today-grid today-main' }, ...main),
+    more.length ? el('details', { class: 'more-practice' },
+      el('summary', { class: 'all-activities-summary' }, `المزيد (${toArabicDigits(more.length)})`),
+      el('div', { class: 'today-grid' }, ...more)) : null);
 }
 
 function renderDashboard() {
@@ -247,11 +276,6 @@ function wordChip(w) {
   el('span', { class: 'chip-ar', text: w.ar }));
 }
 
-function heartChip(h) {
-  return el('button', { class: 'word-chip heart-chip', onclick: () => audio.play(clipKey('w', h.w), { text: h.w }) },
-    el('span', { class: 'chip-emoji', 'aria-hidden': 'true', text: '♥' }), heartNode(h.mark), el('span', { class: 'chip-ar', text: h.ar }));
-}
-
 /** Time a silent reading of a text (repeated reading): words a minute, compared with last time. */
 function readingTimer(t, unitId) {
   const id = `${unitId}:${t.id}`;
@@ -318,12 +342,44 @@ function unitClipKeys(u) {
   return keys;
 }
 
+/** The single next step of a unit: "Step 3 of 7 — Meaning — Continue". */
+function continueCard(u) {
+  const steps = unitSteps(u);
+  const next = nextStep(u, progress.completedActivities, progress.completedUnits);
+  const done = progress.completedActivities[u.id] || [];
+  const dots = el('div', { class: 'step-dots', 'aria-hidden': 'true' },
+    ...steps.map(a => el('span', { class: `step-dot ${done.includes(a) || !next ? 'is-done' : a === next ? 'is-next' : ''}` })));
+  if (!next) {
+    const nextId = nextUnitId(units, u.id);
+    return el('div', { class: 'continue-card is-done' }, dots,
+      el('p', { class: 'continue-title', text: 'أكملت هذه الوحدة ✓' }),
+      nextId && nextId <= progress.unlockedUnit
+        ? el('button', { class: 'continue-btn', onclick: () => showLesson(nextId) }, `${unitById(nextId).title} ←`) : null);
+  }
+  const meta = ACTIVITY_META[next];
+  return el('div', { class: 'continue-card' }, dots,
+    el('p', { class: 'continue-step', text: `الخطوة ${toArabicDigits(steps.indexOf(next) + 1)} من ${toArabicDigits(steps.length)}` }),
+    el('h3', { class: 'continue-title', text: `${meta.icon} ${meta.title}` }),
+    el('p', { class: 'continue-desc' }, ...richArabic(meta.desc)),
+    el('button', { class: 'continue-btn', 'data-continue': next, onclick: () => startUnitActivity(u.id, next) }, 'تابع ←'));
+}
+
+/** Go on with a unit: its next step, or the unit page when every step is done. */
+function continueUnit(unitId) {
+  const next = nextStep(unitById(unitId), progress.completedActivities, progress.completedUnits);
+  if (next) startUnitActivity(unitId, next); else showLesson(unitId);
+}
+
 function showLesson(unitId) {
   const u = unitById(unitId);
   if (!u) return;
   const root = $('lesson-view');
   root.replaceChildren();
-  root.append(section('قبل أن تبدأ', el('ul', { class: 'tips-list' }, ...u.tips.map(t => el('li', {}, ...richArabic(t))))));
+  // Tips are read before the first step; once the unit is under way they fold away.
+  const started = (progress.completedActivities[u.id] || []).length > 0;
+  root.append(el('details', { class: 'lesson-section unit-tips', open: !started },
+    el('summary', { class: 'section-title all-activities-summary', text: 'قبل أن تبدأ' }),
+    el('ul', { class: 'tips-list' }, ...u.tips.map(t => el('li', {}, ...richArabic(t))))));
   if (u.graphemes.length) {
     root.append(section('أصوات جديدة', el('p', { class: 'section-help', text: 'اضغط على الحرف لتسمع صوته. في القراءة نستخدم الصوت، أما «اسم الحرف» فللتهجئة.' }),
       el('div', { class: 'sound-grid' }, ...u.graphemes.map(soundCard))));
@@ -341,14 +397,21 @@ function showLesson(unitId) {
       slowBtn.classList.toggle('is-on', slowWords);
       slowBtn.setAttribute('aria-pressed', String(slowWords));
     });
+    // Long lists are shown a few words at a time.
+    const grid = el('div', { class: 'word-grid' });
+    const more = el('button', { class: 'small-btn more-words' });
+    let shown = 0;
+    const showMore = () => {
+      grid.append(...u.words.slice(shown, shown + WORD_BATCH).map(wordChip));
+      shown = Math.min(u.words.length, shown + WORD_BATCH);
+      more.textContent = `كلمات أخرى (${toArabicDigits(u.words.length - shown)})`;
+      more.hidden = shown >= u.words.length;
+    };
+    more.addEventListener('click', showMore);
+    showMore();
     root.append(section('كلمات للقراءة',
       el('div', { class: 'section-tools' }, el('p', { class: 'section-help', text: 'اقرأ الكلمة بنفسك أولًا، ثم اضغط لتسمعها. حروف العلة ملوّنة لتنتبه لها.' }), slowBtn),
-      el('div', { class: 'word-grid' }, ...u.words.map(wordChip))));
-  }
-  const heart = [...(u.heart || []), ...(u.names || []).map(n => ({ w: n.w, ar: n.ar, mark: n.w }))];
-  if (heart.length) {
-    root.append(section('كلمات القلب ♥', el('p', { class: 'section-help', text: 'كلمات شائعة جدًا لا تُقرأ بالقواعد التي تعلّمتها بعد. الجزء الملوّن هو الجزء الصعب: احفظه.' }),
-      el('div', { class: 'word-grid' }, ...heart.map(heartChip))));
+      grid, more));
   }
   if ((u.signs || []).length) {
     root.append(section('لافتات في الحرم الجامعي', el('p', { class: 'section-help', text: 'اللافتات تُكتب غالبًا بحروف كبيرة. اضغط على اللافتة لتسمعها.' }),
@@ -363,8 +426,12 @@ function showLesson(unitId) {
     root.append(section('نصوص قصيرة', el('p', { class: 'section-help', text: 'اقرأ بنفسك، ثم استمع وتابع، ثم اقرأ مرة أخرى.' }), ...u.texts.map(t => textReader(t, u.id))));
   }
   const done = progress.completedActivities[u.id] || [];
-  root.append(section('أنشطة تدريبية', el('div', { id: 'activities-container', class: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5' },
-    ...u.activities.map(id => {
+  const steps = unitSteps(u);
+  const list = [...steps, ...u.activities.filter(a => !steps.includes(a))];
+  root.append(el('details', { class: 'all-activities' },
+    el('summary', { class: 'all-activities-summary' }, 'كل الأنشطة وتدريب إضافي'),
+    el('div', { id: 'activities-container', class: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5' },
+    ...list.map(id => {
       const meta = ACTIVITY_META[id];
       const complete = done.includes(id);
       const waiting = meta.check && !complete && !checkOpen(u);
@@ -382,6 +449,7 @@ function showLesson(unitId) {
         meta.optional ? el('span', { class: 'optional-chip', text: 'اختياري' }) : null,
         best !== null ? el('span', { class: 'optional-chip', text: `أفضل نتيجة: ${toArabicDigits(Math.round(best * 100))}٪` }) : null));
     }))));
+  root.prepend(continueCard(u));
   showView('lesson-view', u.title, renderDashboard);
   audio.preload(unitClipKeys(u));
 }
@@ -525,7 +593,7 @@ function optionLabel(q, o) {
   if (o.lang === 'pic') return el('span', { class: 'pic-option', text: o.label });
   if (o.lang !== 'en') return o.label;
   if (['read-text', 'forms', 'bench-text'].includes(q.activity) || /\s/.test(o.label)) return en(o.label);
-  if (GRAPHEME_OPTIONS.has(q.activity) || q.activity === 'heart-words') return en(o.label);
+  if (GRAPHEME_OPTIONS.has(q.activity)) return en(o.label);
   return wordNode(o.label);
 }
 
@@ -610,7 +678,6 @@ function soundsTheSame(target, typed) {
 function hintFor(q, value, spell) {
   if (q.activity === 'meaning') return 'اقرأ الكلمة صوتًا صوتًا، ثم فكّر في معناها.';
   if (q.activity === 'read-text') return 'اقرأ النص مرة أخرى، وابحث عن الكلمات المهمة.';
-  if (q.activity === 'heart-words') return 'هذه كلمة قلب: لا تُقرأ بالقواعد كلها. انظر إلى شكلها واحفظ الجزء الصعب.';
   if (q.activity === 'sentence-build') return 'ابدأ بالكلمة التي أولها حرف كبير، وانتهِ بالكلمة التي فيها النقطة. استمع مرة أخرى.';
   if (q.activity === 'signs') return 'اقرأ اللافتة كلمةً كلمة: الحروف الكبيرة هي الحروف نفسها (EXIT = exit).';
   if (q.activity === 'forms') return q.prompt.statement ? 'اقرأ الخانة المطلوبة في الاستمارة وقارنها بالجملة.' : 'اقرأ كلمات الخانات، واختر الخانة التي تعني ما تحتاجه.';
@@ -688,7 +755,6 @@ function feedbackMeaning(q) {
   if (q.activity === 'capital-match') return el('p', { class: 'feedback-word' }, en(f.word));
   if (q.activity === 'tracing') return el('p', { class: 'feedback-word' }, en(`${f.word.toUpperCase()} ${f.word}`));
   if (q.activity === 'sound-match') return el('p', { class: 'feedback-word' }, 'كما في ', f.emoji ? `${f.emoji} ` : '', wordNode(f.word));
-  if (q.activity === 'heart-words') return el('p', { class: 'feedback-word' }, heartNode(f.mark), f.ar ? ` — ${f.ar}` : '');
   if (q.activity === 'perception') return el('p', { class: 'feedback-word' }, wordNode(f.word));
   return el('p', { class: 'feedback-word' }, f.emoji ? `${f.emoji} ` : '', wordNode(f.word), f.ar ? ` — ${f.ar}` : '');
 }
@@ -910,14 +976,15 @@ function finishUnitCheck(s) {
   $('activity-content').replaceChildren(el('div', { class: 'check-result' },
     el('p', { class: 'text-2xl font-bold mb-2', text: passed ? 'نجحت في اختبار الوحدة ✓' : 'لم تصل إلى ٨٠٪ بعد' }),
     el('p', { text: `صحيح: ${toArabicDigits(right)} من ${toArabicDigits(total)} (${toArabicDigits(Math.round((right / Math.max(1, total)) * 100))}٪)` }),
-    firstPass ? el('p', { class: 'text-base', text: `+${toArabicDigits(CHECK_BONUS)} نقطة` }) : null,
     unlockedMsg ? el('p', { class: 'text-green-700 font-bold mt-2', text: unlockedMsg }) : null,
     passed ? null : el('p', { class: 'text-gray-600 mt-2', text: 'هذا طبيعي: تدرّب على الأسئلة التي أخطأت فيها، ثم أعد الاختبار بأسئلة جديدة.' }),
     missed.length ? el('div', { class: 'mt-4' }, el('h4', { class: 'font-bold mb-2', text: 'الأسئلة التي أخطأت فيها' }), el('ul', { class: 'missed-list' }, ...missed.map(answerLine))) : null,
     el('div', { class: 'flex flex-wrap gap-2 mt-4' },
       missed.length ? el('button', { class: passed ? 'small-btn' : 'today-btn', onclick: fix }, 'تدرّب على أخطائك') : null,
       passed ? null : el('button', { class: 'small-btn', onclick: () => startUnitActivity(unitId, activityId) }, 'أعد الاختبار'),
-      el('button', { class: passed ? 'today-btn' : 'small-btn', onclick: () => { showLesson(unitId); checkAchievements(); } }, 'العودة إلى الوحدة'))));
+      passed && nextUnitId(units, unitId) ? el('button', { class: 'today-btn', onclick: () => showLesson(nextUnitId(units, unitId)) }, `${unitById(nextUnitId(units, unitId)).title} ←`) : null,
+      el('button', { class: passed && nextUnitId(units, unitId) ? 'small-btn' : passed ? 'today-btn' : 'small-btn', onclick: () => showLesson(unitId) }, 'العودة إلى الوحدة'))));
+  checkAchievements();
 }
 
 function finishReadAloud(s) {
@@ -953,9 +1020,11 @@ function finishUnitActivity(s) {
     confusionLine(topSessionConfusions(s)));
   // New badges are shown after the result, not on top of it.
   showMessage(msg, [
-    { label: 'أعد المحاولة', onClick: () => { startUnitActivity(unitId, activityId); checkAchievements(); }, secondary: passed },
-    { label: 'العودة إلى الوحدة', onClick: () => { showLesson(unitId); checkAchievements(); }, secondary: !passed }
+    passed ? { label: 'تابع ←', onClick: () => continueUnit(unitId) }
+      : { label: 'أعد المحاولة', onClick: () => startUnitActivity(unitId, activityId) },
+    { label: 'العودة إلى الوحدة', onClick: () => showLesson(unitId), secondary: true }
   ]);
+  checkAchievements();
 }
 
 // ---------------- spaced review ----------------
@@ -1132,24 +1201,12 @@ function confirmAction(message, onConfirm) {
   ]);
 }
 
+// Badges are recorded quietly (see them under Settings → Achievements): a pop-up in the middle of
+// practice interrupts the learner.
 function checkAchievements() {
   achievements.forEach(a => {
-    if (!progress.earnedAchievements.includes(a.id) && a.condition(progress)) {
-      progress.earnedAchievements.push(a.id);
-      achievementQueue.push(a);
-    }
+    if (!progress.earnedAchievements.includes(a.id) && a.condition(progress)) progress.earnedAchievements.push(a.id);
   });
-  if (!showingAchievement && achievementQueue.length) showNextAchievement();
-}
-
-function showNextAchievement() {
-  const a = achievementQueue.shift();
-  if (!a) { showingAchievement = false; return; }
-  showingAchievement = true;
-  $('achievement-icon').innerHTML = a.icon; // static SVG from data.js
-  $('achievement-name').textContent = a.name;
-  $('achievement-desc').textContent = a.description;
-  $('achievement-unlocked-modal').classList.remove('hidden');
 }
 
 // ---------------------------------------------------------------------------
@@ -1301,6 +1358,8 @@ $('menu-button').addEventListener('click', (event) => {
   $('menu-button').setAttribute('aria-expanded', String(!menu.classList.contains('hidden')));
 });
 window.addEventListener('click', () => { if (!$('dropdown-menu').classList.contains('hidden')) closeMenu(); });
+// Opening the settings group inside the menu must not close the menu.
+$('settings-group').querySelector('summary').addEventListener('click', (event) => event.stopPropagation());
 $('progress-report-button').addEventListener('click', () => { closeMenu(); renderProgressReport(); });
 $('achievements-button').addEventListener('click', () => { closeMenu(); renderAchievements(); });
 $('audio-test-button').addEventListener('click', () => { closeMenu(); renderAudioTest(); });
@@ -1308,7 +1367,6 @@ $('placement-button').addEventListener('click', () => { closeMenu(); introducePl
 $('backup-button').addEventListener('click', () => { closeMenu(); renderBackup(backupContext()); });
 $('install-app-button').addEventListener('click', () => { closeMenu(); openInstallGuide(); });
 $('important-note-button').addEventListener('click', () => { closeMenu(); showView('important-note-view', 'ملاحظة مهمة', renderDashboard); });
-$('achievement-close-btn').addEventListener('click', () => { $('achievement-unlocked-modal').classList.add('hidden'); showNextAchievement(); });
 
 $('copy-email-btn').addEventListener('click', async () => {
   try {

@@ -12,7 +12,10 @@ export const LEGACY_KEY = 'literacyAppProgress';
 export const PROGRESS_VERSION = 5;
 export const PASS_MARK = 0.8;          // share of items right on the first try needed to pass an activity
 export const MAX_ATTEMPTS = 1500;      // size of the local answer log (oldest dropped first)
-export const OPTIONAL_ACTIVITIES = new Set(['tracing', 'read-aloud']);  // recommended, not needed to complete a unit
+// Extra practice: offered in every unit, not needed to complete it. The required core is kept short for
+// adults who are easily overloaded (owner decision, plan §16); these overlap with it.
+export const OPTIONAL_ACTIVITIES = new Set(['capital-match', 'tracing', 'first-last-sound', 'word-build', 'missing-letter',
+  'sentence-build', 'read-aloud']);
 
 export function getDefaultProgress() {
   return {
@@ -216,6 +219,24 @@ export function getPossibleActivities(unit) {
 
 export function requiredActivities(unit) {
   return getPossibleActivities(unit).filter(a => !OPTIONAL_ACTIVITIES.has(a));
+}
+
+// Teaching order of a unit's required steps: hear the sounds, join them, tell words apart, understand,
+// write, then read sentences and a text; the unit check comes last.
+const STEP_ORDER = ['sound-match', 'blend', 'which-word', 'meaning', 'dictation', 'signs', 'forms', 'complete-sentence',
+  'read-text', 'unit-check'];
+
+/** A unit's required activities in teaching order (what the "Continue" button walks through). */
+export function unitSteps(unit) {
+  const rank = (a) => (STEP_ORDER.includes(a) ? STEP_ORDER.indexOf(a) : STEP_ORDER.length - 1.5);   // unknown: before the check
+  return requiredActivities(unit).slice().sort((a, b) => rank(a) - rank(b));
+}
+
+/** The first step not done yet, or null when the unit is complete. */
+export function nextStep(unit, completedActivities, completedUnits = []) {
+  if (!unit || completedUnits.includes(unit.id)) return null;
+  const done = completedActivities[unit.id] || [];
+  return unitSteps(unit).find(a => !done.includes(a)) || null;
 }
 
 export function isUnitComplete(unit, completedActivities) {

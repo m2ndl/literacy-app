@@ -50,37 +50,43 @@ function drillPool(ctx, kind) {
 export const drillReady = (ctx, kind) => drillPool(ctx, kind).length >= DRILLS[kind].min;
 
 const bestOf = (list) => (list.length ? Math.max(...list.map(netPerMinute)) : null);
+// Practice runs untimed by default (no clock to race); the timer is a choice the learner makes.
+const UNTIMED_ITEMS = { words: 20, sentences: 10 };
 
 // ---------------------------------------------------------------------------
 // Speed practice
 // ---------------------------------------------------------------------------
 export function renderSpeedMenu(ctx) {
   const p = ctx.getProgress();
-  const root = ctx.activityRoot('تدريب السرعة', 'تدريب السرعة', ctx.renderDashboard);
+  const root = ctx.activityRoot('تدريب الطلاقة', 'تدريب الطلاقة', ctx.renderDashboard);
   const cards = Object.entries(DRILLS).map(([kind, d]) => {
     const ready = drillReady(ctx, kind);
     const best = bestOf(p.fluency[kind]);
     return el('div', { class: `today-card ${ready ? '' : 'is-muted'}`, 'data-drill': kind },
       el('div', { class: 'today-head' }, el('span', { class: 'today-icon', 'aria-hidden': 'true', text: d.icon }), el('h3', { class: 'today-title', text: d.title })),
-      el('p', { class: 'today-text', text: `${d.intro} (${toArabicDigits(DRILL_SECONDS[kind])} ثانية)` }),
-      ready ? el('p', { class: 'today-text', text: best === null ? 'لم تتدرّب بعد.' : `أفضل نتيجة: ${fmt(best)} ${d.per}` }) : el('p', { class: 'today-text', text: 'يبدأ بعد إكمال بعض الوحدات.' }),
-      ready && p.fluency[kind].length > 1 ? sparkline(fluencyTrend(p, kind), { label: 'آخر النتائج' }) : null,
-      ready ? el('button', { class: 'today-btn', onclick: () => startDrill(ctx, kind) }, 'ابدأ') : null);
+      el('p', { class: 'today-text', text: d.intro }),
+      ready ? null : el('p', { class: 'today-text', text: 'يبدأ بعد إكمال بعض الوحدات.' }),
+      ready ? el('div', { class: 'flex flex-wrap gap-2 items-center' },
+        el('button', { class: 'today-btn drill-untimed', onclick: () => startDrill(ctx, kind, { timed: false }) }, `تدرّب (${toArabicDigits(UNTIMED_ITEMS[kind])} سؤالًا)`),
+        el('button', { class: 'small-btn drill-timed', onclick: () => startDrill(ctx, kind, { timed: true }) }, `⏱ مع مؤقّت (${toArabicDigits(DRILL_SECONDS[kind])} ث)`)) : null,
+      ready && best !== null ? el('p', { class: 'today-text', text: `مع المؤقّت: أفضل نتيجة ${fmt(best)} ${d.per}` }) : null,
+      ready && p.fluency[kind].length > 1 ? sparkline(fluencyTrend(p, kind), { label: 'آخر النتائج' }) : null);
   });
   root.replaceChildren(
-    el('p', { class: 'section-help', text: 'القارئ الجيد يقرأ بدقّة وبسرعة دون أن يتوقف عند كل كلمة. تدرّب دقيقة أو دقيقتين كل يوم، وحاول أن تتجاوز أفضل نتيجة لك.' }),
+    el('p', { class: 'section-help', text: 'القارئ الجيد يقرأ بدقّة دون أن يتوقف عند كل كلمة، ثم تأتي السرعة. تدرّب بلا وقت، وجرّب المؤقّت عندما تشعر بالثقة.' }),
     el('div', { class: 'today-grid' }, ...cards));
 }
 
-export function startDrill(ctx, kind) {
+export function startDrill(ctx, kind, { timed = false } = {}) {
   const d = DRILLS[kind];
-  const root = ctx.activityRoot('تدريب السرعة', d.title, () => renderSpeedMenu(ctx));
+  const root = ctx.activityRoot('تدريب الطلاقة', d.title, () => renderSpeedMenu(ctx));
   ctx.track(runDrill(root, drillPool(ctx, kind), {
-    seconds: DRILL_SECONDS[kind], title: d.title, intro: d.intro, cue: ctx.cue,
+    seconds: timed ? DRILL_SECONDS[kind] : null, limit: UNTIMED_ITEMS[kind], title: d.title, intro: d.intro, cue: ctx.cue,
     onDone: (r) => {
-      const res = recordFluency(ctx.getProgress(), kind, { day: ctx.today(), n: r.n, x: r.x, s: r.s });
-      ctx.save(true);
-      drillResult(ctx, kind, r, res, root);
+      // Only timed runs are scores (words a minute); untimed runs are practice and are not recorded.
+      const res = timed ? recordFluency(ctx.getProgress(), kind, { day: ctx.today(), n: r.n, x: r.x, s: r.s }) : null;
+      if (timed) ctx.save(true);
+      drillResult(ctx, kind, r, res, root, timed);
     }
   }));
 }
@@ -94,10 +100,21 @@ function mistakeLine(q, value) {
   return el('li', {}, wordNode(q.item), ` = ${right.label}`, chosen ? el('span', { class: 'text-gray-500', text: ` (اخترت: ${chosen.label})` }) : null);
 }
 
-function drillResult(ctx, kind, r, res, root) {
+function drillResult(ctx, kind, r, res, root, timed) {
   const d = DRILLS[kind];
   const mistakes = r.answers.filter(a => !a.ok);
   const p = ctx.getProgress();
+  const again = el('div', { class: 'flex flex-wrap gap-2 mt-4' },
+    el('button', { class: 'today-btn', onclick: () => startDrill(ctx, kind, { timed }) }, 'مرة أخرى'),
+    el('button', { class: 'small-btn', onclick: () => renderSpeedMenu(ctx) }, 'رجوع'));
+  const review = mistakes.length ? el('div', { class: 'mt-3' }, el('h4', { class: 'font-bold', text: 'راجع أخطاءك' }),
+    el('ul', { class: 'drill-mistakes' }, ...mistakes.map(a => mistakeLine(a.q, a.value)))) : null;
+  if (!timed) {
+    root.replaceChildren(el('div', { class: 'drill-result' },
+      el('p', { class: 'drill-score' }, el('span', { class: 'drill-score-num', text: toArabicDigits(r.n) }), ` من ${toArabicDigits(r.n + r.x)} صحيحة`),
+      el('p', { text: r.x ? 'أحسنت. انظر إلى أخطائك أدناه.' : 'كلها صحيحة. أحسنت!' }), review, again));
+    return;
+  }
   root.replaceChildren(el('div', { class: 'drill-result' },
     el('p', { class: 'drill-score' }, el('span', { class: 'drill-score-num', text: fmt(res.rate) }), ` ${d.per}`),
     el('p', { text: `صحيح: ${toArabicDigits(r.n)} — خطأ: ${toArabicDigits(r.x)} — الوقت: ${toArabicDigits(Math.round(r.s))} ث` }),
@@ -106,11 +123,7 @@ function drillResult(ctx, kind, r, res, root) {
         : el('p', { text: `أفضل نتيجة لك: ${fmt(res.best)}` }),
     r.x > r.n / 2 ? el('p', { class: 'hint', text: 'تمهّل قليلًا: الإجابة الخطأ تُنقص من النتيجة، والدقة أهم من السرعة.' }) : null,
     p.fluency[kind].length > 1 ? sparkline(fluencyTrend(p, kind), { label: 'آخر النتائج' }) : null,
-    mistakes.length ? el('div', { class: 'mt-3' }, el('h4', { class: 'font-bold', text: 'راجع أخطاءك' }),
-      el('ul', { class: 'drill-mistakes' }, ...mistakes.map(a => mistakeLine(a.q, a.value)))) : null,
-    el('div', { class: 'flex flex-wrap gap-2 mt-4' },
-      el('button', { class: 'today-btn', onclick: () => startDrill(ctx, kind) }, 'مرة أخرى'),
-      el('button', { class: 'small-btn', onclick: () => renderSpeedMenu(ctx) }, 'رجوع'))));
+    review, again));
 }
 
 // ---------------------------------------------------------------------------
@@ -268,8 +281,7 @@ export function todayCards(ctx) {
     cards.push({ id: 'benchmark', icon: '🏆', title: 'اختبار المرحلة', text: `أكملت «${recommended.title}». قِس قراءتك الآن (حوالي ١٠ دقائق).`, action: 'ابدأ الاختبار', onClick: () => introduceBenchmark(ctx, recommended.index) });
   }
   if (drillReady(ctx, 'words')) {
-    const best = bestOf(p.fluency.words);
-    cards.push({ id: 'speed', icon: '⚡', title: 'تدريب السرعة', text: best === null ? 'دقيقة واحدة: اقرأ كلمات بسرعة ودقّة.' : `أفضل نتيجة: ${fmt(best)} كلمة في الدقيقة. هل تتجاوزها اليوم؟`, action: 'تدرّب', onClick: () => renderSpeedMenu(ctx) });
+    cards.push({ id: 'speed', icon: '⚡', title: 'تدريب الطلاقة', text: 'اقرأ كلمات وجملًا قصيرة واختر معناها، بلا وقت.', action: 'تدرّب', onClick: () => renderSpeedMenu(ctx) });
   }
   return cards;
 }
@@ -285,11 +297,11 @@ export function reportSections(ctx, units) {
     sparkline(fluencyTrend(p, kind), { label: d.title })));
   const texts = p.fluency.texts.slice(-5).reverse();
   out.push(box('سرعة القراءة',
-    speedRows.length || texts.length ? null : el('p', { class: 'text-gray-500', text: 'تدرّب على «تدريب السرعة» أو قِس سرعة قراءتك لنص قصير، وستظهر نتائجك هنا.' }),
+    speedRows.length || texts.length ? null : el('p', { class: 'text-gray-500', text: 'تدرّب على «تدريب الطلاقة» أو قِس سرعة قراءتك لنص قصير، وستظهر نتائجك هنا.' }),
     ...speedRows,
     texts.length ? el('div', { class: 'mt-2' }, el('p', { class: 'font-bold', text: 'قراءة النصوص (كلمة في الدقيقة)' }),
       el('ul', { class: 'confusion-list' }, ...texts.map(t => el('li', { text: `${t.id.split(':')[0] ? `الوحدة ${toArabicDigits(t.id.split(':')[0])}` : ''}: ${toArabicDigits(t.wpm)}` })))) : null,
-    drillReady(ctx, 'words') ? el('button', { class: 'today-btn mt-3', onclick: () => renderSpeedMenu(ctx) }, 'تدريب السرعة') : null));
+    drillReady(ctx, 'words') ? el('button', { class: 'today-btn mt-3', onclick: () => renderSpeedMenu(ctx) }, 'تدريب الطلاقة') : null));
 
   const checked = units.filter(u => p.checks[u.id]);
   out.push(box('اختبارات الوحدات',

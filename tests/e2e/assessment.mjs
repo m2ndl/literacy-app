@@ -1,5 +1,5 @@
 // Phase 4: unit checks, timed drills, reading aloud, a stage benchmark, the text timer and the report.
-import { newPage, check, closeBadges, runSession, progress, openWith, openUnit, unitsDone } from './harness.mjs';
+import { newPage, check, runSession, progress, openWith, openUnit, unitsDone, showAll } from './harness.mjs';
 import { units } from '../../data.js';
 import { requiredActivities } from '../../logic.js';
 
@@ -64,19 +64,28 @@ export default async function assessment(browser, base) {
     check('unit check fail: no page errors', page.errors.length === 0, page.errors.join(' | '));
     await page.context().close();
   }
-  // Timed drills.
+  // Fluency practice: untimed by default (not recorded), the timer is a choice.
   {
     const page = await newPage(browser, base);
     await openWith(page, unitsDone(7));
+    await showAll(page);
     await page.click('[data-card="speed"] .today-btn');
-    await page.click('[data-drill="words"] .today-btn');
+    await page.click('[data-drill="words"] .drill-untimed');
+    await page.click('.drill-start');
+    check('untimed practice shows no clock', !(await page.$('.drill-clock')));
+    await answerDrill(page, 'words', 5);
+    await page.waitForSelector('.drill-result', { timeout: 20000 });
+    check('untimed practice: 20 items, a plain score, nothing recorded', (await page.innerText('.drill-result')).includes('من ٢٠')
+      && (await progress(page)).fluency.words.length === 0);
+    await page.click('.drill-result .small-btn');
+    await page.click('[data-drill="words"] .drill-timed');
     await page.click('.drill-start');
     const wrongs = await answerDrill(page, 'words', 10);
     await page.waitForSelector('.drill-result', { timeout: 70000 });
     let p = await progress(page);
     check('word drill: right and wrong answers recorded', p.fluency.words.length === 1 && p.fluency.words[0].n >= 40 && p.fluency.words[0].x === wrongs, JSON.stringify(p.fluency.words));
     await page.click('.drill-result .small-btn');
-    await page.click('[data-drill="sentences"] .today-btn');
+    await page.click('[data-drill="sentences"] .drill-timed');
     await page.click('.drill-start');
     await answerDrill(page, 'sentences');
     await page.waitForSelector('.drill-result', { timeout: 100000 });
@@ -111,6 +120,7 @@ export default async function assessment(browser, base) {
   {
     const page = await newPage(browser, base);
     await openWith(page, unitsDone(10));
+    await showAll(page);
     await page.click('[data-card="benchmark"] .today-btn');
     await page.waitForSelector('#message-modal:not(.hidden)');
     await page.click('#modal-buttons button:first-child');

@@ -1,15 +1,18 @@
-// drill.js - Timed reading drills: read as many items as you can before the time runs out.
-// One tap per item, a short tick or cross, no hints and no second tries: the score is
-// (right - wrong) per minute (assess.js). Time only runs while the app is on screen.
+// drill.js - Reading drills. Timed: read as many items as you can before the time runs out; the score is
+// (right - wrong) per minute (assess.js), and time only runs while the app is on screen. Untimed (the
+// default in speed practice): a fixed number of items, no clock. One tap per item, a short tick or
+// cross, no hints and no second tries.
 import { el, en, wordNode, toArabicDigits } from './dom.js';
 
 /**
  * Run a drill inside `root`.
  * items: questions with { item, type: 'choice'|'yesno', prompt, options, answer } (questions.js)
- * opts: { seconds, title, intro (Arabic), cue(type), onDone({ n, x, s, answers: [{ q, value, ok, ms }] }) }
+ * opts: { seconds (null = untimed), limit (untimed: items to show), title, intro (Arabic), cue(type),
+ *         onDone({ n, x, s, timed, answers: [{ q, value, ok, ms }] }) }
  * Returns { cancel() }.
  */
-export function runDrill(root, items, { seconds, title, intro, cue = () => {}, onDone }) {
+export function runDrill(root, items, { seconds = null, limit = items.length, title, intro, cue = () => {}, onDone }) {
+  const timed = Boolean(seconds);
   let index = 0;
   let n = 0;
   let x = 0;
@@ -31,6 +34,7 @@ export function runDrill(root, items, { seconds, title, intro, cue = () => {}, o
   const onVisibility = () => (document.hidden ? pause() : resume());
 
   function tick() {
+    if (!timed) return;
     const left = Math.max(0, seconds * 1000 - spent());
     clock.textContent = `${toArabicDigits(Math.ceil(left / 1000))} ث`;
     bar.firstChild.style.width = `${(left / (seconds * 1000)) * 100}%`;
@@ -43,14 +47,14 @@ export function runDrill(root, items, { seconds, title, intro, cue = () => {}, o
     done = true;
     clearInterval(timer);
     document.removeEventListener('visibilitychange', onVisibility);
-    onDone({ n, x, s: Math.min(seconds, spent() / 1000), answers });
+    onDone({ n, x, s: timed ? Math.min(seconds, spent() / 1000) : spent() / 1000, answers, timed });
   }
 
   function show() {
     if (done) return;
-    if (index >= items.length) { finish(); return; }
+    if (index >= Math.min(items.length, timed ? Infinity : limit)) { finish(); return; }
     const q = items[index];
-    count.textContent = `✓ ${toArabicDigits(n)}   ✗ ${toArabicDigits(x)}`;
+    count.textContent = timed ? `✓ ${toArabicDigits(n)}   ✗ ${toArabicDigits(x)}` : `${toArabicDigits(index + 1)} / ${toArabicDigits(limit)}`;
     const prompt = q.type === 'yesno'
       ? en(q.prompt.statement, 'drill-sentence')
       : wordNode(q.prompt.text, { cls: 'drill-word', split: q.prompt.split });
@@ -78,14 +82,14 @@ export function runDrill(root, items, { seconds, title, intro, cue = () => {}, o
   root.replaceChildren(el('div', { class: 'drill' },
     el('h3', { class: 'text-xl font-bold', text: title }),
     el('p', { class: 'section-help' }, intro),
-    el('p', { class: 'section-help', text: `لديك ${toArabicDigits(seconds)} ثانية. أجب بسرعة ودقّة: الإجابة الخطأ تُنقص من نتيجتك.` }),
+    el('p', { class: 'section-help', text: timed ? `لديك ${toArabicDigits(seconds)} ثانية. أجب بسرعة ودقّة: الإجابة الخطأ تُنقص من نتيجتك.`
+      : `${toArabicDigits(limit)} أسئلة، بلا وقت. خذ وقتك.` }),
     startBtn));
   startBtn.addEventListener('click', () => {
-    root.replaceChildren(el('div', { class: 'drill is-running' }, el('div', { class: 'drill-head' }, clock, count), bar, stage));
+    root.replaceChildren(el('div', { class: 'drill is-running' }, el('div', { class: 'drill-head' }, timed ? clock : null, count), timed ? bar : null, stage));
     document.addEventListener('visibilitychange', onVisibility);
     resume();
-    timer = setInterval(tick, 200);
-    tick();
+    if (timed) { timer = setInterval(tick, 200); tick(); }
     show();
   });
 
