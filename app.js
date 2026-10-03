@@ -206,12 +206,13 @@ function renderDashboard() {
 // ---------------------------------------------------------------------------
 // Lesson view
 // ---------------------------------------------------------------------------
+// A sound cut out of a word is hard to recognise on its own, so it is always followed by its keyword:
+// "m … map". With no clean recording of the sound, the keyword alone teaches it.
 async function playSound(ph, kw) {
-  const key = clipKey('ph', ph);
+  const key = clipKey('ph', ph), word = { key: clipKey('w', kw), text: kw };
   await audio.initAudio();
-  if (audio.hasClip(key)) return audio.play(key);
-  // No clean recording of this sound on its own: teach it through its keyword.
-  return audio.play(clipKey('w', kw), { text: kw });
+  if (audio.hasClip(key)) return audio.playSequence([key, word], { gapMs: 450 });
+  return audio.play(word.key, { text: kw });
 }
 
 function soundCard(g) {
@@ -423,9 +424,7 @@ function ttsText(q) {
 }
 
 function playPrompt(q, slow = false) {
-  if (q.activity === 'sound-match' && !audio.hasClip(q.prompt.audio)) {
-    return audio.play(clipKey('w', q.prompt.kw), { text: q.prompt.kw });
-  }
+  if (q.activity === 'sound-match') return playSound(q.item, q.prompt.kw);
   return audio.play(q.prompt.audio, { voice: q.prompt.voice || 'f', slow, text: ttsText(q) });
 }
 
@@ -763,15 +762,15 @@ function handleWrong(q, value, node, spell) {
     }
     fb.className = 'feedback-panel feedback-try';
     const chosen = Array.isArray(value) ? value.join('') : String(value);
-    const chosenKey = GRAPHEME_OPTIONS.has(q.activity) && gpc[chosen.toLowerCase()] ? clipKey('ph', gpc[chosen.toLowerCase()].ph)
-      : (['which-word', 'blend'].includes(q.activity) ? clipKey('w', chosen) : null);
+    const chosenSound = GRAPHEME_OPTIONS.has(q.activity) ? gpc[chosen.toLowerCase()] : null;
+    const chosenKey = chosenSound ? clipKey('ph', chosenSound.ph) : (['which-word', 'blend'].includes(q.activity) ? clipKey('w', chosen) : null);
     fb.replaceChildren(
       el('p', { class: 'feedback-title', text: 'ليس تمامًا — حاول مرة أخرى.' }),
       spell ? spellingDiff(spell) : null,
       el('p', { class: 'hint' }, ...richArabic(hintFor(q, value, spell))),
       el('div', { class: 'compare' },
         q.prompt.audio && !['meaning', 'pseudo'].includes(q.activity) && q.type !== 'trace' ? el('button', { class: 'small-btn', onclick: () => playPrompt(q) }, '🔊 استمع مرة أخرى') : null,
-        chosenKey && audio.hasClip(chosenKey) ? el('button', { class: 'small-btn', onclick: () => audio.play(chosenKey) }, '🔊 ما اخترته: ', en(chosen)) : null));
+        chosenKey && audio.hasClip(chosenKey) ? el('button', { class: 'small-btn', onclick: () => (chosenSound ? playSound(chosenSound.ph, chosenSound.kw) : audio.play(chosenKey)) }, '🔊 ما اخترته: ', en(chosen)) : null));
     if (q.type === 'build' || q.type === 'spell') setTimeout(() => { if (session && session.queue[session.index].q === q) session.widget.reset(); }, 900);
     else if (q.type === 'trace') session.widget.retry();
     else if (AUTOPLAY.has(q.activity)) setTimeout(() => playPrompt(q), 600);

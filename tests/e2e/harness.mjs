@@ -185,6 +185,8 @@ export async function runSession(page, decide = () => true, max = 80) {
     if (await modalOpen(page)) break;
     const before = await question(page);
     if (!before) break;
+    const shown = (await page.innerText('#activity-content').catch(() => '')).match(/\[object \w+\]|\bundefined\b|\bNaN\b/);
+    if (shown) check(`${before.activity}: no "${shown[0]}" on screen`, false, before.key);
     const ok = decide(before, i);
     await answer(page, ok);
     seen.push({ activity: before.activity, unit: before.unit, ok });

@@ -1019,6 +1019,15 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
   - Three made-up words are still written the same as a foil by the recogniser (*drup/drop*, *bife/bive*, *snoper/snopper*), but their sounds differ (/ʌ/ vs /ɑ/, /f/ vs /v/, /oʊ/ vs /ɑ/).
 - **Still to do by a person:** listen to the new single sounds (`audio/f/ph/`) and to *law, huge, stage, each, choice*, which the recogniser heard oddly in both voices.
 
+### After the first listening test
+- **Single sounds are now always followed by their keyword** ("m … *map*", "a … *apple*"):
+  - on the sound cards;
+  - in "listen to the sound and choose the letter";
+  - on the "what you chose" button.
+
+  The owner found the cut sounds unclear on their own. A consonant cut out of a word loses the transitions into the vowel that carry most of its place cue: *m* and *n*, and *b, d* and *g*, differ mainly in those transitions. The keyword puts the sound back in a word, which is also the routine of keyword-based phonics programmes.
+- Blending still plays the sounds alone, because the learner must join them. Its answer choices are whole spoken words.
+
 ---
 
 ## 17. References
