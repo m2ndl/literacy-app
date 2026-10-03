@@ -157,7 +157,8 @@ export function blendWidget(q, { play, playTogether, onSubmit, isLocked }) {
   };
 }
 
-/** A product card for a made-up "brand name". */
+/** A product card for a made-up "brand name" (text, or a word node already built). */
 export function brandCard(word) {
-  return el('div', { class: 'brand-card' }, el('span', { class: 'brand-label', text: 'اسم منتج جديد' }), en(word, 'brand-name'));
+  return el('div', { class: 'brand-card' }, el('span', { class: 'brand-label', text: 'اسم منتج جديد' }),
+    typeof word === 'string' ? en(word, 'brand-name') : word);
 }
