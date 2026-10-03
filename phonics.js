@@ -167,7 +167,7 @@ export function pseudoForm(item, gpc, targetSplit = null) {
  * Kinds: ph = speech sound, ln = letter name, w = word, s = sentence, p = made-up word (from phonemes).
  * Returns [{ key, kind, text, voices, ipa? }], sorted by key, no duplicates.
  */
-export function requiredClips(units, gpc, alphabet, perception = []) {
+export function requiredClips(units, gpc, alphabet, perception = [], extraPseudo = []) {
   const clips = new Map();
   const add = (kind, text, voices, extra = {}) => {
     const key = clipKey(kind, text);
@@ -187,6 +187,11 @@ export function requiredClips(units, gpc, alphabet, perception = []) {
     }
   });
   alphabet.forEach(l => add('ln', l, ['f']));
+  const addPseudo = (pw) => {
+    const target = pw.ipa ? { text: pw.w, ipa: pw.ipa } : pseudoForm(pw.split || pw.w, gpc);
+    add('p', target.text, ['f'], { ipa: target.ipa });
+    pw.foils.forEach(f => { const form = pseudoForm(f, gpc, pw.split); add('p', form.text, ['f'], { ipa: form.ipa }); });
+  };
   units.forEach(u => {
     (u.words || []).forEach(w => add('w', w.w, ['f', 'm', 'fs']));
     (u.contrasts || []).flat().forEach(w => add('w', w, ['f', 'm', 'fs']));
@@ -194,15 +199,12 @@ export function requiredClips(units, gpc, alphabet, perception = []) {
     (u.names || []).forEach(n => add('w', n.w, ['f']));
     (u.sentences || []).forEach(s => add('s', s.text, ['f', 'fs']));
     (u.texts || []).forEach(t => [...t.sentences, ...t.questions].forEach(s => add('s', s.text, ['f', 'fs'])));
-    (u.pseudo || []).forEach(pw => {
-      const target = pw.ipa ? { text: pw.w, ipa: pw.ipa } : pseudoForm(pw.split || pw.w, gpc);
-      add('p', target.text, ['f'], { ipa: target.ipa });
-      pw.foils.forEach(f => { const form = pseudoForm(f, gpc, pw.split); add('p', form.text, ['f'], { ipa: form.ipa }); });
-    });
+    (u.pseudo || []).forEach(addPseudo);
     (u.signs || []).forEach(s => add('s', s.say, ['f']));
     (u.forms || []).forEach(f => f.statements.forEach(st => add('s', st.text, ['f'])));
   });
   perception.forEach(set => set.pairs.flat().forEach(w => add('w', w, ['f', 'm', 'f2', 'm2'])));
+  extraPseudo.forEach(addPseudo);   // made-up words used only in the stage benchmarks
   return [...clips.values()].sort((a, b) => a.key.localeCompare(b.key));
 }
 

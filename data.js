@@ -206,7 +206,8 @@ const stage0to2 = [
       { w: 'nap', ar: 'قيلولة', emoji: '😴' },
       { w: 'pan', ar: 'مقلاة', emoji: '🍳' },
       { w: 'tin', ar: 'علبة معدنية', emoji: '🥫' },
-      { w: 'sip', ar: 'رشفة' }
+      { w: 'sip', ar: 'رشفة' },
+      { w: 'an', ar: 'أداة نكرة (قبل حرف علة)' },
     ],
     heart: [
       { w: 'I', ar: 'أنا', mark: '[I]' },
@@ -364,10 +365,12 @@ const stage0to2 = [
       { w: 'bad', ar: 'سيئ', emoji: '👎' },
       { w: 'bag', ar: 'حقيبة', emoji: '👜', group: 'bag' },
       { w: 'bed', ar: 'سرير', emoji: '🛏️' },
-      { w: 'big', ar: 'كبير' },
+      { w: 'big', ar: 'كبير', group: 'big' },
       { w: 'bin', ar: 'سلة مهملات', emoji: '🗑️' },
       { w: 'back', ar: 'ظهر / يعود' },
-      { w: 'cab', ar: 'سيارة أجرة', emoji: '🚕' }
+      { w: 'cab', ar: 'سيارة أجرة', emoji: '🚕' },
+      { w: 'bit', ar: 'قطعة صغيرة / قليلًا' },
+      { w: 'rock', ar: 'صخرة', emoji: '🪨' },
     ],
     heart: [
       { w: 'are', ar: 'يكونون / تكون', mark: '[are]' },
@@ -467,7 +470,6 @@ const stage0to2 = [
     words: [
       { w: 'job', ar: 'وظيفة', emoji: '💼' },
       { w: 'jet', ar: 'طائرة نفاثة', emoji: '✈️' },
-      { w: 'jog', ar: 'يهرول', group: 'run' },
       { w: 'jam', ar: 'مربّى / زحمة مرور' },
       { w: 'van', ar: 'شاحنة صغيرة (فان)', emoji: '🚐' },
       { w: 'vet', ar: 'طبيب بيطري' },
@@ -488,7 +490,7 @@ const stage0to2 = [
       { w: 'buzz', ar: 'طنين', emoji: '🐝' },
       { w: 'quiz', ar: 'اختبار قصير', emoji: '📝' },
       { w: 'quit', ar: 'يترك / يستقيل' },
-      { w: 'quick', ar: 'سريع', emoji: '⚡' }
+      { w: 'quick', ar: 'سريع', emoji: '⚡', group: 'fast' }
     ],
     heart: [
       { w: 'what', ar: 'ماذا / ما', mark: 'wh[a]t' },
@@ -527,7 +529,7 @@ const stage0to2 = [
     rules: ['plural-s'],
     words: [
       { w: 'ship', ar: 'سفينة', emoji: '🚢' },
-      { w: 'shop', ar: 'متجر', emoji: '🏪' },
+      { w: 'shop', ar: 'متجر', emoji: '🏪', group: 'shop' },
       { w: 'shut', ar: 'مُغلق / يُغلق' },
       { w: 'cash', ar: 'نقود (كاش)', emoji: '💵' },
       { w: 'fish', ar: 'سمك', emoji: '🐟' },
@@ -551,7 +553,10 @@ const stage0to2 = [
       { w: 'this', ar: 'هذا / هذه' },
       { w: 'that', ar: 'ذلك / تلك' },
       { w: 'them', ar: 'هم (مفعول به)', group: 'pron' },
-      { w: 'then', ar: 'ثم / بعد ذلك' }
+      { w: 'then', ar: 'ثم / بعد ذلك' },
+      { w: 'than', ar: 'مِن (للمقارنة)' },
+      { w: 'such', ar: 'مثل هذا' },
+      { w: 'as', ar: 'كـ / مثل' },
     ],
     heart: [
       { w: 'they', ar: 'هم', mark: 'th[ey]' },
@@ -655,9 +660,7 @@ const stage0to2 = [
       { w: 'index', split: 'in|dex', ar: 'فهرس' },
       { w: 'submit', split: 'sub|mit', ar: 'يُسلِّم (واجبًا)' },
       { w: 'solid', split: 'sol|id', ar: 'صُلب' },
-      { w: 'denim', split: 'den|im', ar: 'قماش الجينز' },
       { w: 'muffin', split: 'muf|fin', ar: 'كعكة مافن', emoji: '🧁' },
-      { w: 'zigzag', split: 'zig|zag', ar: 'متعرّج' }
     ],
     heart: [
       { w: 'like', ar: 'يحبّ / مثل', mark: 'l[i]k[e]' },

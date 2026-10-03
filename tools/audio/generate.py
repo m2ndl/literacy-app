@@ -50,7 +50,9 @@ NAME_PHONEMES = {'Ali': 'ˈɑli', 'Sara': 'sˈɑɹə', 'Hassan': 'həsˈɑn', 'N
                  'Mr': 'mˈɪstəɹ', 'Mrs': 'mˈɪsɪz', 'Dr': 'dˈɑktəɹ'}
 LETTER_PHONEMES = {'a': 'ˈA', 'i': 'ˈI'}
 # Heteronyms said alone: the meaning taught in data.js (in sentences, misaki picks from context).
-WORD_PHONEMES = {'close': 'klˈOz', 'use': 'jˈuz', 'live': 'lˈɪv'}
+WORD_PHONEMES = {'close': 'klˈOz', 'use': 'jˈuz', 'live': 'lˈɪv',
+                 # Function words said alone take their strong form (misaki gives the weak /ən/, /ðən/).
+                 'an': 'ˈæn', 'than': 'ðˈæn'}
 
 # --- isolated sounds -------------------------------------------------------------------------
 # Candidate source words (explicit stressed phonemes) and the cut method for each sound.
@@ -93,19 +95,22 @@ PHONEME_CANDIDATES = {
     # Cut from words with a voiceless start so the voiced stretch is the vowel only, or said alone ("whole").
     'long-a': [('ˈA', 'whole'), ('kˈAk', 'vowel'), ('pˈAt', 'vowel'), ('tˈAp', 'vowel')],
     'long-i': [('ˈI', 'whole'), ('kˈIt', 'vowel'), ('tˈIp', 'vowel'), ('pˈIp', 'vowel')],
-    'long-o': [('ˈO', 'whole'), ('kˈOt', 'vowel'), ('tˈOt', 'vowel'), ('sˈOp', 'vowel')],
+    # A third element names another voice: some vowels come out clearer in af_bella or af_sarah
+    # (tools/audio/README.md, "Single speech sounds").
+    'long-o': [('ˈO', 'whole'), ('kˈOt', 'vowel'), ('tˈOt', 'vowel'), ('sˈOp', 'vowel'), ('tˈOt', 'vowel', 'af_bella')],
     'long-u': [('jˈu', 'whole'), ('kjˈut', 'post-voice-vowel')],
-    'long-e': [('ˈi', 'whole'), ('sˈit', 'vowel'), ('pˈit', 'vowel'), ('kˈip', 'vowel')],
-    'long-oo': [('ˈu', 'whole'), ('tˈut', 'vowel'), ('sˈup', 'vowel')],
-    'short-oo': [('ˈʊ', 'whole'), ('kˈʊk', 'vowel'), ('tˈʊk', 'vowel'), ('pˈʊt', 'vowel')],
+    'long-e': [('ˈi', 'whole'), ('sˈit', 'vowel'), ('pˈit', 'vowel'), ('kˈip', 'vowel'), ('kˈi', 'vowel', 'af_bella'), ('tˈi', 'vowel', 'af_bella')],
+    'long-oo': [('ˈu', 'whole'), ('tˈut', 'vowel'), ('sˈup', 'vowel'), ('tˈut', 'vowel', 'af_bella'), ('tˈu', 'vowel', 'af_bella')],
+    'short-oo': [('ˈʊ', 'whole'), ('kˈʊk', 'vowel'), ('tˈʊk', 'vowel'), ('pˈʊt', 'vowel'), ('fˈʊt', 'vowel', 'af_sarah')],
     'ar': [('ˈɑɹ', 'whole'), ('pˈɑɹt', 'vowel'), ('kˈɑɹt', 'vowel')],
     'or': [('ˈɔɹ', 'whole'), ('pˈɔɹt', 'vowel'), ('fˈɔɹk', 'vowel')],
     'er': [('ˈɜɹ', 'whole'), ('hˈɜɹt', 'vowel'), ('pˈɜɹk', 'vowel')],
     'ow-cow': [('ˈW', 'whole'), ('hˈWs', 'vowel'), ('kˈWt', 'vowel')],
     'oy': [('ˈY', 'whole'), ('kˈYs', 'vowel'), ('tˈYk', 'vowel')],
-    'aw': [('ˈɔ', 'whole'), ('tˈɔk', 'vowel'), ('sˈɔs', 'vowel')],
+    'aw': [('ˈɔ', 'whole'), ('tˈɔk', 'vowel'), ('sˈɔs', 'vowel'), ('kˈɔ', 'vowel')],
     'awl': [('ˈɔl', 'whole'), ('kˈɔl', 'post-voice'), ('tˈɔl', 'post-voice')],
-    'shun': [('ʃən', 'whole')],
+    # Said alone, unstressed /ʃən/ is heard as "Shen"; the stressed syllable "shun" is recognisable.
+    'shun': [('ʃən', 'whole'), ('ʃˈʌn', 'whole')],
 }
 CONTINUANTS = {'s', 'f', 'sh', 'th', 'm', 'n', 'l', 'r', 'z', 'v', 'ng'}
 VOWELS = {'ae', 'ih', 'eh', 'uh', 'aa', 'long-a', 'long-i', 'long-o', 'long-u', 'long-e', 'long-oo', 'short-oo',
@@ -144,7 +149,7 @@ BLEND_WORDS = {
     'bird': ['b', 'er', 'd'], 'turn': ['t', 'er', 'n'], 'hurt': ['h', 'er', 't'], 'shirt': ['sh', 'er', 't'],
     'loud': ['l', 'ow-cow', 'd'], 'down': ['d', 'ow-cow', 'n'], 'mouth': ['m', 'ow-cow', 'th'], 'house': ['h', 'ow-cow', 's'],
     'coin': ['k', 'oy', 'n'], 'boil': ['b', 'oy', 'l'], 'join': ['jh', 'oy', 'n'], 'toys': ['t', 'oy', 'z'],
-    'talk': ['t', 'aw', 'k'], 'saw': ['s', 'aw'], 'law': ['l', 'aw'], 'dawn': ['d', 'aw', 'n'],
+    'talk': ['t', 'aw', 'k'], 'saw': ['s', 'aw'], 'law': ['l', 'aw'], 'dawn': ['d', 'aw', 'n'], 'paw': ['p', 'aw'], 'jaw': ['jh', 'aw'],
     'ball': ['b', 'awl'], 'tall': ['t', 'awl'], 'call': ['k', 'awl'], 'fall': ['f', 'awl'],
     'nation': ['n', 'long-a', 'shun'], 'motion': ['m', 'long-o', 'shun'], 'lotion': ['l', 'long-o', 'shun'],
 }
@@ -461,8 +466,8 @@ def build_sounds(synth, checker, report):
     candidates = {}
     for ph, cands in PHONEME_CANDIDATES.items():
         candidates[ph] = []
-        for src, method in cands:
-            seg, info = cut_sound(synth.say(src), method)
+        for src, method, *voice in cands:
+            seg, info = cut_sound(synth.say(src, *voice), method)
             if seg is None or len(seg) < SR * 0.04:
                 continue
             if ph not in VOWELS:
@@ -470,13 +475,14 @@ def build_sounds(synth, checker, report):
                 if not consonant_ok(ph, feats):
                     continue
                 info.update(feats)
-            candidates[ph].append({'src': src, 'method': method, 'audio': finish_sound(seg, ph), 'info': info})
+            candidates[ph].append({'src': src, 'method': method, 'voice': voice[0] if voice else 'af_heart',
+                                   'audio': finish_sound(seg, ph), 'info': info})
     current = {ph: c[0] for ph, c in candidates.items() if c}
     gap = np.zeros(int(SR * 0.012), dtype=np.float32)
     cache = {}
 
     def heard(word, parts, choice):
-        key = (word,) + tuple(choice[p]['src'] + choice[p]['method'] for p in parts)
+        key = (word,) + tuple(choice[p]['src'] + choice[p]['method'] + choice[p]['voice'] for p in parts)
         if key not in cache:
             audio = np.concatenate([x for p in parts for x in (choice[p]['audio'], gap)])
             cache[key] = checker.text(audio)
@@ -514,21 +520,26 @@ def build_sounds(synth, checker, report):
         accepted = s >= PASS_SCORE[kind]
         alone = None
         if not accepted and ph in ALONE_NAMES:
+            # Any cut of the vowel heard alone as its name; the one that blends best wins.
+            best = None
             for cand in candidates[ph]:
-                if cand['method'] != 'whole':
-                    continue
                 heard_alone = checker.text(cand['audio'])
                 got = norm_words(heard_alone)
-                alone = {'heard': heard_alone, 'ok': len(got) == 1 and got[0] in ALONE_NAMES[ph]}
-                if alone['ok']:
-                    current[ph], accepted = cand, True
-                    s, detail = score(ph, current)
-                break
+                if len(got) == 1 and got[0] in ALONE_NAMES[ph]:
+                    s_c, _ = score(ph, dict(current, **{ph: cand}))
+                    if best is None or s_c > best[0]:
+                        best = (s_c, cand, heard_alone)
+                elif alone is None:
+                    alone = {'heard': heard_alone, 'ok': False}
+            if best:
+                current[ph], accepted = best[1], True
+                alone = {'heard': best[2], 'ok': True}
+                s, detail = score(ph, current)
         report['sounds'][ph] = {'accepted': accepted, 'score': round(s, 2), 'source': current[ph]['src'],
-                                'method': current[ph]['method'], 'tests': detail, **current[ph]['info']}
+                                'method': current[ph]['method'], 'voice': current[ph]['voice'], 'tests': detail, **current[ph]['info']}
         if alone:
             report['sounds'][ph]['alone'] = alone
-        print(f"sound {ph:4s} {'OK ' if accepted else 'NO '} {s:.2f} from {current[ph]['src']}"
+        print(f"sound {ph:4s} {'OK ' if accepted else 'NO '} {s:.2f} from {current[ph]['src']} ({current[ph]['voice']})"
               + (f" (alone: {alone['heard']!r})" if alone else ''), flush=True)
         if accepted:
             sounds[ph] = current[ph]['audio']

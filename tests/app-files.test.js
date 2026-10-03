@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { units, gpc, ALPHABET, PERCEPTION } from '../data.js';
 import { requiredClips } from '../phonics.js';
+import { BENCH_PSEUDO } from '../data-assess.js';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const sw = read('service-worker.js');
@@ -55,7 +56,7 @@ describe('generated audio', () => {
 
   it('covers every word, sentence and letter name (skips if audio is not generated)', { skip: !hasAudio }, () => {
     const manifest = JSON.parse(readFileSync(manifestUrl, 'utf8'));
-    for (const c of requiredClips(units, gpc, ALPHABET, PERCEPTION)) {
+    for (const c of requiredClips(units, gpc, ALPHABET, PERCEPTION, BENCH_PSEUDO.flatMap(s => s.items))) {
       if (c.kind === 'ph') continue; // a sound without a clean recording is taught through its keyword
       const entry = manifest.clips[c.key];
       assert.ok(entry, `missing clip ${c.key}`);

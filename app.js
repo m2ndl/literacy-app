@@ -15,7 +15,7 @@ import { el, en, svgIcon, richArabic, wordNode, heartNode, section, toArabicDigi
 import { buildWidget, keyboardWidget, audioChoiceWidget, blendWidget, spellingDiff, brandCard, cleanupWidgets } from './widgets.js';
 import { traceWidget } from './tracing.js';
 import { renderBackup, backupDue } from './backup-ui.js';
-import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES } from './data-assess.js';
+import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES, BENCH_PSEUDO } from './data-assess.js';
 import { recordCheck, checkPassed, wordsPerMinute, recordTextReading } from './assess.js';
 import { todayCards, reportSections, renderSpeedMenu } from './assess-ui.js';
 import { recordWidget, stopRecorder } from './recorder.js';
@@ -23,7 +23,7 @@ import { platformInfo, renderInstallGuide, inAppBanner } from './platform.js';
 
 const bank = createQuestionBank({
   units, gpc, alphabet: ALPHABET, perception: PERCEPTION, hasClip: (k) => audio.hasClip(k),
-  sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES
+  sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES, benchPseudo: BENCH_PSEUDO
 });
 configureWords(bank.wordInfo);
 const achievements = getAchievements(units.length);
@@ -550,7 +550,7 @@ function renderAnswer(q) {
   else if (q.type === 'trace') session.widget = traceWidget(q, { onSubmit, isLocked, playName: () => audio.play(q.prompt.audio) });
   else if (q.type === 'blend') {
     session.widget = blendWidget(q, {
-      play: (key) => audio.play(key), playTogether: (keys) => audio.playSequence(keys, { gapMs: 60 }), onSubmit, isLocked
+      play: (key) => audio.play(key), playTogether: (keys) => audio.playSequence(keys, { gapMs: 0 }), onSubmit, isLocked
     });
   } else if (q.type === 'record') session.widget = recordWidget(q, { audio, isLocked, onSubmit: (rating, times) => onRecorded(q, rating, times) });
   else return renderOptions(q);

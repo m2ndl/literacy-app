@@ -2,7 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { units, gpc, ACTIVITY_META, PERCEPTION, STAGES } from '../data.js';
-import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES } from '../data-assess.js';
+import { SENSE, BENCHMARK_TEXTS, CAN_DO_STAGES, PICTURES, BENCH_PSEUDO } from '../data-assess.js';
 import { buildLexicon, decodeWord, analyzeToken, checkSentence, contrastOf, sameSound, tokenize, segment } from '../phonics.js';
 
 const lex = buildLexicon(units, gpc);
@@ -356,6 +356,25 @@ describe('Phase 4 assessment content', () => {
       assert.equal(new Set(x.pics).size, 3, x.text);
       assert.match(x.ar, ARABIC);
     }
+  });
+
+  it('benchmark made-up words are decodable at the end of their stage and used nowhere else', () => {
+    const course = new Set(units.flatMap(u => [...(u.words || []).map(w => w.w), ...(u.pseudo || []).flatMap(pw => [pw.w,
+      ...pw.foils.map(f => (typeof f === 'string' ? f : f.w).replace(/\|/g, ''))])]));
+    const seen = new Set();
+    assert.equal(BENCH_PSEUDO.length, STAGES.length);
+    BENCH_PSEUDO.forEach((set, i) => {
+      assert.ok(set.items.length >= 6, `stage ${i + 1}`);
+      for (const pw of set.items) {
+        const r = pw.split ? decodeWord(pw.w, STAGES[i].to, lex, pw.split) : analyzeToken(pw.w, STAGES[i].to, lex);
+        assert.ok(r.ok, `${pw.w} (${r.reason})`);
+        assert.ok(!course.has(pw.w) && !seen.has(pw.w), `${pw.w} is used elsewhere`);
+        seen.add(pw.w);
+        assert.equal(pw.foils.length, 2);
+        const forms = pw.foils.map(f => (typeof f === 'string' ? f : f.w).replace(/\|/g, ''));
+        assert.equal(new Set([pw.w, ...forms]).size, 3, pw.w);
+      }
+    });
   });
 
   it('can-do statements exist for every stage, in Arabic, with unique ids', () => {

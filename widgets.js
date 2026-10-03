@@ -124,7 +124,8 @@ export function audioChoiceWidget(q, { play, onSubmit, isLocked }) {
 
 /**
  * Blending: the word's letters as separate tiles; tapping a tile plays its sound. Once every sound has been
- * heard (or all of them played together), three spoken words appear: which one do the sounds make?
+ * heard (or all of them played together, back to back with no gap, as close as recorded sounds get to
+ * connected phonation: Gonzalez-Frey & Ehri 2021), three spoken words appear: which one do the sounds make?
  * Returns { node }.
  */
 export function blendWidget(q, { play, playTogether, onSubmit, isLocked }) {
@@ -144,7 +145,7 @@ export function blendWidget(q, { play, playTogether, onSubmit, isLocked }) {
     });
     return tile;
   });
-  const together = el('button', { class: 'small-btn' }, '▶ الأصوات متتالية');
+  const together = el('button', { class: 'small-btn' }, '▶ الأصوات متّصلة');
   together.addEventListener('click', async () => {
     if (isLocked()) return;
     tiles.forEach(t => t.classList.add('is-heard'));

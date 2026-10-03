@@ -219,3 +219,45 @@ export const PICTURES = [
   { unit: 9, text: 'She has a laptop.', pics: ['👩💻', '👨💻', '👩🎒'], ar: 'لديها حاسوب محمول.' },
   { unit: 9, text: 'The king has a ring.', pics: ['🤴💍', '👸💍', '🤴🔔'], ar: 'لدى الملك خاتم.' }
 ];
+
+/**
+ * Made-up words used only in the stage benchmarks, so the decoding part measures reading words never seen
+ * before. Each was checked against the American pronunciation dictionary (not a real word, does not sound
+ * like one). Foils: a vowel misreading, and a consonant confusion or (clusters) an inserted vowel.
+ */
+export const BENCH_PSEUDO = [
+  {
+    stage: 0, items: [
+      { w: 'fim', foils: ['fem', 'vim'] }, { w: 'gub', foils: ['gob', 'gup'] }, { w: 'lom', foils: ['lum', 'rom'] },
+      { w: 'pesh', foils: ['pash', 'besh'] }, { w: 'chab', foils: ['chub', 'shab'] }, { w: 'thog', foils: ['thug', 'tog'] },
+      { w: 'nush', foils: ['nosh', 'nuch'] }, { w: 'vush', foils: ['vosh', 'fush'] }
+    ]
+  },
+  {
+    stage: 1, items: [
+      { w: 'blen', foils: ['blin', { w: 'bilen', ipa: 'bɪlˈɛn' }] }, { w: 'glep', foils: ['glap', { w: 'gilep', ipa: 'ɡɪlˈɛp' }] },
+      { w: 'drup', foils: ['drop', { w: 'dirup', ipa: 'dɪɹˈʌp' }] }, { w: 'plim', foils: ['plem', { w: 'pilim', ipa: 'pɪlˈɪm' }] },
+      { w: 'bimp', foils: ['bump', { w: 'bimip', ipa: 'bˈɪmɪp' }] }, { w: 'lusk', foils: ['losk', { w: 'lusik', ipa: 'lˈʌsɪk' }] },
+      { w: 'smod', foils: ['smud', { w: 'simod', ipa: 'sɪmˈɑd' }] }, { w: 'glunt', foils: ['glont', { w: 'gilunt', ipa: 'ɡɪlˈʌnt' }] }
+    ]
+  },
+  {
+    stage: 2, items: [
+      { w: 'bife', foils: ['bif', 'bive'] }, { w: 'rofe', foils: ['rof', 'rove'] }, { w: 'froon', foils: ['fron', 'vroon'] },
+      { w: 'forp', foils: ['fop', 'vorp'] }, { w: 'nirt', foils: ['nit', 'mirt'] }, { w: 'foin', foils: ['fin', 'voin'] },
+      { w: 'chight', foils: ['chit', 'shight'] }, { w: 'teeb', foils: ['teb', 'deeb'] }
+    ]
+  },
+  {
+    stage: 3, items: [
+      { w: 'romel', split: 'ro|mel', ipa: 'ɹˈOməl', foils: [{ w: 'rommel', ipa: 'ɹˈɑməl' }, { w: 'ronel', ipa: 'ɹˈOnəl' }] },
+      { w: 'pavin', split: 'pa|vin', ipa: 'pˈAvɪn', foils: [{ w: 'pavvin', ipa: 'pˈævɪn' }, { w: 'pafin', ipa: 'pˈAfɪn' }] },
+      { w: 'madle', split: 'ma|dle', ipa: 'mˈAdəl', foils: [{ w: 'maddle', ipa: 'mˈædəl' }, { w: 'mable', ipa: 'mˈAbəl' }] },
+      { w: 'trimful', ipa: 'tɹˈɪmfəl', foils: [{ w: 'tramful', ipa: 'tɹˈæmfəl' }, { w: 'drimful', ipa: 'dɹˈɪmfəl' }] },
+      { w: 'cration', split: 'cra|tion', ipa: 'kɹˈAʃən', foils: [{ w: 'crattion', ipa: 'kɹˈæʃən' }, { w: 'gration', ipa: 'ɡɹˈAʃən' }] },
+      { w: 'blation', split: 'bla|tion', ipa: 'blˈAʃən', foils: [{ w: 'blattion', ipa: 'blˈæʃən' }, { w: 'plation', ipa: 'plˈAʃən' }] },
+      { w: 'snoper', split: 'sno|per', ipa: 'snˈOpəɹ', foils: [{ w: 'snopper', ipa: 'snˈɑpəɹ' }, { w: 'snober', ipa: 'snˈObəɹ' }] },
+      { w: 'glinter', ipa: 'ɡlˈɪntəɹ', foils: [{ w: 'glenter', ipa: 'ɡlˈɛntəɹ' }, { w: 'clinter', ipa: 'klˈɪntəɹ' }] }
+    ]
+  }
+];

@@ -1,12 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { units, gpc, ALPHABET, PERCEPTION, STAGES } from '../data.js';
-import { SENSE, BENCHMARK_TEXTS, PICTURES } from '../data-assess.js';
+import { SENSE, BENCHMARK_TEXTS, PICTURES, BENCH_PSEUDO } from '../data-assess.js';
 import { createQuestionBank, PERCEPTION_VOICES, SHORT_PLACEMENT_FROM, CHECK_SIZE } from '../questions.js';
 import { makeRng, requiredClips, sameSound, contrastOf, segment } from '../phonics.js';
 
-const bank = createQuestionBank({ units, gpc, alphabet: ALPHABET, perception: PERCEPTION, sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES });
-const clipKeys = new Set(requiredClips(units, gpc, ALPHABET, PERCEPTION).map(c => c.key));
+const bank = createQuestionBank({ units, gpc, alphabet: ALPHABET, perception: PERCEPTION, sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES, benchPseudo: BENCH_PSEUDO });
+const clipKeys = new Set(requiredClips(units, gpc, ALPHABET, PERCEPTION, BENCH_PSEUDO.flatMap(s => s.items)).map(c => c.key));
 const SEEDS = [1, 2, 3, 4, 5];
 
 // Minimum questions per activity (some pools are small by design, e.g. unit 1 has 6 sounds).
@@ -120,6 +120,8 @@ describe('question bank', () => {
       assert.ok(b.sentences.length >= 20, `stage ${i}: ${b.sentences.length} sentences`);
       assert.ok(b.sentences.slice(0, 5).every(q => SENSE.find(x => x.text === q.item).unit >= st.from || st.from === 1), 'the stage comes first');
       assert.equal(b.decoding.length, 6);
+      const reserved = BENCH_PSEUDO[i].items.map(x => x.w);
+      assert.ok(b.decoding.every(q => reserved.includes(q.item)), 'benchmark made-up words are the reserved ones');
       assert.equal(b.spelling.length, 6);
       assert.equal(b.reading.length, 4);
       [...b.decoding, ...b.spelling].forEach(q => checkQuestion(q, q.activity));

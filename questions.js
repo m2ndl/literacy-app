@@ -54,7 +54,8 @@ export const CHECK_SIZE = 12;
 const SUFFIX_TILES = ['ed', 'ing', 's', 'es', 'er', 'est', 'ly', 'ful'];
 
 export function createQuestionBank({
-  units, gpc, alphabet, perception = [], hasClip = () => true, sense = [], benchTexts = [], stages = [], pictures = []
+  units, gpc, alphabet, perception = [], hasClip = () => true, sense = [], benchTexts = [], stages = [], pictures = [],
+  benchPseudo = []
 }) {
   const lex = buildLexicon(units, gpc);
   const idx = (unitId) => units.findIndex(u => u.id === unitId);
@@ -795,8 +796,10 @@ export function createQuestionBank({
     if (!st) return null;
     const stageUnits = units.filter(x => x.id >= st.from && x.id <= st.to);
     const ctx = unitOf(st.to);
-    const pseudo = shuffle(stageUnits.flatMap(x => (x.pseudo || []).map(pw => ({ x, pw }))), rng).slice(0, 6)
-      .map(({ x, pw }) => ({ ...pseudoItem(x, pw, rng), key: `bench:pseudo:${pw.w}` }));
+    // Made-up words kept for the benchmark (never seen before); the stage's own as a fallback.
+    const reserved = (benchPseudo.find(x => x.stage === stageIndex) || { items: [] }).items.map(pw => ({ x: ctx, pw }));
+    const pool = reserved.length >= 6 ? reserved : stageUnits.flatMap(x => (x.pseudo || []).map(pw => ({ x, pw })));
+    const pseudo = shuffle(pool, rng).slice(0, 6).map(({ x, pw }) => ({ ...pseudoItem(x, pw, rng), key: `bench:pseudo:${pw.w}` }));
     const spell = shuffle(stageUnits.flatMap(x => x.words || []), rng).slice(0, 6)
       .map(w => ({ ...dictationItem(ctx, w, rng), key: `bench:dictation:${w.w}` }));
     const t = benchTexts.find(x => x.stage === stageIndex);
