@@ -912,6 +912,10 @@
    "heard": "Sam has a muffin in his bag.",
    "ok": true
   },
+  "s:sam-is-sad@f": {
+   "heard": "Sam is sad.",
+   "ok": true
+  },
   "s:sara-and-ali-are-at-the-bus-stop@f": {
    "heard": "Saren Ali are at the bus stop.",
    "ok": false
@@ -6884,6 +6888,14 @@
    "heard": "Sand",
    "ok": true
   },
+  "w:sap@f": {
+   "heard": "SAP",
+   "ok": true
+  },
+  "w:sap@m": {
+   "heard": "ZAP",
+   "ok": false
+  },
   "w:sara@f": {
    "heard": "SARA",
    "ok": true
@@ -9462,7 +9474,7 @@
   }
  },
  "asr_summary": {
-  "checked": 2365,
+  "checked": 2368,
   "failed": [
    "s:ali-and-his-brother-sat-by-the-window@f",
    "s:ali-checks-the-list-and-the-old-tests@f",
@@ -9784,6 +9796,7 @@
    "w:sack@f",
    "w:sack@f2",
    "w:sack@m2",
+   "w:sap@m",
    "w:sat@f",
    "w:sat@m2",
    "w:saw@m",
@@ -9921,7 +9934,7 @@
    "w:you@f"
   ]
  },
- "files": 190,
+ "files": 6,
  "pipeline": "2",
  "sounds": {
   "aa": {

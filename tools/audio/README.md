@@ -9,7 +9,7 @@ The generator is re-run whenever the curriculum in `data.js` changes.
 | Accent | American English. Short *o* is normalised to /ɑ/ (as in many US accents), e.g. *dog, long, off*, but not before *r* (*for, or*). |
 | Voices | `f` = af_heart (main), `m` = am_michael (second talker for words), `fs` = af_heart slowed to 0.8× with a pitch-preserving time-stretch (the "slow" button). Kokoro's own slow speed adds a short "uh" before the word, so it is not used. `f2` = af_sarah and `m2` = am_fenrir: extra talkers for ear training (see *Voice choice*). |
 | Format | MP3, mono, 24 kHz, 48 kbps. Plays on every iPhone and Android browser. |
-| Size | ≈ 18.5 MB (3,757 files, 24 units). Cached per unit by the service worker as the learner reaches it. |
+| Size | ≈ 18.5 MB (3,767 files, 24 units). Cached per unit by the service worker as the learner reaches it. |
 
 ## What gets generated
 

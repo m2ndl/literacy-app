@@ -179,8 +179,8 @@ const LETTER_UNIT = ['sound-match', 'capital-match', 'tracing', 'which-word', 'b
   'dictation', 'meaning', 'complete-sentence', 'sentence-build'];
 const DIGRAPH_UNIT = ['sound-match', 'which-word', 'blend', 'first-last-sound', 'word-build', 'missing-letter', 'dictation', 'meaning',
   'complete-sentence', 'sentence-build'];
-// Unit 1 has too few sentences of three or more words for "sentence order".
-const FIRST_UNIT = LETTER_UNIT.filter(a => a !== 'sentence-build');
+// Unit 1 (four letters, one vowel) has words only: no sentences yet.
+const FIRST_UNIT = LETTER_UNIT.filter(a => a !== 'complete-sentence' && a !== 'sentence-build');
 
 // Word fields: w = word, ar = Arabic meaning, emoji (concrete nouns only),
 // group = near-synonyms that must not be offered as each other's distractors,
@@ -193,41 +193,20 @@ const stage0to2 = [
   {
     id: 1,
     title: 'الوحدة ١',
-    graphemes: ['s', 'a', 't', 'i', 'n', 'p'],
+    graphemes: ['s', 'a', 't', 'p'],
     words: [
       { w: 'at', ar: 'عند / في', group: 'prep' },
-      { w: 'it', ar: 'هو / هي (لغير العاقل)', group: 'pron' },
-      { w: 'in', ar: 'في / داخل', group: 'prep' },
-      { w: 'sit', ar: 'يجلس', group: 'sit' },
       { w: 'sat', ar: 'جلسَ', group: 'sit' },
-      { w: 'pin', ar: 'دبّوس', emoji: '📌' },
-      { w: 'tip', ar: 'نصيحة', emoji: '💡' },
       { w: 'tap', ar: 'ينقر (على الشاشة)', emoji: '👆' },
-      { w: 'nap', ar: 'قيلولة', emoji: '😴' },
-      { w: 'pan', ar: 'مقلاة', emoji: '🍳' },
-      { w: 'tin', ar: 'علبة معدنية', emoji: '🥫' },
-      { w: 'sip', ar: 'رشفة' },
-      { w: 'an', ar: 'أداة نكرة (قبل حرف علة)' },
+      { w: 'pat', ar: 'يربّت (بلطف)' },
+      { w: 'sap', ar: 'عُصارة النبات' }
     ],
-    heart: [
-      { w: 'I', ar: 'أنا', mark: '[I]' },
-      { w: 'a', ar: 'أداة نكرة (واحد)', mark: '[a]' },
-      { w: 'is', ar: 'يكون (هو / هي)', mark: 'i[s]' }
-    ],
-    contrasts: [['sat', 'sit'], ['tap', 'tip'], ['pan', 'pin']],
-    pseudo: [{ w: 'nis', foils: ['nas', 'niz'] }, { w: 'nin', foils: ['nan', 'nim'] }, { w: 'tis', foils: ['tas', 'dis'] }],
-    sentences: [
-      { text: 'It is a pin.', missing: 'pin', ar: 'إنه دبّوس.' },
-      { text: 'It is a tip.', missing: 'tip', ar: 'إنها نصيحة.' },
-      { text: 'Tap it.', missing: 'tap', ar: 'انقر عليه.' },
-      { text: 'I sit.', missing: 'sit', ar: 'أنا أجلس.' },
-      { text: 'I sat.', missing: 'sat', ar: 'جلستُ.' },
-      { text: 'It is in a tin.', missing: 'tin', ar: 'إنه في علبة معدنية.' },
-      { text: 'I nap.', missing: 'nap', ar: 'آخذ قيلولة.' }
-    ],
+    contrasts: [['sat', 'pat'], ['tap', 'sap'], ['sap', 'sat']],
+    pseudo: [{ w: 'tas', foils: ['tis', 'das'] }],
+    sentences: [],
     tips: [
       'الإنجليزية تُقرأ من اليسار إلى اليمين →',
-      'في الإنجليزية تُكتب حروف العلة دائمًا (a, i) — لا تتجاهلها، فهي تغيّر الكلمة: pan ≠ pin.',
+      'في الإنجليزية يُكتب حرف العلة دائمًا: a في sat و tap. لا تتجاهله.',
       'اضغط على الحرف لتسمع صوته، واضغط «اسم الحرف» لتسمع اسمه. في القراءة نستخدم الصوت لا الاسم.',
       'p صوت جديد: مثل «ب» لكن بلا اهتزاز في الحنجرة، ومع نفخة هواء.'
     ],
@@ -236,9 +215,64 @@ const stage0to2 = [
   {
     id: 2,
     title: 'الوحدة ٢',
-    graphemes: ['m', 'd', 'o', 'g'],
+    graphemes: ['i', 'n', 'm', 'd'],
     words: [
+      { w: 'it', ar: 'هو / هي (لغير العاقل)', group: 'pron' },
+      { w: 'in', ar: 'في / داخل', group: 'prep' },
+      { w: 'an', ar: 'أداة نكرة (قبل حرف علة)' },
       { w: 'am', ar: 'أكون (مع I)' },
+      { w: 'sit', ar: 'يجلس', group: 'sit' },
+      { w: 'pin', ar: 'دبّوس', emoji: '📌' },
+      { w: 'tip', ar: 'نصيحة', emoji: '💡' },
+      { w: 'tin', ar: 'علبة معدنية', emoji: '🥫' },
+      { w: 'sip', ar: 'رشفة' },
+      { w: 'nap', ar: 'قيلولة', emoji: '😴' },
+      { w: 'pan', ar: 'مقلاة', emoji: '🍳' },
+      { w: 'man', ar: 'رجل' },
+      { w: 'mat', ar: 'حصيرة' },
+      { w: 'map', ar: 'خريطة', emoji: '🗺️' },
+      { w: 'mad', ar: 'غاضب', emoji: '😠', group: 'feel' },
+      { w: 'sad', ar: 'حزين', emoji: '😢', group: 'feel' },
+      { w: 'dad', ar: 'أب' },
+      { w: 'did', ar: 'فعلَ' },
+      { w: 'dip', ar: 'يغمس' }
+    ],
+    heart: [
+      { w: 'I', ar: 'أنا', mark: '[I]' },
+      { w: 'a', ar: 'أداة نكرة (واحد)', mark: '[a]' },
+      { w: 'is', ar: 'يكون (هو / هي)', mark: 'i[s]' },
+      { w: 'the', ar: 'الـ (أداة تعريف)', mark: '[th][e]' },
+      { w: 'and', ar: 'و', mark: 'a[nd]' },
+      { w: 'to', ar: 'إلى', mark: 't[o]' }
+    ],
+    names: [{ w: 'Sam', ar: 'سام' }],
+    contrasts: [['sat', 'sit'], ['tap', 'tip'], ['pan', 'pin'], ['sap', 'sip'], ['did', 'dad'], ['map', 'nap'], ['mat', 'map']],
+    pseudo: [{ w: 'nis', foils: ['nas', 'niz'] }, { w: 'nin', foils: ['nan', 'nim'] }, { w: 'tis', foils: ['tas', 'dis'] },
+      { w: 'nid', foils: ['ned', 'nit'] }, { w: 'mip', foils: ['mep', 'nip'] }, { w: 'tid', foils: ['tod', 'did'] }],
+    sentences: [
+      { text: 'I am Sam.', missing: 'am', ar: 'أنا سام.' },
+      { text: 'It is a pin.', missing: 'pin', ar: 'إنه دبّوس.' },
+      { text: 'It is a tip.', missing: 'tip', ar: 'إنها نصيحة.' },
+      { text: 'Tap it.', missing: 'tap', ar: 'انقر عليه.' },
+      { text: 'I sit.', missing: 'sit', ar: 'أنا أجلس.' },
+      { text: 'I sat.', missing: 'sat', ar: 'جلستُ.' },
+      { text: 'It is in a tin.', missing: 'tin', ar: 'إنه في علبة معدنية.' },
+      { text: 'I nap.', missing: 'nap', ar: 'آخذ قيلولة.' },
+      { text: 'Sam is sad.', missing: 'sad', ar: 'سام حزين.' }
+    ],
+    tips: [
+      'i حرف علة جديد. حرف العلة يغيّر الكلمة: sat ≠ sit، و pan ≠ pin.',
+      'm و n متشابهان: m لها قوسان، و n لها قوس واحد.',
+      'I (أنا) تُكتب دائمًا حرفًا كبيرًا.',
+      'the و and و to: كلمات شائعة جدًا تُحفظ كما هي (كلمات القلب ♥).'
+    ],
+    activities: LETTER_UNIT
+  },
+  {
+    id: 3,
+    title: 'الوحدة ٣',
+    graphemes: ['o', 'g', 'c', 'k', 'ck'],
+    words: [
       { w: 'on', ar: 'على / يعمل (الجهاز)' },
       { w: 'not', ar: 'لا / ليس' },
       { w: 'top', ar: 'قمّة' },
@@ -246,59 +280,61 @@ const stage0to2 = [
       { w: 'dot', ar: 'نقطة' },
       { w: 'got', ar: 'حصلَ على', group: 'get' },
       { w: 'mom', ar: 'أمّ' },
-      { w: 'dad', ar: 'أب' },
-      { w: 'map', ar: 'خريطة', emoji: '🗺️' },
-      { w: 'mat', ar: 'حصيرة' },
-      { w: 'man', ar: 'رجل' },
-      { w: 'mad', ar: 'غاضب', emoji: '😠', group: 'feel' },
-      { w: 'sad', ar: 'حزين', emoji: '😢', group: 'feel' },
-      { w: 'did', ar: 'فعلَ' },
+      { w: 'mop', ar: 'ممسحة' },
+      { w: 'dog', ar: 'كلب', emoji: '🐕' },
       { w: 'dig', ar: 'يحفر' },
-      { w: 'dip', ar: 'يغمس' },
       { w: 'gas', ar: 'وقود (بنزين)', emoji: '⛽' },
       { w: 'tag', ar: 'بطاقة (وسم)', emoji: '🏷️' },
-      { w: 'dog', ar: 'كلب', emoji: '🐕' },
-      { w: 'mop', ar: 'ممسحة' }
-    ],
-    heart: [
-      { w: 'the', ar: 'الـ (أداة تعريف)', mark: '[th][e]' },
-      { w: 'and', ar: 'و', mark: 'a[nd]' },
-      { w: 'to', ar: 'إلى', mark: 't[o]' },
-      { w: 'go', ar: 'يذهب', mark: 'g[o]' },
-      { w: 'no', ar: 'لا', mark: 'n[o]' },
-      { w: 'so', ar: 'لذلك / جدًا', mark: 's[o]' }
-    ],
-    names: [{ w: 'Sam', ar: 'سام' }, { w: 'Tom', ar: 'توم' }],
-    contrasts: [['top', 'tap', 'tip'], ['mop', 'map'], ['dig', 'dog'], ['did', 'dad'], ['map', 'nap']],
-    pseudo: [{ w: 'nid', foils: ['ned', 'nit'] }, { w: 'mip', foils: ['mep', 'nip'] }, { w: 'tid', foils: ['tod', 'did'] }, { w: 'mog', foils: ['mag', 'mok'] }],
-    sentences: [
-      { text: 'I am Sam.', missing: 'am', ar: 'أنا سام.' },
-      { text: 'Sam got a map.', missing: 'map', ar: 'حصل سام على خريطة.' },
-      { text: 'The dog is on the mat.', missing: 'dog', ar: 'الكلب على الحصيرة.' },
-      { text: 'It is not on.', missing: 'not', ar: 'إنه لا يعمل.' },
-      { text: 'Go to the top.', missing: 'top', ar: 'اذهب إلى القمّة.' },
-      { text: 'Sam and Tom sit.', missing: 'sit', ar: 'سام وتوم يجلسان.' },
-      { text: 'Tom is sad.', missing: 'sad', ar: 'توم حزين.' },
-      { text: 'Dip it in the pot.', missing: 'pot', ar: 'اغمسه في القِدر.' }
-    ],
-    tips: [
-      'o في الإنجليزية الأمريكية صوت قصير مفتوح قريب من «آ» القصيرة: not, top.',
-      'm و n متشابهان: m لها قوسان، و n لها قوس واحد.',
-      'the و and و to: كلمات شائعة جدًا تُحفظ كما هي (كلمات القلب ♥).',
-      'go و no و so: حرف o في آخر الكلمة يُنطق مثل اسمه «أو».'
-    ],
-    activities: LETTER_UNIT
-  },
-  {
-    id: 3,
-    title: 'الوحدة ٣',
-    graphemes: ['c', 'k', 'ck', 'e'],
-    words: [
       { w: 'can', ar: 'يستطيع', group: 'can' },
       { w: 'cat', ar: 'قطة', emoji: '🐈' },
       { w: 'cap', ar: 'كاب (قبعة رياضية)', emoji: '🧢', group: 'hat' },
       { w: 'kid', ar: 'طفل', emoji: '🧒' },
       { w: 'kit', ar: 'عُدّة (مجموعة أدوات)', emoji: '🧰' },
+      { w: 'sock', ar: 'جورب', emoji: '🧦' },
+      { w: 'pick', ar: 'يختار' },
+      { w: 'sick', ar: 'مريض', emoji: '🤒' },
+      { w: 'kick', ar: 'يركل' },
+      { w: 'pack', ar: 'يحزم (الأمتعة)' }
+    ],
+    heart: [
+      { w: 'go', ar: 'يذهب', mark: 'g[o]' },
+      { w: 'no', ar: 'لا', mark: 'n[o]' },
+      { w: 'so', ar: 'لذلك / جدًا', mark: 's[o]' },
+      { w: 'you', ar: 'أنت / أنتم', mark: 'y[ou]' },
+      { w: 'he', ar: 'هو', mark: 'h[e]' },
+      { w: 'we', ar: 'نحن', mark: 'w[e]' },
+      { w: 'me', ar: 'ـني / لي (المتكلم)', mark: 'm[e]' },
+      { w: 'be', ar: 'يكون', mark: 'b[e]' }
+    ],
+    names: [{ w: 'Tom', ar: 'توم' }],
+    contrasts: [['top', 'tap', 'tip'], ['mop', 'map'], ['dig', 'dog'], ['pot', 'pat'], ['sock', 'sick'], ['pick', 'pack'], ['cat', 'cap']],
+    pseudo: [{ w: 'mog', foils: ['mag', 'mok'] }, { w: 'dack', foils: ['deck', 'tack'] }, { w: 'gop', foils: ['gip', 'kop'] }],
+    sentences: [
+      { text: 'Sam got a map.', missing: 'got', ar: 'حصل سام على خريطة.' },
+      { text: 'The dog is on the mat.', missing: 'dog', ar: 'الكلب على الحصيرة.' },
+      { text: 'It is not on.', missing: 'not', ar: 'إنه لا يعمل.' },
+      { text: 'Go to the top.', missing: 'top', ar: 'اذهب إلى القمّة.' },
+      { text: 'Sam and Tom sit.', missing: 'sit', ar: 'سام وتوم يجلسان.' },
+      { text: 'Tom is sad.', missing: 'sad', ar: 'توم حزين.' },
+      { text: 'Dip it in the pot.', missing: 'pot', ar: 'اغمسه في القِدر.' },
+      { text: 'We can sit.', missing: 'can', ar: 'نستطيع أن نجلس.' },
+      { text: 'He is sick.', missing: 'sick', ar: 'هو مريض.' },
+      { text: 'The kid is sick.', missing: 'kid', ar: 'الطفل مريض.' }
+    ],
+    tips: [
+      'o في الإنجليزية الأمريكية صوت قصير مفتوح قريب من «آ» القصيرة: not, top.',
+      'go و no و so: حرف o في آخر الكلمة يُنطق مثل اسمه «أو».',
+      'c و k و ck لها صوت واحد مثل «ك»: cat, kid, sock.',
+      'ck تأتي في آخر الكلمة بعد حرف علة قصير: pick, sock.',
+      'he و we و me و be: حرف e في آخر الكلمة يُنطق مثل اسمه «إي».'
+    ],
+    activities: LETTER_UNIT
+  },
+  {
+    id: 4,
+    title: 'الوحدة ٤',
+    graphemes: ['e', 'u', 'r', 'h', 'b'],
+    words: [
       { w: 'pen', ar: 'قلم', emoji: '🖊️' },
       { w: 'ten', ar: 'عشرة', emoji: '🔟' },
       { w: 'net', ar: 'شبكة (شبكة صيد)', group: 'net' },
@@ -307,46 +343,7 @@ const stage0to2 = [
       { w: 'set', ar: 'مجموعة / يضبط' },
       { w: 'get', ar: 'يحصل على', group: 'get' },
       { w: 'neck', ar: 'رقبة' },
-      { w: 'sock', ar: 'جورب', emoji: '🧦' },
-      { w: 'pick', ar: 'يختار' },
-      { w: 'sick', ar: 'مريض', emoji: '🤒' },
-      { w: 'kick', ar: 'يركل' },
-      { w: 'pack', ar: 'يحزم (الأمتعة)' },
-      { w: 'pet', ar: 'حيوان أليف' }
-    ],
-    heart: [
-      { w: 'you', ar: 'أنت / أنتم', mark: 'y[ou]' },
-      { w: 'he', ar: 'هو', mark: 'h[e]' },
-      { w: 'we', ar: 'نحن', mark: 'w[e]' },
-      { w: 'me', ar: 'ـني / لي (المتكلم)', mark: 'm[e]' },
-      { w: 'be', ar: 'يكون', mark: 'b[e]' }
-    ],
-    names: [{ w: 'Ken', ar: 'كِن' }],
-    contrasts: [['pen', 'pin', 'pan'], ['ten', 'tin'], ['men', 'man'], ['pet', 'pot'], ['set', 'sit', 'sat'], ['net', 'not']],
-    pseudo: [{ w: 'kep', foils: ['kip', 'keb'] }, { w: 'dack', foils: ['deck', 'tack'] }, { w: 'kem', foils: ['kim', 'gem'] }, { w: 'ked', foils: ['kid', 'ket'] }],
-    sentences: [
-      { text: 'It is ten to ten.', missing: 'ten', ar: 'الساعة العاشرة إلا عشر دقائق.' },
-      { text: 'I can get a pen.', missing: 'pen', ar: 'أستطيع أن أحصل على قلم.' },
-      { text: 'He is sick.', missing: 'sick', ar: 'هو مريض.' },
-      { text: 'We can sit.', missing: 'can', ar: 'نستطيع أن نجلس.' },
-      { text: 'Can you pick a pen?', missing: 'pick', ar: 'هل تستطيع أن تختار قلمًا؟' },
-      { text: 'Ken met ten men.', missing: 'met', ar: 'قابل كِن عشرة رجال.' },
-      { text: 'Get me a cap.', missing: 'cap', ar: 'أحضر لي كابًا.' },
-      { text: 'The kid is sick.', missing: 'kid', ar: 'الطفل مريض.' }
-    ],
-    tips: [
-      'c و k و ck لها صوت واحد مثل «ك»: cat, kid, sock.',
-      'ck تأتي في آخر الكلمة بعد حرف علة قصير: neck, pick.',
-      'e صوت قصير مثل الكسرة المفتوحة: pen. انتبه للفرق: pin – pen – pan.',
-      'he و we و me و be: حرف e في آخر الكلمة يُنطق مثل اسمه «إي».'
-    ],
-    activities: LETTER_UNIT
-  },
-  {
-    id: 4,
-    title: 'الوحدة ٤',
-    graphemes: ['u', 'r', 'h', 'b'],
-    words: [
+      { w: 'pet', ar: 'حيوان أليف' },
       { w: 'up', ar: 'فوق', emoji: '⬆️' },
       { w: 'us', ar: 'ـنا (ضمير: لنا / إيانا)', group: 'pron' },
       { w: 'but', ar: 'لكن' },
@@ -379,10 +376,19 @@ const stage0to2 = [
       { w: 'has', ar: 'لديه', mark: 'ha[s]' },
       { w: 'his', ar: 'ـه (ملكه)', mark: 'hi[s]' }
     ],
-    names: [{ w: 'Ali', ar: 'علي' }],
-    contrasts: [['pin', 'bin'], ['pack', 'back'], ['cap', 'cab'], ['cup', 'cap'], ['cut', 'cat'], ['hot', 'hat', 'hit'], ['bag', 'big', 'bug'], ['bad', 'dad'], ['big', 'dig']],
-    pseudo: [{ w: 'hib', foils: ['heb', 'hid'] }, { w: 'bup', foils: ['bop', 'pup'] }, { w: 'rab', foils: ['rub', 'rad'] }, { w: 'nug', foils: ['nog', 'nuk'] }],
+    names: [{ w: 'Ken', ar: 'كِن' }, { w: 'Ali', ar: 'علي' }],
+    contrasts: [['pen', 'pin', 'pan'], ['ten', 'tin'], ['men', 'man'], ['pet', 'pot'], ['set', 'sit', 'sat'], ['net', 'not'],
+      ['pin', 'bin'], ['pack', 'back'], ['cap', 'cab'], ['cup', 'cap'], ['cut', 'cat'], ['hot', 'hat', 'hit'], ['bag', 'big', 'bug'],
+      ['bad', 'dad'], ['big', 'dig']],
+    pseudo: [{ w: 'kep', foils: ['kip', 'keb'] }, { w: 'kem', foils: ['kim', 'gem'] }, { w: 'ked', foils: ['kid', 'ket'] },
+      { w: 'hib', foils: ['heb', 'hid'] }, { w: 'bup', foils: ['bop', 'pup'] }, { w: 'rab', foils: ['rub', 'rad'] },
+      { w: 'nug', foils: ['nog', 'nuk'] }],
     sentences: [
+      { text: 'It is ten to ten.', missing: 'ten', ar: 'الساعة العاشرة إلا عشر دقائق.' },
+      { text: 'I can get a pen.', missing: 'pen', ar: 'أستطيع أن أحصل على قلم.' },
+      { text: 'Can you pick a pen?', missing: 'pick', ar: 'هل تستطيع أن تختار قلمًا؟' },
+      { text: 'Ken met ten men.', missing: 'met', ar: 'قابل كِن عشرة رجال.' },
+      { text: 'Get me a cap.', missing: 'get', ar: 'أحضر لي كابًا.' },
       { text: 'The bus is red.', missing: 'red', ar: 'الحافلة حمراء.' },
       { text: 'I can run.', missing: 'run', ar: 'أستطيع أن أجري.' },
       { text: 'He has a big bag.', missing: 'bag', ar: 'لديه حقيبة كبيرة.' },
@@ -394,9 +400,10 @@ const stage0to2 = [
       { text: 'It was a bad bug.', missing: 'bug', ar: 'كان خللًا سيئًا.' }
     ],
     tips: [
+      'e صوت قصير مثل الكسرة المفتوحة: pen. انتبه للفرق: pin – pen – pan.',
+      'u في cup صوت قصير قريب من الفتحة الخفيفة.',
       'b مثل «ب». أما p فبلا صوت ومع نفخة هواء. ضع يدك أمام فمك وقل: pin ثم bin.',
       'b و d متشابهان: في b الخط أولًا ثم الدائرة، وفي d الدائرة أولًا ثم الخط.',
-      'u في cup صوت قصير قريب من الفتحة الخفيفة.',
       'r الأمريكية لا تُكرَّر مثل الراء العربية: اللسان لا يلمس سقف الفم.',
       'حرف s في is و has و his يُنطق /z/ مثل «ز».'
     ],
@@ -803,7 +810,11 @@ export const PERCEPTION = [
 
 // All units in teaching order: Stages 0-2 (above) and Stages 3-5 (data-stages3-5.js).
 // Every unit ends with reading aloud (optional, record and compare) and the unit check (Phase 4).
-export const units = [...stage0to2, ...stage3to5].map(u => ({ ...u, activities: [...u.activities, 'read-aloud', 'unit-check'] }));
+// Reading aloud needs sentences: unit 1 has words only.
+const canReadAloud = (u) => (u.sentences || []).length > 0 || (u.texts || []).length > 0;
+export const units = [...stage0to2, ...stage3to5].map(u => ({
+  ...u, activities: [...u.activities, ...(canReadAloud(u) ? ['read-aloud'] : []), 'unit-check']
+}));
 
 // Backwards-compatible container used by the app.
 export const appData = { units };

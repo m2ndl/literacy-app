@@ -169,7 +169,7 @@ Some cited studies (McCandliss et al. 2003; Chang & Millett 2015; Hirsh-Pasek et
 | Stage | Focus | Units | Arabic-speaker emphasis |
 |---|---|---|---|
 | 0 Orientation (inside unit 1) | Left-to-right; spaces between words; print letters don't join; capitals; **every vowel is written**; letter **name** vs **sound** | — | Script and direction |
-| 1 Single-letter sounds + CVC words | s a t i n p · m d o g · c k ck e · u r h b · f l ff ll ss · j v w x y z zz qu | 6 | p/b, f/v, w/v, j/y; *pin/pen/pan*, *cut/cot*; b/d/p/q |
+| 1 Single-letter sounds + CVC words | s a t p · i n m d · o g c k ck · e u r h b · f l ff ll ss · j v w x y z zz qu | 6 | p/b, f/v, w/v, j/y; *pin/pen/pan*, *cut/cot*; b/d/p/q |
 | 2 Digraphs, plural -s/-es, two-syllable words | sh ch th · ng nk wh · *laptop*, *sunset* | 3 + review | th = ث/ذ, sh = ش; *ng* without /g/ |
 | 3 Consonant clusters | st sp sk sm sn · bl cl fl gl pl sl · br cr dr fr gr pr tr · -st -nd -mp -nt; -ed (/t d ɪd/), -ing | 4 (units 11–14) | No inserted vowel |
 | 4 Long vowels; American r-coloured vowels | a_e i_e o_e u_e; ee/ea; ai/ay; oa/ow; igh/y; oo; ar or er/ir/ur; ou/ow; oi/oy; aw, all | 6 + review (units 15–21) | Many spellings per vowel: the biggest spelling load |
@@ -184,10 +184,10 @@ Every word, sentence and text is checked by an automated test to use only letter
 
 | Unit | New graphemes | Contrast pairs | Heart words | Sample words | Sample sentence |
 |---|---|---|---|---|---|
-| 1 | s a t i n p | *pat–pit, tap–tip* | I, a, is | at it in sit pin tip tap nap pan | *It is a pin.* |
-| 2 | m d o g | *pot–pat, mop–map* | the, to, go, no, so | am and on not top map man sad got dig | *Sam got a map.* |
-| 3 | c k ck e | *pen–pin, men–man* | you, he, we, me, be | can cat cap kid pen ten get neck pick | *It is ten to ten.* |
-| 4 | u r h b | *pin–bin, cut–cot, cup–cap* | are, was, of, has, his | up but cup bus run hot hat red bad bag bed big | *The bus is red.* |
+| 1 | s a t p | *sat–pat, tap–sap* | — | at sat tap pat sap | (words only) |
+| 2 | i n m d | *sat–sit, tap–tip, pan–pin* | I, a, is, the, and, to | it in am sit pin tip nap pan man map sad | *It is a pin.* |
+| 3 | o g c k ck | *top–tap–tip, mop–map, sock–sick* | go, no, so, you, he, we, me, be | on not top got dog can cat cap kid sick pick | *Sam got a map.* |
+| 4 | e u r h b | *pen–pin–pan, pin–bin, cut–cat, cup–cap* | are, was, of, has, his | pen ten get neck up but cup bus run hot hat red bag bed big | *The bus is red.* |
 | 5 | f l + double letters | *fan–pan* | do, have, for, or | if off fan fun lab let leg lip lock miss pass bell tell will app | *Do not miss the bus!* |
 | 6 | j v w x y z zz qu | *fan–van, wet–vet, jet–yet* | what, where, one, two | job jet van vet wet web win box six fix yes zip quiz | *What is in the box?* |
 | 7 | sh ch th + plural -s | *ship–chip, sip–ship, thin–tin, path–pass* | they, there, my, she | shop cash fish chip chat check math this that with pens labs | *This is my math lab.* |
@@ -1093,6 +1093,14 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
     - Badges are recorded quietly, with no pop-up during practice, and the points counter is no longer in the header.
     - Fluency practice is untimed by default: 20 words or 10 sentences, scored as "x of y right" and not recorded. The 60/90-second timer is a button the learner chooses, and only timed runs count as fluency scores.
     - Stage benchmarks keep their timed parts because they are measures; they are optional and sit under "More".
+- **Four letters in unit 1** (owner decision). Six new letter-sounds was too much for a first lesson.
+  - Unit 1 is now *s a t p*, the first set of *Letters and Sounds* (DfES 2007). The other letters move forward and no unit grows: unit 2 *i n m d*, unit 3 *o g c k ck*, unit 4 *e u r h b*.
+  - After unit 4 the learner has the same letters as before, so units 5–24 do not change.
+  - Unit 1 reads five words only (*at, sat, tap, pat, sap*). With one vowel there are no sentences yet, so it has no sentence, sentence-order or reading-aloud activities. Its unit check fills those places with meanings and spelling. It has one made-up word (*tas*): *pas* and *sas* sound like *pass* and *sass*.
+  - With one vowel there is no vowel to choose, so unit 1's "missing letter" and "where is the sound?" ask about consonants only. The vowel contrast (*sat/sit, tap/tip, pan/pin*) is now the main point of unit 2, as its own step.
+  - Heart words move with the sentences that need them: *I, a, is* to unit 2; *go, no, so* to unit 3 with *o*.
+  - Some ear-training sets open one unit later because they wait for both letters: *a/o* at unit 3, *i/e* and *e/a* at unit 4.
+  - Saved progress keeps its unit numbers. Nobody skips a letter: a learner who finished the old unit 1 already knows *i, n* in the new unit 2. Steps already done in a unit stay done.
 
 ---
 
