@@ -55,7 +55,9 @@ export default async function learner(browser, base) {
   await page.click('#reset-progress');
   await page.click('#modal-buttons .modal-btn-danger');
   await page.waitForTimeout(300);
-  if (await modalOpen(page)) await page.click('#modal-buttons button:first-child');
+  if (await modalOpen(page)) await page.click('#modal-buttons button:first-child');   // start choice: beginner
+  await page.waitForTimeout(300);
+  if (await modalOpen(page)) await page.click('#modal-buttons button:last-child');    // letter check: later
   await page.waitForTimeout(300);
   await page.click('#back-button').catch(() => {});
   await page.click('#menu-button');

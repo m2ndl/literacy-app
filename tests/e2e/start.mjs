@@ -21,7 +21,7 @@ export default async function start(browser, base) {
     await page.context().close();
   }
 
-  // iPhone Safari: the beginner path shows the Home Screen guide, then unit 1.
+  // iPhone Safari, beginner: the Home Screen guide, the letter check, lessons for the unknown letters only, unit 1.
   {
     const page = await newPage(browser, base, { device: devices['iPhone 13'] });
     await page.goto(base);
@@ -31,6 +31,25 @@ export default async function start(browser, base) {
     await page.waitForSelector('#install-view:not(.hidden)');
     check('iPhone guide explains Add to Home Screen', (await page.innerText('#install-view')).includes('إضافة إلى الشاشة الرئيسية'));
     await page.click('#install-view .next-btn');
+    await page.waitForSelector('#message-modal:not(.hidden)');
+    check('beginners start with the letter check', (await page.innerText('#modal-message')).includes('الحروف'));
+    await page.click('#modal-buttons button:first-child');
+    await page.waitForSelector('#activity-content .instruction');
+    const checked = await runSession(page, (q) => !['e', 'q', 'x'].includes(q.answer), 30);   // knows all but e, q, x
+    await page.waitForSelector('#message-modal:not(.hidden)');
+    let p = await progress(page);
+    check('letter check: one question per letter, no feedback, unknown letters found',
+      checked.length === 26 && [...p.letters.unknown].sort().join('') === 'eqx' && p.letters.known.length === 23, JSON.stringify(p.letters.unknown));
+    await page.click('#modal-buttons button:first-child');                                       // start the letters
+    await page.waitForSelector('#activity-content [data-intro-next]');
+    const card = await page.innerText('#activity-content .sound-card');
+    check('a new letter is shown before it is asked', /Ee/.test(card) && (await page.$$('#activity-content .option-btn')).length === 0);
+    const lesson = await runSession(page, () => true, 20);
+    await page.waitForSelector('#message-modal:not(.hidden)');
+    p = await progress(page);
+    check('the alphabet lesson covers only the unknown letters: shown, asked, then mixed', lesson.length === 9
+      && lesson.filter(x => x.activity === 'letter-intro').length === 3 && [...p.letters.learned].sort().join('') === 'eqx', lesson.map(x => x.activity).join(','));
+    await page.click('#modal-buttons button:first-child');                                       // start unit 1
     await page.waitForSelector('#lesson-view .sound-card');
     check('iPhone: then unit 1 opens, no page errors', await page.isVisible('#lesson-view') && page.errors.length === 0, page.errors.join(' | '));
     await page.context().close();

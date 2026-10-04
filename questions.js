@@ -29,6 +29,7 @@ export const SHORT_PLACEMENT_FROM = 11;
 
 export const INSTRUCTIONS = {
   'sound-match': 'استمع إلى الكلمة واختر الحرف.',
+  'letter-intro': 'حرف جديد. اضغط لتسمع اسمه وصوته ومثالًا عليه، ثم «التالي».',
   'capital-match-lower': 'اختر الحرف الصغير المطابق.',
   'capital-match-upper': 'اختر الحرف الكبير المطابق.',
   'which-word': 'استمع: أيّ كلمة سمعت؟',
@@ -531,6 +532,70 @@ export function createQuestionBank({
   const blend = (u, n, rng) => shuffle(oneSyllable(unitWords(u)).filter(x => blendable(x.w)), rng)
     .map(info => blendItem(u, info, rng)).filter(Boolean).slice(0, n);
 
+  // ---------------- letters: a short check, then lessons only for the letters a learner does not know ----------------
+  // Adults come with part of the alphabet. The check finds which letters' sounds a learner knows; the
+  // alphabet lessons then teach only the others, one letter at a time, before unit 1.
+  const letterGrapheme = (l) => (l === 'q' ? 'qu' : l);
+  const letterOrder = (() => {
+    const seen = [];
+    units.forEach(u => (u.graphemes || []).forEach(g => {
+      const l = g === 'qu' ? 'q' : g;
+      if (/^[a-z]$/.test(l) && !seen.includes(l)) seen.push(l);
+    }));
+    alphabet.forEach(l => { if (!seen.includes(l)) seen.push(l); });
+    return seen;
+  })();
+
+  /** Hear a letter's example word (with its picture) and choose the letter from n single letters. */
+  function letterItem(l, pool, n, rng, key, memory) {
+    const g = letterGrapheme(l);
+    const info = gpc[g];
+    const position = soundPosition(g, info.kw);
+    let distractors = pickGraphemeDistractors(l, pool.filter(x => x !== l), n - 1, rng);
+    if (!distractors.length) distractors = pickGraphemeDistractors(l, alphabet.filter(x => x !== l), 1, rng);
+    return {
+      key, unit: 1, activity: 'sound-match', item: info.ph, type: 'choice',
+      instruction: SOUND_QUESTION[position],
+      prompt: { audio: clipKey('w', info.kw), kw: info.kw, emoji: info.emoji || '', position },
+      options: shuffle([l, ...distractors], rng).map(x => opt(x)),
+      answer: l, focus: [g], memory,
+      feedback: { audio: clipKey('w', info.kw), word: info.kw, emoji: info.emoji, ar: '', sound: clipKey('ph', info.ph) }
+    };
+  }
+
+  /** A new letter on its own: its name, sound and example word are buttons; nothing is asked. */
+  const letterIntro = (l) => ({
+    key: `alpha:intro:${l}`, unit: 1, activity: 'letter-intro', item: l, type: 'intro',
+    instruction: INSTRUCTIONS['letter-intro'], prompt: { letter: l, grapheme: letterGrapheme(l) },
+    options: [], answer: 'next', focus: [], memory: [], feedback: {}
+  });
+
+  /** The check: one question per letter, in course order, four choices each. Nothing is taught or scored. */
+  const letterCheck = (rng = Math.random) => letterOrder.map(l => letterItem(l, alphabet, 4, rng, `letters:${l}`, []));
+
+  /**
+   * A lesson for a few unknown letters: each is shown, then asked about at once among the letters met so far
+   * and those the learner already knows (two choices for the very first letter, at most four), then a mixed round.
+   */
+  function alphabetLesson(letters, known = [], rng = Math.random) {
+    const items = [];
+    const shown = [];
+    const mem = (l) => [`ph:${gpc[letterGrapheme(l)].ph}`];
+    letters.forEach(l => {
+      shown.push(l);
+      items.push(letterIntro(l));
+      const pool = [...new Set([...shown, ...known])].filter(x => x !== l);
+      items.push(letterItem(l, pool, Math.min(4, 1 + Math.max(1, pool.length)), rng, `alpha:${l}:1`, mem(l)));
+    });
+    if (letters.length > 1) {
+      shuffle([...letters], rng).forEach(l => {
+        const pool = [...new Set([...letters, ...known])].filter(x => x !== l);
+        items.push(letterItem(l, pool, Math.min(4, 1 + pool.length), rng, `alpha:${l}:2`, mem(l)));
+      });
+    }
+    return items;
+  }
+
   // ---------------- sentence and picture (placement) ----------------
   function pictureItem(u, x, rng) {
     return {
@@ -941,6 +1006,7 @@ export function createQuestionBank({
 
   return {
     build, buildItem, isCorrect, weakPractice, perceptionSets, perceptionBlock, placementItems, placementUnits, itemUnit,
+    letterCheck, alphabetLesson, letterOrder,
     unitCheck, wordFlash, sentenceSense, benchmark,
     lex, taughtGraphemes, keyboardLetters, wordsUpTo, unitWords, wordInfo
   };

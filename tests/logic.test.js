@@ -269,6 +269,15 @@ describe('formatTime', () => {
   });
 });
 
+describe('letter check record', () => {
+  it('starts empty and keeps only valid letters', () => {
+    assert.equal(getDefaultProgress().letters, null);
+    const p = validateProgress({ ...getDefaultProgress(), letters: { day: 3, known: ['a', 'b', 'zz', 7], unknown: ['e', 'e'], learned: [] } });
+    assert.deepEqual(p.letters, { day: 3, known: ['a', 'b'], unknown: ['e'], learned: [] });
+    assert.equal(validateProgress({ ...getDefaultProgress(), letters: { known: [] } }).letters, null);
+  });
+});
+
 describe('unit steps (the Continue button)', () => {
   const u = { id: 3, activities: ['sound-match', 'capital-match', 'which-word', 'blend', 'word-build', 'dictation', 'meaning',
     'complete-sentence', 'sentence-build', 'read-aloud', 'unit-check'] };

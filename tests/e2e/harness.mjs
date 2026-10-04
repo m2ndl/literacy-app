@@ -84,6 +84,8 @@ export async function openWith(page, mutate = '') {
     const { getDefaultProgress } = await import('./logic.js');
     const p = getDefaultProgress();
     p.seenNotices = ['new-course', 'ios-install', 'start-choice'];
+    // Scenarios start after the letter check (all letters known) unless they set p.letters themselves.
+    p.letters = { day: 0, known: 'abcdefghijklmnopqrstuvwxyz'.split(''), unknown: [], learned: [] };
     // eslint-disable-next-line no-new-func
     new Function('p', src)(p);
     localStorage.setItem(k, JSON.stringify(p));
@@ -132,7 +134,9 @@ async function traceLetter(page, letter, right) {
 /** Answer the current question, right or wrong. Returns the question. */
 export async function answer(page, right = true) {
   const q = await question(page);
-  if (q.type === 'choice' || q.type === 'yesno') {
+  if (q.type === 'intro') {
+    await page.click('#activity-content [data-intro-next]');   // a new letter is shown, not asked
+  } else if (q.type === 'choice' || q.type === 'yesno') {
     const values = q.options.map(o => String(o.value));
     const v = right ? String(q.answer) : values.find(x => x !== String(q.answer));
     await page.click(`#activity-content .option-btn[data-value="${v}"]`);
@@ -174,7 +178,7 @@ async function continueAfter(page) {
   else await page.waitForTimeout(1900);
 }
 
-const ONE_TRY = /^(place|check|bench):/;
+const ONE_TRY = /^(place|check|bench|letters):/;
 
 /**
  * Answer up to `max` questions: decide(q, i) says whether to answer right. A wrong first try is followed
