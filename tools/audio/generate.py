@@ -277,6 +277,7 @@ def tempo(a, factor):
 
 
 FINAL_STOPS = set('ptkbdɡ')
+VOWELS = 'aeiouæɑɐɒɔəɛɜɪʊʌᵻAIOWYQ'          # misaki vowel symbols (A = eɪ, I = aɪ, O = oʊ, W = aʊ, Y = ɔɪ)
 
 
 def clip_final_release(a, phonemes):
@@ -286,6 +287,8 @@ def clip_final_release(a, phonemes):
     ph = re.sub(r'[ˈˌː.,!?;:\s]', '', phonemes or '')
     if not ph or ph[-1] not in FINAL_STOPS:
         return a, False
+    if len(ph) >= 3 and not re.search(f'[{VOWELS}]', ph[-3:]):
+        return a, False                        # three final consonants (mixed, asked): the last stop is too weak to risk
     db, h = frames_db(a, hop=0.01)
     hi = band_ratio(a, 2000, hop=0.01)[:len(db)]
     peak = db.max()
@@ -298,9 +301,15 @@ def clip_final_release(a, phonemes):
     rel = closure[-1] + 1                      # first frame of the release
     seg = range(rel, end + 1)
     loud = db[rel:end + 1].max()
-    if not 5 <= len(seg) <= 13 or np.median(hi[rel:end + 1]) >= 0.3 or not peak - 12 <= loud <= peak - 4:
-        return a, False                        # a short or noisy release is a real burst; a full vowel is a syllable
-    cut = int((rel * 0.01 + 0.015) * SR)
+    # A one-syllable word has no syllable after its final closure, so any vowel-like release is the artefact;
+    # in a longer word a loud or long release may be a real syllable (rab|bit), so it is left alone.
+    one_syllable = len(re.findall(f'[{VOWELS}]+', ph)) == 1
+    max_frames, max_loud = (25, peak) if one_syllable else (13, peak - 4)
+    if not 5 <= len(seg) <= max_frames or np.median(hi[rel:end + 1]) >= 0.3 or not peak - 12 <= loud <= max_loud:
+        return a, False                        # a short or noisy release is a real burst: keep it
+    if (hi[rel:end + 1] > 0.5).sum() >= 3:
+        return a, False                        # a hissing consonant follows (fixed = ...k-s-t): never cut a sound away
+    cut = int((rel * 0.01 + 0.015) * SR)        # the burst stays: the stop must remain audible
     fade_n = int(0.01 * SR)
     out = a[:cut + fade_n].copy()
     out[-fade_n:] *= np.linspace(1, 0, fade_n, dtype=np.float32)
@@ -658,7 +667,7 @@ def main():
             source = c['ipa'] if c['kind'] == 'p' else synth.phonemes(c['text'], c['kind'])
             method = str(speed) if speed == 1.0 else f'tempo{speed}' + ('-keepend' if c['kind'] == 'w' else '')
             if c['kind'] in ('w', 'p') and re.sub(r'[ˈˌː.,!?;:\s]', '', source or '')[-1:] in FINAL_STOPS:
-                method += '-endfix'                # final-stop release trimmed (clip_final_release)
+                method += '-endfix3'               # final-stop release trimmed (clip_final_release)
             h = sha('|'.join([PIPELINE_VERSION, c['key'], v, voice, method, source]))
             path = OUT / v / c['kind'] / f"{c['slug']}.mp3"
             prev = prev_entry.get(v)

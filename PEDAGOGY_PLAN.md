@@ -1038,9 +1038,18 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
 - **No "uh" after a final stop.** The owner heard *sip* as "sip-uh".
   - The main voice sometimes releases a final *p, t* or *k* into a short vowel, and slowing the word down made it louder: 26 slow clips had an added voiced tail.
   - Two fixes in `tools/audio/generate.py`:
-    - `clip_final_release` keeps the stop's release burst, so the consonant stays audible, and fades out over 10 ms. It acts only on single words whose final release is long and vowel-like.
+    - `clip_final_release` keeps the first 15 ms of the stop's release, so the consonant stays audible, and fades out over 10 ms. It never simply cuts a sound away:
+      - it acts only on single words whose release after the final closure is vowel-like (low-pitched, not hissing);
+      - in words of two or more syllables it leaves loud or long releases alone, since they may be a real syllable (*rab-bit*);
+      - it does nothing if a hissing consonant follows the closure;
+      - it does nothing on words ending in three consonants (*mixed, asked*), where the last stop is too weak to risk.
     - `slow_word` slows a word only up to the end of its last voiced stretch, and keeps a final consonant at its natural length.
-  - After the fix, the speech recogniser hears the main voice's *sip, tip, cup* as "Sip", "Tip", "cup". Before, it heard "Zebra", "Tippen" and "copy".
+  - **Checked with the speech recogniser**, before → after:
+    - *sip*: "Zebra" → "Sip";
+    - *tip*: "Tippen" → "Tip";
+    - *keep*: "KIBA" → "Keep";
+    - *help*: "Help it" → "Help";
+    - *kept*: "Captain" → "Kept".
 - **Heart words removed as a taught strand** (owner decision). The learners are adults already frustrated with English, and exceptions are too early for them.
   - The heart-word activity, the "كلمات القلب ♥" lesson section, the ♥ marks and heart-word items in unit checks, the placement test and review are all gone. The placement slot is always a dictation item now.
   - The words themselves (*the, I, is, you, said*…) stay in sentences and texts, because 179 of the 203 sentences use at least one. Learners hear every sentence whole, so these words are picked up by ear and sight, with no rule or exception to learn.
