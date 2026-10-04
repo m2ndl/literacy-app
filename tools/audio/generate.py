@@ -276,6 +276,54 @@ def tempo(a, factor):
     return b
 
 
+FINAL_STOPS = set('ptkbdɡ')
+
+
+def clip_final_release(a, phonemes):
+    """Kokoro often releases a final stop into a short vowel ("sip" -> "sip-uh"). When the clip ends in a
+    stop and the part after the last closure is long and low-pitched (vowel-like, not burst noise), keep only
+    the release burst (the stop stays audible) and fade out over 10 ms. Single words only. Returns (audio, trimmed?)."""
+    ph = re.sub(r'[ˈˌː.,!?;:\s]', '', phonemes or '')
+    if not ph or ph[-1] not in FINAL_STOPS:
+        return a, False
+    db, h = frames_db(a, hop=0.01)
+    hi = band_ratio(a, 2000, hop=0.01)[:len(db)]
+    peak = db.max()
+    end = max(i for i in range(len(db)) if db[i] > peak - 35)
+    top = int(np.argmax(db))                   # the vowel
+    # the last closure after the vowel that is followed by a loud release
+    closure = [i for i in range(top + 1, end) if db[i] < peak - 24 and db[i + 1:end + 1].max() > peak - 14]
+    if not closure:
+        return a, False
+    rel = closure[-1] + 1                      # first frame of the release
+    seg = range(rel, end + 1)
+    loud = db[rel:end + 1].max()
+    if not 5 <= len(seg) <= 13 or np.median(hi[rel:end + 1]) >= 0.3 or not peak - 12 <= loud <= peak - 4:
+        return a, False                        # a short or noisy release is a real burst; a full vowel is a syllable
+    cut = int((rel * 0.01 + 0.015) * SR)
+    fade_n = int(0.01 * SR)
+    out = a[:cut + fade_n].copy()
+    out[-fade_n:] *= np.linspace(1, 0, fade_n, dtype=np.float32)
+    return out, True
+
+
+def slow_word(a, factor):
+    """Slow a single word without smearing its ending. Time-stretching the closure and release of a final
+    p, t or k turns them into a short "uh" (sip -> "sip-uh"), so only the part up to the end of the last
+    voiced stretch is slowed; what follows (a final stop, s or f) keeps its natural length."""
+    times, v = voiced_mask(a)
+    vr = runs(v)
+    if not vr:
+        return tempo(a, factor)
+    cut = int(min(len(a), (times[vr[-1][1]] + 0.01) * SR))
+    if len(a) - cut < int(0.03 * SR):          # ends in voicing (pin, sad): slow it all
+        return tempo(a, factor)
+    head, tail = tempo(a[:cut], factor), a[cut:]
+    xf = min(int(0.005 * SR), len(head), len(tail))
+    r = np.linspace(0, 1, xf, dtype=np.float32)
+    return np.concatenate([head[:len(head) - xf], head[len(head) - xf:] * (1 - r) + tail[:xf] * r, tail[xf:]])
+
+
 def encode_mp3(a, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as d:
@@ -608,15 +656,20 @@ def main():
         for v in c['voices']:
             voice, speed = VOICES[v]
             source = c['ipa'] if c['kind'] == 'p' else synth.phonemes(c['text'], c['kind'])
-            h = sha('|'.join([PIPELINE_VERSION, c['key'], v, voice, str(speed) if speed == 1.0 else f'tempo{speed}', source]))
+            method = str(speed) if speed == 1.0 else f'tempo{speed}' + ('-keepend' if c['kind'] == 'w' else '')
+            if c['kind'] in ('w', 'p') and re.sub(r'[ˈˌː.,!?;:\s]', '', source or '')[-1:] in FINAL_STOPS:
+                method += '-endfix'                # final-stop release trimmed (clip_final_release)
+            h = sha('|'.join([PIPELINE_VERSION, c['key'], v, voice, method, source]))
             path = OUT / v / c['kind'] / f"{c['slug']}.mp3"
             prev = prev_entry.get(v)
             if prev and prev.get('h') == h and path.exists() and not args.force:
                 entry[v] = prev
                 continue
             a = trim_silence(synth.say(source, voice, 1.0), -50, 0.03)
+            if c['kind'] in ('w', 'p'):
+                a, _ = clip_final_release(a, source)
             if speed != 1.0:
-                a = tempo(a, speed)
+                a = slow_word(a, speed) if c['kind'] == 'w' else tempo(a, speed)
             a = fade(a, 0.005, 0.03)
             # Slow clips are time-stretched copies of the checked main clip, so only f and m are re-checked.
             if c['kind'] in ('w', 's') and v != 'fs':

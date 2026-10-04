@@ -1022,9 +1022,12 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
 ### Owner feedback after launch
 - **Word first, not sounds cut out of words.** The owner found the cut sounds unclear on their own. A consonant cut out of a word loses the transitions into the vowel that carry most of its place cue: *m* and *n*, and *b, d* and *g*, differ mainly in those transitions.
   - "Listen and choose the letter" now plays a real word, the sound's keyword, with its picture, and asks where the sound sits: "what does it start with?" (*bus*), "how is the last sound written?" (*sock*), or "…the middle sound?" (*cake*). The position comes from the keyword (`soundPosition` in `phonics.js`). The word's spelling appears only after the answer.
-  - Sound cards and the "what you chose" button play the word first, then the sound: "*map* … m".
-  - Letters are still taught; this is how their sounds are presented. The letter name stays one tap away for spelling.
-  - A test makes sure no question plays a single cut sound. Single sounds remain only on the sound cards, after their word.
+  - **Sound cards: the letter first, then separate buttons** (owner decision).
+    - The learners are adults: they already know that letters have names and sounds, and most have met these letter names before.
+    - A new letter is shown on its own (*Ss*), with three separate buttons: "🔤 the letter's name", "🔊 the sound" and "example: ☀️ *sun*". Nothing plays by itself or in sequence, so the example word is never taken for the letter's name.
+    - The sound button is hidden where there is no clean recording of the sound alone (*th*); the example word teaches it.
+    - The "what you chose" button plays just the chosen letter's sound.
+  - A test makes sure no question plays a single cut sound. Single sounds remain only on the sound cards' "sound" button.
 - **Blending without cut sounds.** The owner found that sounds cut out of words and played back to back sound strange, so blending ("اقرأ صوتًا صوتًا") was rebuilt on natural recordings only.
   - The word is shown as letter tiles, with the vowels coloured, and the learner reads it.
   - "🐢 Listen slowly" plays the word's slow recording: the normal recording slowed to 0.8 with pitch kept, which the 🐢 buttons already use. The tiles light up left to right in time with it.
@@ -1032,6 +1035,12 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
   - The skill is now reading print into a spoken word, and every sound the learner hears is a whole, natural word. Because the activity no longer needs a recorded single sound for every letter, more words are eligible (255 items across the blending units).
   - **Tried and rejected: stretched words ("sssaaat").** Asking the voice generator to lengthen sounds inserted extra vowels. Its own slow speed adds an "uh" before the word. Slowing a recording to half speed, or holding its vowels, made the speech recogniser hear *pin* as *pen* and *net* as *nat*: a held short vowel drifts towards its neighbour, which is the very contrast these learners find hardest. Holding only the consonants barely lengthened most words and still failed on some. None of these could be checked well enough to ship.
   - This replaces the blending design described earlier in this section.
+- **No "uh" after a final stop.** The owner heard *sip* as "sip-uh".
+  - The main voice sometimes releases a final *p, t* or *k* into a short vowel, and slowing the word down made it louder: 26 slow clips had an added voiced tail.
+  - Two fixes in `tools/audio/generate.py`:
+    - `clip_final_release` keeps the stop's release burst, so the consonant stays audible, and fades out over 10 ms. It acts only on single words whose final release is long and vowel-like.
+    - `slow_word` slows a word only up to the end of its last voiced stretch, and keeps a final consonant at its natural length.
+  - After the fix, the speech recogniser hears the main voice's *sip, tip, cup* as "Sip", "Tip", "cup". Before, it heard "Zebra", "Tippen" and "copy".
 - **Heart words removed as a taught strand** (owner decision). The learners are adults already frustrated with English, and exceptions are too early for them.
   - The heart-word activity, the "كلمات القلب ♥" lesson section, the ♥ marks and heart-word items in unit checks, the placement test and review are all gone. The placement slot is always a dictation item now.
   - The words themselves (*the, I, is, you, said*…) stay in sentences and texts, because 179 of the 203 sentences use at least one. Learners hear every sentence whole, so these words are picked up by ear and sight, with no rule or exception to learn.
