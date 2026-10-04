@@ -90,7 +90,7 @@ describe('words', () => {
   it('meet the minimum count per unit', () => {
     for (const u of units) {
       if (u.review) continue;
-      const min = u.id === 1 ? 10 : 14;
+      const min = u.id === 1 ? 5 : 14;   // unit 1: four letters, one vowel
       assert.ok(u.words.length >= min, `unit ${u.id} has ${u.words.length} words (min ${min})`);
     }
   });
@@ -155,7 +155,7 @@ describe('contrasts', () => {
 describe('sentences and texts', () => {
   it('sentences are decodable and contain their missing word as a whole token', () => {
     for (const u of units) {
-      const min = u.id === 1 ? 4 : 6;
+      const min = u.id === 1 ? 0 : 6;    // unit 1 reads words only
       assert.ok(u.sentences.length >= min, `unit ${u.id} has ${u.sentences.length} sentences (min ${min})`);
       for (const s of u.sentences) {
         const fails = checkSentence(s.text, u.id, lex);
@@ -196,7 +196,8 @@ describe('made-up words (placement test)', () => {
   const real = new Set(units.flatMap(u => [...(u.words || []), ...(u.heart || []), ...(u.names || [])].map(w => w.w.toLowerCase())));
   it('every teaching unit has made-up words that are decodable there and are not curriculum words', () => {
     for (const u of units.filter(x => !x.review)) {
-      assert.ok((u.pseudo || []).length >= 3, `unit ${u.id} needs made-up words`);
+      // s, a, t, p make only one made-up word that does not sound like a real one (pas = pass, sas = sass).
+      assert.ok((u.pseudo || []).length >= (u.id === 1 ? 1 : 3), `unit ${u.id} needs made-up words`);
       for (const pw of u.pseudo) {
         const r = pw.split ? decodeWord(pw.w, u.id, lex, pw.split) : analyzeToken(pw.w, u.id, lex);
         assert.ok(r.ok, `unit ${u.id}: "${pw.w}" is not decodable (${r.reason})`);
@@ -265,8 +266,12 @@ describe('activity metadata', () => {
     }
   });
 
-  it('ends every unit with reading aloud and the unit check', () => {
-    for (const u of units) assert.deepEqual(u.activities.slice(-2), ['read-aloud', 'unit-check'], `unit ${u.id}`);
+  it('ends every unit with reading aloud (where there are sentences) and the unit check', () => {
+    for (const u of units) {
+      const reads = (u.sentences || []).length > 0 || (u.texts || []).length > 0;
+      assert.deepEqual(u.activities.slice(reads ? -2 : -1), reads ? ['read-aloud', 'unit-check'] : ['unit-check'], `unit ${u.id}`);
+      if (!reads) assert.ok(!u.activities.includes('read-aloud'), `unit ${u.id}`);
+    }
   });
 });
 

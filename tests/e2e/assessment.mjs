@@ -94,11 +94,11 @@ export default async function assessment(browser, base) {
     check('drills: no page errors', page.errors.length === 0, page.errors.join(' | '));
     await page.context().close();
   }
-  // Reading aloud with the browser's fake microphone.
+  // Reading aloud with the browser's fake microphone (unit 2: unit 1 has words only).
   {
     const page = await newPage(browser, base);
-    await openWith(page, '');
-    await openUnit(page, 1);
+    await openWith(page, 'p.unlockedUnit = 2; p.completedUnits = [1];');
+    await openUnit(page, 2);
     await page.click('[data-activity="read-aloud"]');
     await page.waitForSelector('.record-btn');
     await page.click('.record-btn');
@@ -112,7 +112,7 @@ export default async function assessment(browser, base) {
     const p = await progress(page);
     const logged = p.attempts.filter(a => a.a === 'read-aloud');
     check('reading aloud: 5 ratings logged with both durations', logged.length === 5 && /^\d\|\d+\.\d\|\d+\.\d$/.test(logged[0].c), logged.map(a => a.c).join(' '));
-    check('reading aloud is optional and marked done', p.completedActivities[1].includes('read-aloud') && !p.completedUnits.includes(1));
+    check('reading aloud is optional and marked done', p.completedActivities[2].includes('read-aloud') && !p.completedUnits.includes(2));
     check('reading aloud: no page errors', page.errors.length === 0, page.errors.join(' | '));
     await page.context().close();
   }

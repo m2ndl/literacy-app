@@ -11,7 +11,7 @@ const clipKeys = new Set(allClips.map(c => c.key));
 const slowVoices = new Map(allClips.map(c => [c.key, c.voices]));
 const SEEDS = [1, 2, 3, 4, 5];
 
-// Minimum questions per activity (some pools are small by design, e.g. unit 1 has 6 sounds).
+// Minimum questions per activity (some pools are small by design, e.g. unit 1 has 4 sounds and 5 words).
 const MIN_ITEMS = { 'sound-match': 4, 'capital-match': 4, 'which-word': 3, 'word-build': 6, 'missing-letter': 6,
   meaning: 6, 'first-last-sound': 6, 'complete-sentence': 4, 'read-text': 3, dictation: 6,
   'sentence-build': 4, tracing: 2, signs: 6, forms: 6, 'read-aloud': 4, 'unit-check': CHECK_SIZE, blend: 5 };
@@ -91,7 +91,8 @@ describe('question bank', () => {
       it(`unit ${u.id} / ${activity} builds valid questions`, () => {
         for (const seed of SEEDS) {
           const qs = bank.build(u.id, activity, { rng: makeRng(seed) });
-          assert.ok(qs.length >= MIN_ITEMS[activity], `only ${qs.length} questions`);
+          const min = u.id === 1 ? Math.min(MIN_ITEMS[activity], u.words.length) : MIN_ITEMS[activity];
+          assert.ok(qs.length >= min, `only ${qs.length} questions`);
           assert.ok(qs.length <= 12 || activity === 'read-text');
           assert.equal(new Set(qs.map(q => q.key)).size, qs.length, 'duplicate question keys');
           for (const q of qs) checkQuestion(q, activity === 'unit-check' ? q.activity : activity);
@@ -108,9 +109,11 @@ describe('question bank', () => {
         assert.equal(qs.length, CHECK_SIZE, `unit ${u.id}: ${acts}`);
         assert.ok(qs.every(q => q.key.startsWith('check:')));
         assert.ok(acts.filter(a => a === 'dictation').length >= 2, `unit ${u.id}: ${acts}`);
-        assert.ok(acts.filter(a => a === 'pseudo').length === 2, `unit ${u.id}: ${acts}`);
+        assert.ok(acts.filter(a => a === 'pseudo').length === ((u.pseudo || []).length === 1 ? 1 : 2), `unit ${u.id}: ${acts}`);
         assert.ok(acts.includes('meaning'));
-        assert.ok(['read-text', 'complete-sentence'].includes(acts[acts.length - 1]), `unit ${u.id}: last is ${acts[acts.length - 1]}`);
+        if ((u.sentences || []).length || (u.texts || []).length) {
+          assert.ok(['read-text', 'complete-sentence'].includes(acts[acts.length - 1]), `unit ${u.id}: last is ${acts[acts.length - 1]}`);
+        }
         if ((u.signs || []).length) assert.ok(acts.includes('signs'));
       }
     }
@@ -309,8 +312,10 @@ describe('question bank', () => {
   });
 
   it('opens ear-training sets once both letters are taught', () => {
-    assert.deepEqual(bank.perceptionSets(1).map(s => s.id), []);
-    assert.ok(bank.perceptionSets(3).some(s => s.id === 'i-e'));
+    assert.deepEqual(bank.perceptionSets(2).map(s => s.id), []);
+    assert.ok(bank.perceptionSets(3).some(s => s.id === 'a-o'));
+    assert.ok(!bank.perceptionSets(3).some(s => s.id === 'i-e'));
+    assert.ok(bank.perceptionSets(4).some(s => s.id === 'i-e'));
     assert.ok(!bank.perceptionSets(3).some(s => s.id === 'p-b'));
     assert.equal(bank.perceptionSets(units.length).length, PERCEPTION.length);
   });
@@ -346,7 +351,7 @@ describe('question bank', () => {
 
   it('dictation keys are the letters taught so far', () => {
     const [q] = bank.build(1, 'dictation', { rng: makeRng(1) });
-    assert.deepEqual(q.keys, ['a', 'i', 'n', 'p', 's', 't']);
+    assert.deepEqual(q.keys, ['a', 'p', 's', 't']);
     assert.deepEqual(segment('sit'), ['s', 'i', 't']);
   });
 });

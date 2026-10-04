@@ -56,8 +56,8 @@ export default async function units(browser, base) {
     const cardButtons = await page.$$eval('#lesson-view .sound-card:first-child button',
       ns => ns.map(n => (n.dataset.name ? 'name' : n.dataset.sound ? 'sound' : n.dataset.example ? 'example' : '?')));
     check('a new letter comes first, with its name, sound and example word as separate buttons', cardButtons.join() === 'name,sound,example', cardButtons.join());
-    check('a new unit opens on step 1 of 7, with the full activity list folded',
-      (await page.innerText('.continue-card')).includes('الخطوة ١ من ٧') && !(await page.isVisible('#lesson-view [data-activity="capital-match"]')));
+    check('a new unit opens on step 1 of 6, with the full activity list folded',
+      (await page.innerText('.continue-card')).includes('الخطوة ١ من ٦') && !(await page.isVisible('#lesson-view [data-activity="capital-match"]')));
     await page.click('[data-continue]');
     await page.waitForSelector('#activity-content .instruction');
     const first = await question(page);
@@ -69,9 +69,9 @@ export default async function units(browser, base) {
     check('Continue goes from the sounds straight to blending', first.activity === 'sound-match' && second.activity === 'blend', `${first.activity} -> ${second.activity}`);
     await page.click('#back-button');
     await page.waitForSelector('#lesson-view .continue-card');
-    check('the unit page now shows step 2', (await page.innerText('.continue-card')).includes('الخطوة ٢ من ٧'));
+    check('the unit page now shows step 2', (await page.innerText('.continue-card')).includes('الخطوة ٢ من ٦'));
     await page.click('#back-button');
-    check('home: the lesson card continues at step 2', (await page.innerText('[data-card="lesson"]')).includes('الخطوة ٢ من ٧'));
+    check('home: the lesson card continues at step 2', (await page.innerText('[data-card="lesson"]')).includes('الخطوة ٢ من ٦'));
     check('calm path: no page errors', page.errors.length === 0, page.errors.join(' | '));
     await page.context().close();
   }

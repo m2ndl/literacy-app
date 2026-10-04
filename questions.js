@@ -240,7 +240,10 @@ export function createQuestionBank({
     const gs = pieces;
     // Blanks: spellings of single sounds (not word endings, not the silent e of a magic-e word).
     const magicE = graphemes.some(g => /_e$/.test(g));
-    const eligible = gs.map((g, k) => (gpc[g] && !(magicE && k === gs.length - 1 && g === 'e') ? k : -1)).filter(k => k >= 0);
+    const slots = gs.map((g, k) => (gpc[g] && !(magicE && k === gs.length - 1 && g === 'e') ? k : -1)).filter(k => k >= 0);
+    // With one vowel taught (unit 1) a vowel blank has nothing to choose from: blank a consonant.
+    const oneVowel = taught.filter(isVowel).length < 2;
+    const eligible = oneVowel && slots.some(k => !isVowel(gs[k])) ? slots.filter(k => !isVowel(gs[k])) : slots;
     const vowelSlots = eligible.filter(k => isVowel(gs[k]));
     let i;
     if (blank && gs.includes(blank)) i = gs.indexOf(blank);
@@ -298,6 +301,8 @@ export function createQuestionBank({
     const gs = graphemesOf(w);
     return gs.length === 3 && gpc[gs[1]] && isVowel(gs[1]) && !/_e$/.test(gs[1]);
   };
+  // The middle sound is a choice of vowels, so it waits for a second vowel (unit 2).
+  const vowelsTaught = (u) => taughtGraphemes(u.id).filter(g => isVowel(g) && !/_e$/.test(g)).length;
 
   function firstLastItem(u, info, position, rng) {
     const gs = graphemesOf(info.w).filter(g => gpc[g]);
@@ -496,7 +501,7 @@ export function createQuestionBank({
   // First, last and middle sound in turn (the middle only where it is a single vowel).
   const firstLastSound = (u, n, rng) => shuffle(oneSyllable(unitWords(u)), rng).slice(0, n).map((info, k) => {
     const position = ['first', 'last', 'middle'][k % 3];
-    return firstLastItem(u, info, position === 'middle' && !hasMiddle(info.w) ? 'first' : position, rng);
+    return firstLastItem(u, info, position === 'middle' && !(hasMiddle(info.w) && vowelsTaught(u) > 1) ? 'first' : position, rng);
   });
 
   // ---------------- blending: tap each sound, then choose the word ----------------
@@ -754,7 +759,8 @@ export function createQuestionBank({
   /**
    * Twelve mixed items covering the whole unit, given with no feedback until the end (assess.js):
    * minimal pairs, meanings, dictation, two made-up words, a sentence or
-   * text question, and the unit's signs, forms or new sounds.
+   * text question, and the unit's signs, forms or new sounds. Unit 1 (words only, one made-up word)
+   * fills the places with more meanings and dictation.
    */
   function unitCheck(u, rng = Math.random) {
     const items = [];
@@ -782,7 +788,7 @@ export function createQuestionBank({
           : completeSentence(u, 2, rng).filter(q => q.key !== last?.key);
     extra.slice(0, 1).forEach(add);
     // Fill any gap with more meanings and dictation, keeping the reading question last.
-    for (let k = 0; items.length < CHECK_SIZE - 1 && k < 20; k++) add(k % 2 ? dictationItem(u, nextWord(), rng) : meaningItem(u, nextWord(), rng));
+    for (let k = 0; items.length < CHECK_SIZE - (last ? 1 : 0) && k < 20; k++) add(k % 2 ? dictationItem(u, nextWord(), rng) : meaningItem(u, nextWord(), rng));
     const mixed = shuffle(items, rng);
     if (last && !keys.has(last.key)) mixed.push(last);
     return mixed.slice(0, CHECK_SIZE).map(q => ({ ...q, key: `check:${q.key}` }));
