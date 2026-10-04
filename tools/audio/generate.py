@@ -276,6 +276,63 @@ def tempo(a, factor):
     return b
 
 
+FINAL_STOPS = set('ptkbdɡ')
+VOWELS = 'aeiouæɑɐɒɔəɛɜɪʊʌᵻAIOWYQ'          # misaki vowel symbols (A = eɪ, I = aɪ, O = oʊ, W = aʊ, Y = ɔɪ)
+
+
+def clip_final_release(a, phonemes):
+    """Kokoro often releases a final stop into a short vowel ("sip" -> "sip-uh"). When the clip ends in a
+    stop and the part after the last closure is long and low-pitched (vowel-like, not burst noise), keep only
+    the release burst (the stop stays audible) and fade out over 10 ms. Single words only. Returns (audio, trimmed?)."""
+    ph = re.sub(r'[ˈˌː.,!?;:\s]', '', phonemes or '')
+    if not ph or ph[-1] not in FINAL_STOPS:
+        return a, False
+    if len(ph) >= 3 and not re.search(f'[{VOWELS}]', ph[-3:]):
+        return a, False                        # three final consonants (mixed, asked): the last stop is too weak to risk
+    db, h = frames_db(a, hop=0.01)
+    hi = band_ratio(a, 2000, hop=0.01)[:len(db)]
+    peak = db.max()
+    end = max(i for i in range(len(db)) if db[i] > peak - 35)
+    top = int(np.argmax(db))                   # the vowel
+    # the last closure after the vowel that is followed by a loud release
+    closure = [i for i in range(top + 1, end) if db[i] < peak - 24 and db[i + 1:end + 1].max() > peak - 14]
+    if not closure:
+        return a, False
+    rel = closure[-1] + 1                      # first frame of the release
+    seg = range(rel, end + 1)
+    loud = db[rel:end + 1].max()
+    # A one-syllable word has no syllable after its final closure, so any vowel-like release is the artefact;
+    # in a longer word a loud or long release may be a real syllable (rab|bit), so it is left alone.
+    one_syllable = len(re.findall(f'[{VOWELS}]+', ph)) == 1
+    max_frames, max_loud = (25, peak) if one_syllable else (13, peak - 4)
+    if not 5 <= len(seg) <= max_frames or np.median(hi[rel:end + 1]) >= 0.3 or not peak - 12 <= loud <= max_loud:
+        return a, False                        # a short or noisy release is a real burst: keep it
+    if (hi[rel:end + 1] > 0.5).sum() >= 3:
+        return a, False                        # a hissing consonant follows (fixed = ...k-s-t): never cut a sound away
+    cut = int((rel * 0.01 + 0.015) * SR)        # the burst stays: the stop must remain audible
+    fade_n = int(0.01 * SR)
+    out = a[:cut + fade_n].copy()
+    out[-fade_n:] *= np.linspace(1, 0, fade_n, dtype=np.float32)
+    return out, True
+
+
+def slow_word(a, factor):
+    """Slow a single word without smearing its ending. Time-stretching the closure and release of a final
+    p, t or k turns them into a short "uh" (sip -> "sip-uh"), so only the part up to the end of the last
+    voiced stretch is slowed; what follows (a final stop, s or f) keeps its natural length."""
+    times, v = voiced_mask(a)
+    vr = runs(v)
+    if not vr:
+        return tempo(a, factor)
+    cut = int(min(len(a), (times[vr[-1][1]] + 0.01) * SR))
+    if len(a) - cut < int(0.03 * SR):          # ends in voicing (pin, sad): slow it all
+        return tempo(a, factor)
+    head, tail = tempo(a[:cut], factor), a[cut:]
+    xf = min(int(0.005 * SR), len(head), len(tail))
+    r = np.linspace(0, 1, xf, dtype=np.float32)
+    return np.concatenate([head[:len(head) - xf], head[len(head) - xf:] * (1 - r) + tail[:xf] * r, tail[xf:]])
+
+
 def encode_mp3(a, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as d:
@@ -608,15 +665,20 @@ def main():
         for v in c['voices']:
             voice, speed = VOICES[v]
             source = c['ipa'] if c['kind'] == 'p' else synth.phonemes(c['text'], c['kind'])
-            h = sha('|'.join([PIPELINE_VERSION, c['key'], v, voice, str(speed) if speed == 1.0 else f'tempo{speed}', source]))
+            method = str(speed) if speed == 1.0 else f'tempo{speed}' + ('-keepend' if c['kind'] == 'w' else '')
+            if c['kind'] in ('w', 'p') and re.sub(r'[ˈˌː.,!?;:\s]', '', source or '')[-1:] in FINAL_STOPS:
+                method += '-endfix3'               # final-stop release trimmed (clip_final_release)
+            h = sha('|'.join([PIPELINE_VERSION, c['key'], v, voice, method, source]))
             path = OUT / v / c['kind'] / f"{c['slug']}.mp3"
             prev = prev_entry.get(v)
             if prev and prev.get('h') == h and path.exists() and not args.force:
                 entry[v] = prev
                 continue
             a = trim_silence(synth.say(source, voice, 1.0), -50, 0.03)
+            if c['kind'] in ('w', 'p'):
+                a, _ = clip_final_release(a, source)
             if speed != 1.0:
-                a = tempo(a, speed)
+                a = slow_word(a, speed) if c['kind'] == 'w' else tempo(a, speed)
             a = fade(a, 0.005, 0.03)
             # Slow clips are time-stretched copies of the checked main clip, so only f and m are re-checked.
             if c['kind'] in ('w', 's') and v != 'fs':

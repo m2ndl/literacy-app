@@ -53,6 +53,9 @@ export default async function units(browser, base) {
     await page.click('#menu-button');
     await page.click('[data-card="lesson"] .continue-btn');
     await page.waitForSelector('#lesson-view .continue-card');
+    const cardButtons = await page.$$eval('#lesson-view .sound-card:first-child button',
+      ns => ns.map(n => (n.dataset.name ? 'name' : n.dataset.sound ? 'sound' : n.dataset.example ? 'example' : '?')));
+    check('a new letter comes first, with its name, sound and example word as separate buttons', cardButtons.join() === 'name,sound,example', cardButtons.join());
     check('a new unit opens on step 1 of 7, with the full activity list folded',
       (await page.innerText('.continue-card')).includes('الخطوة ١ من ٧') && !(await page.isVisible('#lesson-view [data-activity="capital-match"]')));
     await page.click('[data-continue]');

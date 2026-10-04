@@ -235,31 +235,33 @@ function renderDashboard() {
 // ---------------------------------------------------------------------------
 // Lesson view
 // ---------------------------------------------------------------------------
-// Word first: "map … m". A sound cut out of a word is hard to recognise on its own, so the keyword comes
-// first and the sound after it. With no clean recording of the sound, the keyword alone teaches it.
+// A letter's sound on its own: nothing is played before or after it, so an example word is never taken
+// for the letter's name. With no clean recording of the sound alone, its example word is played instead.
 async function playSound(ph, kw) {
-  const key = clipKey('ph', ph), word = { key: clipKey('w', kw), text: kw };
+  const key = clipKey('ph', ph);
   await audio.initAudio();
-  if (audio.hasClip(key)) return audio.playSequence([word, key], { gapMs: 450 });
-  return audio.play(word.key, { text: kw });
+  return audio.hasClip(key) ? audio.play(key) : audio.play(clipKey('w', kw), { text: kw });
 }
 
+/**
+ * A new letter. Adults already know that letters have names and sounds, so the letter comes first and its
+ * name, its sound and an example word are separate buttons. Nothing plays by itself.
+ */
 function soundCard(g) {
   const info = gpc[g];
   const sounds = [info, ...(info.alt ? [info.alt] : [])];
-  const card = el('div', { class: 'sound-card' });
-  card.append(el('button', {
-    class: 'sound-main', 'aria-label': `استمع إلى صوت ${g}`, onclick: () => playSound(info.ph, info.kw)
-  }, en(g.length === 1 ? `${g.toUpperCase()}${g}` : gLabel(g), 'sound-letters'), el('span', { class: 'sound-play', 'aria-hidden': 'true', text: '🔊' })));
+  const card = el('div', { class: 'sound-card' }, en(g.length === 1 ? `${g.toUpperCase()}${g}` : gLabel(g), 'sound-letters'));
   if (g.length === 1) {
-    card.append(el('button', { class: 'name-btn', onclick: () => audio.play(clipKey('ln', g)) }, 'اسم الحرف'));
+    card.append(el('button', { class: 'sound-btn', 'data-name': g, onclick: () => audio.play(clipKey('ln', g)) }, '🔤 اسم الحرف'));
   }
   sounds.forEach((s, i) => {
-    if (i > 0) {
-      card.append(el('button', { class: 'name-btn', onclick: () => playSound(s.ph, s.kw) }, 'الصوت الثاني ', en(g)));
-    }
-    card.append(el('button', { class: 'keyword', onclick: () => audio.play(clipKey('w', s.kw), { text: s.kw }) },
-      el('span', { class: 'keyword-emoji', 'aria-hidden': 'true', text: s.emoji }), wordNode(s.kw)));
+    const soundBtn = el('button', { class: 'sound-btn', 'data-sound': s.ph, onclick: () => playSound(s.ph, s.kw) },
+      sounds.length > 1 ? `🔊 الصوت ${toArabicDigits(i + 1)}` : '🔊 الصوت');
+    // Hidden when the sound has no clean recording on its own (th): the example word teaches it.
+    audio.initAudio().then(() => { soundBtn.hidden = !audio.hasClip(clipKey('ph', s.ph)); });
+    const example = el('button', { class: 'sound-btn keyword', 'data-example': s.kw, onclick: () => audio.play(clipKey('w', s.kw), { text: s.kw }) },
+      el('span', { class: 'keyword-label', text: 'مثال:' }), el('span', { class: 'keyword-emoji', 'aria-hidden': 'true', text: s.emoji }), wordNode(s.kw));
+    card.append(el('div', { class: 'sound-pair' }, soundBtn, example));
     const note = s.ar ? `مثل «${s.ar}»` : info.newSound && i === 0 ? 'صوت جديد' : '';
     if (note) card.append(el('span', { class: `sound-note ${s.ar ? '' : 'is-new'}`, text: note }));
   });
