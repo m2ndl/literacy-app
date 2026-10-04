@@ -612,7 +612,8 @@ function renderAnswer(q) {
   else if (q.type === 'trace') session.widget = traceWidget(q, { onSubmit, isLocked, playName: () => audio.play(q.prompt.audio) });
   else if (q.type === 'blend') {
     session.widget = blendWidget(q, {
-      play: (key) => audio.play(key), playTogether: (keys) => audio.playSequence(keys, { gapMs: 0 }), onSubmit, isLocked
+      play: (key) => audio.play(key), playSlow: () => audio.play(q.prompt.slow, { slow: true, text: q.answer }),
+      slowMs: audio.clipMs(q.prompt.slow, 'fs'), onSubmit, isLocked
     });
   } else if (q.type === 'record') session.widget = recordWidget(q, { audio, isLocked, onSubmit: (rating, times) => onRecorded(q, rating, times) });
   else return renderOptions(q);
