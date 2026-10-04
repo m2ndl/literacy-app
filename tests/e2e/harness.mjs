@@ -54,6 +54,9 @@ export async function newPage(browser, base, { device = devices['Pixel 7'], user
   const context = await browser.newContext({
     ...device, ...(userAgent ? { userAgent } : {}), locale: 'ar', serviceWorkers: 'block', permissions: ['microphone']
   });
+  // Nothing outside the local server is fetched: third-party requests (web fonts, the visit counter) get an
+  // empty reply, so an outage elsewhere cannot fail a test (CI once failed on a 521 from one of them).
+  await context.route(url => !url.href.startsWith(base), route => route.fulfill({ status: 200, body: '' }));
   await context.route('**/app.js', async route => {
     const res = await route.fetch();
     const body = (await res.text()).replace('function renderQuestion() {\n', 'function renderQuestion() {\n  window.__q = session.queue[session.index].q;\n');
