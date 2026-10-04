@@ -235,12 +235,12 @@ function renderDashboard() {
 // ---------------------------------------------------------------------------
 // Lesson view
 // ---------------------------------------------------------------------------
-// A sound cut out of a word is hard to recognise on its own, so it is always followed by its keyword:
-// "m … map". With no clean recording of the sound, the keyword alone teaches it.
+// Word first: "map … m". A sound cut out of a word is hard to recognise on its own, so the keyword comes
+// first and the sound after it. With no clean recording of the sound, the keyword alone teaches it.
 async function playSound(ph, kw) {
   const key = clipKey('ph', ph), word = { key: clipKey('w', kw), text: kw };
   await audio.initAudio();
-  if (audio.hasClip(key)) return audio.playSequence([key, word], { gapMs: 450 });
+  if (audio.hasClip(key)) return audio.playSequence([word, key], { gapMs: 450 });
   return audio.play(word.key, { text: kw });
 }
 
@@ -492,7 +492,6 @@ function ttsText(q) {
 }
 
 function playPrompt(q, slow = false) {
-  if (q.activity === 'sound-match') return playSound(q.item, q.prompt.kw);
   return audio.play(q.prompt.audio, { voice: q.prompt.voice || 'f', slow, text: ttsText(q) });
 }
 
@@ -523,12 +522,6 @@ function formCard(form) {
 function renderPrompt(q) {
   const box = el('div', { class: 'prompt' });
   const p = q.prompt;
-  if (q.activity === 'sound-match' && !audio.hasClip(p.audio)) {
-    // No clean recording of the sound alone: the keyword is played instead.
-    const where = gpc[q.answer]?.vowel ? 'استمع إلى صوت حرف العلة في كلمة '
-      : !p.kw.startsWith(q.answer) && p.kw.endsWith(q.answer) ? 'استمع إلى آخر جزء في كلمة ' : 'استمع إلى أول صوت في كلمة ';
-    box.append(el('p', { class: 'prompt-note' }, where, en(p.kw)));
-  }
   if (q.type === 'trace') return box;
   if (q.activity === 'pseudo') {
     box.append(brandCard(wordNode(p.text, { split: p.split, cls: 'brand-name' })));
@@ -549,6 +542,8 @@ function renderPrompt(q) {
     el('div', { class: 'statement' }, en(p.statement)));
     return box;
   }
+  // The keyword's picture; its spelling is shown only after the answer.
+  if (q.activity === 'sound-match' && p.emoji) box.append(el('div', { class: 'prompt-emoji', 'aria-hidden': 'true', text: p.emoji }));
   if (p.audio && !['meaning', 'read-text', 'signs', 'forms'].includes(q.activity)) box.append(promptAudioButtons(q));
   if (q.activity === 'capital-match' || q.activity === 'meaning') {
     box.append(q.activity === 'meaning' ? wordNode(p.text, { cls: 'prompt-big' }) : en(p.text, 'prompt-big'));
@@ -559,7 +554,7 @@ function renderPrompt(q) {
     p.parts.forEach(part => word.append(part.blank ? el('span', { class: 'blank', text: '_' }) : el('span', { class: isVowel(part.text) ? 'vowel' : null, text: part.text })));
     box.append(word);
   }
-  if (q.activity === 'first-last-sound') {
+  if (q.activity === 'first-last-sound' || q.activity === 'sound-match') {
     const slots = el('div', { class: 'position-hint', 'aria-hidden': 'true' });
     for (let i = 0; i < 3; i++) {
       const on = (p.position === 'first' && i === 0) || (p.position === 'middle' && i === 1) || (p.position === 'last' && i === 2);

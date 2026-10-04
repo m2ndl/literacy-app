@@ -1020,13 +1020,12 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
 - **Still to do by a person:** listen to the new single sounds (`audio/f/ph/`) and to *law, huge, stage, each, choice*, which the recogniser heard oddly in both voices.
 
 ### Owner feedback after launch
-- **Single sounds are now always followed by their keyword** ("m … *map*", "a … *apple*"):
-  - on the sound cards;
-  - in "listen to the sound and choose the letter";
-  - on the "what you chose" button.
-
-  The owner found the cut sounds unclear on their own. A consonant cut out of a word loses the transitions into the vowel that carry most of its place cue: *m* and *n*, and *b, d* and *g*, differ mainly in those transitions. The keyword puts the sound back in a word, which is also the routine of keyword-based phonics programmes.
-- Blending still plays the sounds alone, because the learner must join them. Its answer choices are whole spoken words.
+- **Word first, not sounds cut out of words.** The owner found the cut sounds unclear on their own. A consonant cut out of a word loses the transitions into the vowel that carry most of its place cue: *m* and *n*, and *b, d* and *g*, differ mainly in those transitions.
+  - "Listen and choose the letter" now plays a real word, the sound's keyword, with its picture, and asks where the sound sits: "what does it start with?" (*bus*), "how is the last sound written?" (*sock*), or "…the middle sound?" (*cake*). The position comes from the keyword (`soundPosition` in `phonics.js`). The word's spelling appears only after the answer.
+  - Sound cards and the "what you chose" button play the word first, then the sound: "*map* … m".
+  - Letters are still taught; this is how their sounds are presented. The letter name stays one tap away for spelling.
+  - A test makes sure no question plays a single cut sound.
+- Blending is the one place that still plays the sounds alone, because joining them is the skill. Its answer choices are whole spoken words.
 - **Heart words removed as a taught strand** (owner decision). The learners are adults already frustrated with English, and exceptions are too early for them.
   - The heart-word activity, the "كلمات القلب ♥" lesson section, the ♥ marks and heart-word items in unit checks, the placement test and review are all gone. The placement slot is always a dictation item now.
   - The words themselves (*the, I, is, you, said*…) stay in sentences and texts, because 179 of the 203 sentences use at least one. Learners hear every sentence whole, so these words are picked up by ear and sight, with no rule or exception to learn.

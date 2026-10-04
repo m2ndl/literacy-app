@@ -17,6 +17,12 @@ const MIN_ITEMS = { 'sound-match': 4, 'capital-match': 4, 'which-word': 3, 'word
 /** Checks shared by every question, whatever builds it. */
 function checkQuestion(q, activity) {
   if (q.prompt.audio) assert.ok(clipKeys.has(q.prompt.audio), `missing clip ${q.prompt.audio}`);
+  // Questions play real words, never a sound cut out of a word (only blending tiles do, to be joined).
+  if (q.prompt.audio) assert.ok(!q.prompt.audio.startsWith('ph:'), `${activity} prompt plays a single sound`);
+  if (activity === 'sound-match') {
+    assert.equal(q.prompt.audio, `w:${q.prompt.kw}`);
+    assert.ok(['first', 'middle', 'last'].includes(q.prompt.position) && q.instruction.includes('الكلمة'));
+  }
   if (q.feedback.audio) assert.ok(clipKeys.has(q.feedback.audio), `missing clip ${q.feedback.audio}`);
   assert.ok(Array.isArray(q.memory) && Array.isArray(q.focus));
   if (q.type === 'build') {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   segment, cleanToken, tokenize, slugify, clipKey, buildLexicon, decodeWord, analyzeToken,
   checkSentence, contrastOf, classifyError, errorFocus, sameSound, makeRng, shuffle,
-  pickGraphemeDistractors, pickWordDistractors, pickBlank, toPhonemes, compareSpelling
+  pickGraphemeDistractors, pickWordDistractors, pickBlank, toPhonemes, compareSpelling, soundPosition
 } from '../phonics.js';
 
 // A small synthetic curriculum so these tests don't depend on the real content.
@@ -218,6 +218,20 @@ describe('toPhonemes (made-up words)', () => {
     assert.equal(toPhonemes('chim', ipa), 'ʧˈɪm');
     assert.equal(toPhonemes('tobnap', ipa, 'tob|nap'), 'tˈɑbnˌæp');
     assert.throws(() => toPhonemes('t3', ipa));
+  });
+});
+
+describe('soundPosition (word-first sound questions)', () => {
+  it('finds where a spelling sits in its keyword', () => {
+    assert.equal(soundPosition('s', 'sun'), 'first');
+    assert.equal(soundPosition('sh', 'ship'), 'first');
+    assert.equal(soundPosition('c2', 'city'), 'first');
+    assert.equal(soundPosition('ck', 'sock'), 'last');
+    assert.equal(soundPosition('ff', 'off'), 'last');
+    assert.equal(soundPosition('y3', 'baby'), 'last');
+    assert.equal(soundPosition('g2', 'page'), 'last');
+    assert.equal(soundPosition('a_e', 'cake'), 'middle');
+    assert.equal(soundPosition('oa', 'boat'), 'middle');
   });
 });
 

@@ -92,7 +92,7 @@ export const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 // Arabic labels and descriptions for activity cards.
 export const ACTIVITY_META = {
-  'sound-match':       { title: 'اسمع الصوت',              desc: 'استمع إلى الصوت واختر الحرف الذي يمثّله.',           icon: '🔊' },
+  'sound-match':       { title: 'اسمع واختر الحرف',        desc: 'استمع إلى كلمة واختر الحرف الذي تسمعه في أولها أو آخرها.', icon: '🔊' },
   'capital-match':     { title: 'الحروف الكبيرة والصغيرة', desc: 'طابق بين شكل الحرف الكبير والصغير.',                 icon: '🔠', optional: true },
   'which-word':        { title: 'أيّ كلمة سمعت؟',          desc: 'استمع وميّز بين كلمات متشابهة مثل pin / pen / pan.',  icon: '👂' },
   'word-build':        { title: 'ابنِ الكلمة',              desc: 'استمع ثم كوّن الكلمة صوتًا صوتًا.',                   icon: '🧩', optional: true },
