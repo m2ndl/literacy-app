@@ -1035,6 +1035,18 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
   - The skill is now reading print into a spoken word, and every sound the learner hears is a whole, natural word. Because the activity no longer needs a recorded single sound for every letter, more words are eligible (255 items across the blending units).
   - **Tried and rejected: stretched words ("sssaaat").** Asking the voice generator to lengthen sounds inserted extra vowels. Its own slow speed adds an "uh" before the word. Slowing a recording to half speed, or holding its vowels, made the speech recogniser hear *pin* as *pen* and *net* as *nat*: a held short vowel drifts towards its neighbour, which is the very contrast these learners find hardest. Holding only the consonants barely lengthened most words and still failed on some. None of these could be checked well enough to ship.
   - This replaces the blending design described earlier in this section.
+- **Find out first, then teach only the missing letters** (owner decision). Unit 1 used to assume every learner knew *s* and its sound; teaching every letter from zero would assume the opposite. Adults bring part of the alphabet, and the gaps differ from learner to learner.
+  - **Letter check.** It replaces "start at unit 1" for beginners and is the first "Today's lesson" for a new learner. Learners with progress can take it from "More".
+    - One question per letter, in course order: hear the letter's example word, with its picture, and choose the letter from four.
+    - No feedback and no score, about 3 minutes.
+    - Saved as `progress.letters` = { day, known, unknown, learned }.
+  - **Alphabet lessons, only for the letters found unknown**, three letters per short lesson:
+    - Each letter is shown first: the letter, with its name, sound and example-word buttons and nothing playing by itself.
+    - It is then asked about at once, only among letters already met or known: two choices for a beginner's very first letter, at most four.
+    - A mixed round ends the lesson.
+    - Questions about letters feed spaced review (`ph:` items).
+  - **Then unit 1.** Every unit-1 question now rests on letters the learner was checked on or has just been taught. A learner who knows every letter goes straight to unit 1.
+  - This builds on what adult learners bring, a core principle of adult education (Knowles et al. 2015). It also avoids both boredom and overload; for the guided order of show, practise, test, see section 7.
 - **No "uh" after a final stop.** The owner heard *sip* as "sip-uh".
   - The main voice sometimes releases a final *p, t* or *k* into a short vowel, and slowing the word down made it louder: 26 slow clips had an added voiced tail.
   - Two fixes in `tools/audio/generate.py`:

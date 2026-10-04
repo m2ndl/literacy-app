@@ -38,7 +38,8 @@ export function getDefaultProgress() {
     fluency: { words: [], sentences: [], texts: [] },   // timed drills { day, n, x, s } and texts { day, id, wpm }
     checks: {},           // unit checks: { unitId: { best, n, last, passed } }
     benchmarks: [],       // stage benchmarks (assess.js)
-    selfAssess: {}        // can-do ratings: { stageIndex: { day, r: { id: 0|1|2 } } }
+    selfAssess: {},       // can-do ratings: { stageIndex: { day, r: { id: 0|1|2 } } }
+    letters: null         // letter check: { day, known: [...], unknown: [...], learned: [...] } (null = not taken)
   };
 }
 
@@ -97,7 +98,10 @@ function validateV5Fields(parsed) {
   Object.entries(obj(parsed.selfAssess) || {}).forEach(([k, v]) => {
     if (/^\d+$/.test(k) && obj(v) && isDay(v.day)) selfAssess[k] = { day: v.day, r: ratings(v.r) };
   });
-  return { fluency, checks, benchmarks, selfAssess };
+  const letterList = (v) => (Array.isArray(v) ? [...new Set(v.filter(l => typeof l === 'string' && /^[a-z]$/.test(l)))] : []);
+  const L = obj(parsed.letters);
+  const letters = L && isDay(L.day) ? { day: L.day, known: letterList(L.known), unknown: letterList(L.unknown), learned: letterList(L.learned) } : null;
+  return { fluency, checks, benchmarks, selfAssess, letters };
 }
 
 export function validateProgress(parsed) {
@@ -121,7 +125,7 @@ export function validateProgress(parsed) {
     : validateV4Fields(parsed);
   // v4 -> v5: the Phase 4 records start empty.
   const v5 = parsed.version === PROGRESS_VERSION ? validateV5Fields(parsed)
-    : { fluency: { words: [], sentences: [], texts: [] }, checks: {}, benchmarks: [], selfAssess: {} };
+    : { fluency: { words: [], sentences: [], texts: [] }, checks: {}, benchmarks: [], selfAssess: {}, letters: null };
   return {
     version: PROGRESS_VERSION,
     unlockedUnit: Number.isInteger(parsed.unlockedUnit) && parsed.unlockedUnit >= 1 ? parsed.unlockedUnit : d.unlockedUnit,

@@ -29,7 +29,7 @@ configureWords(bank.wordInfo);
 const achievements = getAchievements(units.length);
 const POINTS = { unit: 5, review: 5, weak: 5, perception: 1, placement: 0, check: 0, benchmark: 0, fix: 2 };
 const CHECK_BONUS = 20;                 // points for passing a unit check
-const ASSESSMENT_MODES = new Set(['placement', 'check', 'benchmark']);   // no feedback until the end
+const ASSESSMENT_MODES = new Set(['placement', 'check', 'benchmark', 'letters']);   // no feedback until the end
 const ITEMS_PER_ACTIVITY = 8;
 const WORD_BATCH = 12;          // words shown at once in a unit's word list
 const REVIEW_SIZE = 12;
@@ -159,8 +159,24 @@ function currentUnit() {
   return units.find(u => u.id <= progress.unlockedUnit && !progress.completedUnits.includes(u.id)) || null;
 }
 
+/** Letters found unknown by the letter check and not yet learned, in course order. */
+const lettersToLearn = () => (progress.letters
+  ? bank.letterOrder.filter(l => progress.letters.unknown.includes(l) && !progress.letters.learned.includes(l)) : []);
+// A new learner (nothing done yet, no placement test) starts with the letter check.
+const needsLetterCheck = () => !progress.letters && !progress.placement && !progress.completedUnits.length && !progress.attempts.length;
+
 /** "Today's lesson": one big button that carries on where the learner stopped. */
 function lessonCard() {
+  const big = (title, text, label, onClick) => el('div', { class: 'today-card lesson-card', 'data-card': 'lesson' },
+    el('p', { class: 'continue-step', text: 'درس اليوم' }), el('h3', { class: 'continue-title', text: title }),
+    el('p', { class: 'continue-desc', text }), el('button', { class: 'continue-btn', onclick: onClick }, label));
+  if (needsLetterCheck()) {
+    return big('ماذا تعرف من الحروف؟', 'فحص قصير (حوالي ٣ دقائق): تسمع كلمة وتختار حرفها. نتعلّم بعده الحروف التي لا تعرفها فقط.', 'ابدأ ←', introduceLetterCheck);
+  }
+  const todo = lettersToLearn();
+  if (todo.length) {
+    return big('الحروف', `حروف تتعلّمها الآن: ${toArabicDigits(todo.length)} (${todo.join(' ')})`, 'تابع ←', startAlphabet);
+  }
   const u = currentUnit();
   if (!u) {
     return todayCard({ id: 'lesson', icon: '🎓', title: 'أكملت كل الوحدات!', text: 'راجع ما تعلّمته، وتدرّب على الطلاقة من «المزيد».' });
@@ -194,6 +210,9 @@ function renderToday() {
     more.push(todayCard({ id: 'weak', icon: '🎯', title: 'نقاط ضعفي', text: `تدريب قصير على: ${label}`, action: 'تدرّب', onClick: startWeak }));
   }
   todayCards(assessContext()).forEach(c => more.push(todayCard(c)));
+  if (!progress.letters && !needsLetterCheck()) {
+    more.push(todayCard({ id: 'letters', icon: '🔤', title: 'فحص الحروف', text: 'اعرف أيّ الحروف تحتاج إلى تدريب، وتعلّمها وحدها.', action: 'ابدأ', onClick: introduceLetterCheck }));
+  }
   if (backupDue(progress, today())) {
     more.push(todayCard({ id: 'backup', icon: '💾', title: 'احفظ نسخة من تقدّمك', text: 'التقدّم محفوظ على هذا الجهاز فقط. احفظ رمزًا احتياطيًا في مكان آمن.', action: 'نسخة احتياطية', onClick: () => renderBackup(backupContext()) }));
   }
@@ -247,12 +266,12 @@ async function playSound(ph, kw) {
  * A new letter. Adults already know that letters have names and sounds, so the letter comes first and its
  * name, its sound and an example word are separate buttons. Nothing plays by itself.
  */
-function soundCard(g) {
+function soundCard(g, letter = g.length === 1 ? g : null) {
   const info = gpc[g];
   const sounds = [info, ...(info.alt ? [info.alt] : [])];
-  const card = el('div', { class: 'sound-card' }, en(g.length === 1 ? `${g.toUpperCase()}${g}` : gLabel(g), 'sound-letters'));
-  if (g.length === 1) {
-    card.append(el('button', { class: 'sound-btn', 'data-name': g, onclick: () => audio.play(clipKey('ln', g)) }, '🔤 اسم الحرف'));
+  const card = el('div', { class: 'sound-card' }, en(letter ? `${letter.toUpperCase()}${letter}` : gLabel(g), 'sound-letters'));
+  if (letter) {
+    card.append(el('button', { class: 'sound-btn', 'data-name': letter, onclick: () => audio.play(clipKey('ln', letter)) }, '🔤 اسم الحرف'));
   }
   sounds.forEach((s, i) => {
     const soundBtn = el('button', { class: 'sound-btn', 'data-sound': s.ph, onclick: () => playSound(s.ph, s.kw) },
@@ -384,7 +403,7 @@ function showLesson(unitId) {
     el('ul', { class: 'tips-list' }, ...u.tips.map(t => el('li', {}, ...richArabic(t))))));
   if (u.graphemes.length) {
     root.append(section('أصوات جديدة', el('p', { class: 'section-help', text: 'اضغط على الحرف لتسمع صوته. في القراءة نستخدم الصوت، أما «اسم الحرف» فللتهجئة.' }),
-      el('div', { class: 'sound-grid' }, ...u.graphemes.map(soundCard))));
+      el('div', { class: 'sound-grid' }, ...u.graphemes.map(g => soundCard(g)))));
   }
   if ((u.patterns || []).length) {
     root.append(section('أنماط جديدة', el('p', { class: 'section-help', text: 'اضغط على المثال لتسمعه، واقرأ الحروف معًا بلا حركة بينها.' }),
@@ -608,6 +627,11 @@ function renderOptions(q) {
 
 function renderAnswer(q) {
   const onSubmit = (value, node) => onChoice(q, value, node);
+  if (q.type === 'intro') {
+    // A new letter is shown, not asked: nothing is scored or logged, and nothing plays by itself.
+    return el('div', { class: 'letter-intro' }, soundCard(q.prompt.grapheme, q.prompt.letter),
+      el('button', { class: 'next-btn', 'data-intro-next': '', onclick: () => nextQuestion() }, 'التالي ←'));
+  }
   if (q.type === 'build') session.widget = buildWidget(q, { onSubmit, isLocked, words: q.activity === 'sentence-build' });
   else if (q.type === 'spell') session.widget = keyboardWidget(q, { onSubmit, isLocked });
   else if (q.type === 'audio-choice') session.widget = audioChoiceWidget(q, { play: (key) => audio.play(key), onSubmit, isLocked });
@@ -1125,6 +1149,62 @@ const CAN_DO = [
   [21, 'تقرأ كلمات طويلة مثل student و teacher، ولافتات واستمارات بسيطة.']
 ];
 
+// ---------------- letters: the check, then lessons for unknown letters only ----------------
+function introduceLetterCheck() {
+  showMessage(el('div', { class: 'text-right' },
+    el('p', { class: 'font-bold mb-2', text: 'ماذا تعرف من الحروف؟' }),
+    el('p', { class: 'text-base', text: 'تسمع كلمة وترى صورتها، ثم تختار الحرف. إذا لم تعرف فاختر ما تظنّه: لا توجد علامات.' }),
+    el('p', { class: 'text-base mt-2', text: 'بعد الفحص نتعلّم الحروف التي تحتاجها فقط.' })),
+  [{ label: 'ابدأ', onClick: startLetterCheck }, { label: 'لاحقًا', onClick: () => {}, secondary: true }]);
+}
+
+async function startLetterCheck() {
+  await audio.initAudio();
+  const items = bank.letterCheck();
+  audio.preload(items.map(q => q.prompt.audio), ['f']);
+  startSession(items, { mode: 'letters', title: 'فحص الحروف', heading: 'استمع واختر الحرف', back: renderDashboard, onFinish: finishLetterCheck });
+}
+
+function finishLetterCheck(s) {
+  const known = s.results.filter(r => r.ok).map(r => r.q.answer);
+  const unknown = s.results.filter(r => !r.ok).map(r => r.q.answer);
+  progress.letters = { day: today(), known, unknown, learned: [] };
+  save(true);
+  const todo = lettersToLearn();
+  showMessage(el('div', { class: 'text-right' },
+    el('p', { class: 'text-2xl font-bold mb-2', text: 'نتيجة الفحص' }),
+    el('p', { class: 'text-base', text: `تعرف أصوات ${toArabicDigits(known.length)} حرفًا من ${toArabicDigits(s.results.length)}. أحسنت.` }),
+    todo.length
+      ? el('p', { class: 'text-base mt-2' }, 'نتعلّم الآن هذه الحروف فقط، في دروس قصيرة: ', en(todo.join(' ')))
+      : el('p', { class: 'text-base mt-2', text: 'تعرف كل الحروف! ابدأ الوحدة الأولى.' })),
+  [{ label: todo.length ? 'ابدأ الحروف' : 'ابدأ الوحدة الأولى', onClick: () => (todo.length ? startAlphabet() : showLesson(progress.unlockedUnit)) }]);
+}
+
+const ALPHABET_GROUP = 3;   // new letters per short lesson
+
+function startAlphabet() {
+  const group = lettersToLearn().slice(0, ALPHABET_GROUP);
+  if (!group.length) { renderDashboard(); return; }
+  const known = [...new Set([...progress.letters.known, ...progress.letters.learned])];
+  startSession(bank.alphabetLesson(group, known), {
+    mode: 'alphabet', title: 'الحروف', heading: `حروف جديدة: ${group.join(' ')}`, back: renderDashboard,
+    onFinish: (s) => finishAlphabet(s, group)
+  });
+}
+
+function finishAlphabet(s, group) {
+  group.forEach(l => { if (!progress.letters.learned.includes(l)) progress.letters.learned.push(l); });
+  save(true);
+  const left = lettersToLearn();
+  showMessage(el('div', {},
+    el('p', { class: 'text-2xl font-bold mb-2', text: 'أحسنت ✓' }),
+    el('p', { class: 'text-base' }, 'تعلّمت: ', en(group.join(' '))),
+    el('p', { class: 'text-base mt-2', text: left.length ? `بقي ${toArabicDigits(left.length)} حروف.` : 'تعلّمت كل الحروف التي تحتاجها. ابدأ الوحدة الأولى.' })),
+  [left.length ? { label: 'الحروف التالية ←', onClick: startAlphabet } : { label: 'ابدأ الوحدة الأولى ←', onClick: () => showLesson(progress.unlockedUnit) },
+    { label: 'الصفحة الرئيسية', onClick: renderDashboard, secondary: true }]);
+  checkAchievements();
+}
+
 function introducePlacement() {
   showMessage(el('div', { class: 'text-right' },
     el('p', { class: 'font-bold mb-2', text: 'اختبار تحديد المستوى' }),
@@ -1398,8 +1478,8 @@ function showStartChoice() {
   save();
   showMessage(el('div', { class: 'text-right' },
     el('p', { class: 'font-bold mb-2', text: 'كيف تريد أن تبدأ؟' }),
-    el('p', { class: 'text-base', text: 'إذا كانت الإنجليزية جديدة عليك تمامًا، فابدأ من الوحدة الأولى. وإذا كنت تعرف بعض الحروف والكلمات، فاختبار قصير يحدّد لك من أين تبدأ.' })),
-  [{ label: 'أنا مبتدئ: الوحدة الأولى', onClick: () => maybeShowInstallGuide(() => showLesson(1)) },
+    el('p', { class: 'text-base', text: 'إذا كانت القراءة بالإنجليزية جديدة عليك، فابدأ بفحص قصير للحروف ثم نتعلّم ما ينقصك منها. وإذا كنت تقرأ بعض الكلمات، فاختبار قصير يحدّد لك من أين تبدأ.' })),
+  [{ label: 'أنا مبتدئ: أبدأ بالحروف', onClick: () => maybeShowInstallGuide(introduceLetterCheck) },
     { label: 'أعرف بعض الإنجليزية: اختبار قصير', onClick: () => maybeShowInstallGuide(introducePlacement), secondary: true }]);
 }
 

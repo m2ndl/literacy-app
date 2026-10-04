@@ -258,6 +258,33 @@ describe('question bank', () => {
     assert.equal(bank.buildItem('h:the', 5, makeRng(1)), null);
   });
 
+  it('checks every letter once, in course order, by its example word', () => {
+    const items = bank.letterCheck(makeRng(1));
+    assert.deepEqual(items.map(q => q.answer).sort(), ALPHABET);
+    assert.equal(items[0].answer, units[0].graphemes[0]);
+    for (const q of items) {
+      checkQuestion(q, q.activity);
+      assert.equal(q.options.length, 4);
+      assert.ok(q.options.every(o => /^[a-z]$/.test(o.value)), `${q.answer}: single letters only`);
+      assert.deepEqual(q.memory, []);
+    }
+  });
+
+  it('teaches unknown letters one at a time: shown, asked only among letters met, then mixed', () => {
+    const fresh = bank.alphabetLesson(['s', 'a', 't'], [], makeRng(2));
+    assert.deepEqual(fresh.map(q => q.type), ['intro', 'choice', 'intro', 'choice', 'intro', 'choice', 'choice', 'choice', 'choice']);
+    assert.equal(fresh[1].options.length, 2, 'the very first question has two choices');
+    assert.deepEqual(fresh[3].options.map(o => o.value).sort(), ['a', 's']);
+    assert.deepEqual(fresh[5].options.map(o => o.value).sort(), ['a', 's', 't']);
+    const known = ['s', 'a', 't', 'i', 'n', 'p'];
+    for (const q of bank.alphabetLesson(['e', 'x', 'q'], known, makeRng(3))) {
+      if (q.type === 'intro') { assert.ok(!q.options.length && !q.prompt.audio); continue; }
+      checkQuestion(q, q.activity);
+      assert.ok(q.options.every(o => [...known, 'e', 'x', 'q'].includes(o.value)), `${q.answer}: ${q.options.map(o => o.value)}`);
+      assert.ok(q.options.length <= 4 && q.memory[0].startsWith('ph:'));
+    }
+  });
+
   it('makes recall questions (dictation) for secure items', () => {
     const types = new Set(Array.from({ length: 20 }, (_, i) => bank.buildItem('w:pin', 5, makeRng(i), { box: 5 }).activity));
     assert.deepEqual([...types], ['dictation']);
