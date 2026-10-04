@@ -207,6 +207,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--c-accent); outl
 .blank { color: var(--c-accent); font-weight: 700; }
 .blank-word { border-bottom: 3px solid var(--c-accent); }
 .position-hint { display: flex; gap: .4rem; direction: ltr; }
+.prompt-emoji { font-size: 3.5rem; line-height: 1; }
 .position-hint span { width: 2.2rem; height: 2.2rem; border-radius: .4rem; border: 2px solid var(--c-border); background: var(--c-soft); }
 .position-hint span.is-target { background: var(--c-accent); border-color: var(--c-accent); }
 

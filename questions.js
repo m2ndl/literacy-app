@@ -12,16 +12,23 @@
 //   'audio-choice' options: [{ value, audio }], answer (made-up words in the placement test)
 import {
   buildLexicon, decodeWord, analyzeToken, segment, isVowel, isShortVowel, contrastOf, slugify, clipKey, cleanToken,
-  pickGraphemeDistractors, pickWordDistractors, shuffle, VISUAL_CONFUSIONS, SOUND_CONFUSIONS, sameSound, pseudoForm
+  pickGraphemeDistractors, pickWordDistractors, shuffle, VISUAL_CONFUSIONS, SOUND_CONFUSIONS, sameSound, pseudoForm, soundPosition
 } from './phonics.js';
 
 export const DEFAULT_ITEMS = 8;
+// "Listen and choose the letter" asks about a real word (its keyword, with a picture), never about a sound
+// cut out of a word: where the sound sits decides the question.
+const SOUND_QUESTION = {
+  first: 'استمع إلى الكلمة: بماذا تبدأ؟',
+  middle: 'استمع إلى الكلمة: كيف يُكتب الصوت في وسطها؟',
+  last: 'استمع إلى الكلمة: كيف يُكتب الصوت في آخرها؟'
+};
 export const PERCEPTION_VOICES = ['f', 'm', 'f2', 'm2'];
 /** From this unit on, a placement part has 3 items instead of 5. */
 export const SHORT_PLACEMENT_FROM = 11;
 
 export const INSTRUCTIONS = {
-  'sound-match': 'استمع إلى الصوت واختر الحرف الذي يمثّله.',
+  'sound-match': 'استمع إلى الكلمة واختر الحرف.',
   'capital-match-lower': 'اختر الحرف الصغير المطابق.',
   'capital-match-upper': 'اختر الحرف الكبير المطابق.',
   'which-word': 'استمع: أيّ كلمة سمعت؟',
@@ -122,14 +129,15 @@ export function createQuestionBank({
       distractors = [force, ...distractors].slice(0, 3);
     }
     const info = ph === 'dh' ? gpc.th.alt : gpc[answer];
+    const position = soundPosition(answer, info.kw);
     return {
       key: `${u.id}:sound-match:${ph}`,
       unit: u.id,
       activity: 'sound-match',
       item: ph,
       type: 'choice',
-      instruction: INSTRUCTIONS['sound-match'],
-      prompt: { audio: clipKey('ph', ph), kw: info.kw },
+      instruction: SOUND_QUESTION[position],
+      prompt: { audio: clipKey('w', info.kw), kw: info.kw, emoji: info.emoji || '', position },
       options: shuffle([answer, ...distractors], rng).map(g => opt(g, label(g))),
       answer,
       focus: [answer],

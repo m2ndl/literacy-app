@@ -480,6 +480,20 @@ function inPairs(pairs, a, b) {
   return pairs.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
 }
 
+/**
+ * Where a grapheme's sound sits in its keyword: 'first' (s in sun), 'last' (ck in sock) or 'middle'
+ * (a_e in cake). Used to ask about a real word instead of playing a sound cut out of it.
+ */
+export function soundPosition(g, kw) {
+  if (g === 'g2') return 'last';                  // page: the "j" sound is the final ge
+  const letters = g.replace(/[0-9]/g, '');
+  if (letters.includes('_')) return 'middle';      // split vowels: a_e in cake
+  const w = kw.toLowerCase();
+  if (w.startsWith(letters)) return 'first';
+  if (w.endsWith(letters)) return 'last';
+  return 'middle';
+}
+
 export function sameSound(a, b) {
   if (a === b) return true;
   return SAME_SOUND.some(set => set.includes(a) && set.includes(b));
