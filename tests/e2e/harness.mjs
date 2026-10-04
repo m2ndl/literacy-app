@@ -156,7 +156,7 @@ export async function answer(page, right = true) {
     await page.waitForSelector('.record-ratings button', { timeout: 8000 });
     await page.click(`.record-ratings button[data-value="${right ? 2 : 0}"]`);
   } else if (q.type === 'blend') {
-    for (const tile of await page.$$('#activity-content .blend-tile')) await tile.click();
+    await page.click('#activity-content [data-slow]');
     const v = right ? q.answer : q.options.find(o => o.value !== q.answer).value;
     await page.click(`#activity-content .audio-option[data-value="${v}"]`);
     await page.click('#activity-content .audio-choice .next-btn');

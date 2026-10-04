@@ -38,7 +38,7 @@ export const INSTRUCTIONS = {
   'first-sound': 'استمع: ما الصوت الأول في الكلمة؟',
   'last-sound': 'استمع: ما الصوت الأخير في الكلمة؟',
   'middle-sound': 'استمع: ما الصوت في وسط الكلمة؟',
-  blend: 'اضغط على كل حرف لتسمع صوته، ثم اختر الكلمة التي تكوّنها الأصوات.',
+  blend: 'اقرأ الكلمة حرفًا حرفًا من اليسار، ثم اختر ما قرأت.',
   'sentence-picture': 'اقرأ الجملة، واختر الصورة المناسبة.',
   'complete-sentence': 'استمع إلى الجملة، واختر الكلمة الناقصة.',
   'read-text': 'اقرأ النص، ثم أجب: هل هذه الجملة صحيحة؟',
@@ -499,10 +499,11 @@ export function createQuestionBank({
   });
 
   // ---------------- blending: tap each sound, then choose the word ----------------
-  const soundClip = (g) => gpc[g] && clipKey('ph', gpc[g].ph);
+  // Reading a word sound by sound uses natural recordings only: the word at normal speed and slowed down
+  // (the letters light up left to right while it plays). No sound is cut out of a word and glued to the next.
   const blendable = (w) => {
     const gs = graphemesOf(w);
-    return gs.length >= 2 && gs.length <= 5 && gs.every(g => gpc[g] && !/_e$/.test(g) && hasClip(soundClip(g)));
+    return gs.length >= 2 && gs.length <= 5 && gs.every(g => gpc[g] && !/_e$/.test(g)) && hasClip(clipKey('w', w));
   };
 
   function blendItem(u, info, rng) {
@@ -518,7 +519,7 @@ export function createQuestionBank({
       item: w,
       type: 'blend',
       instruction: INSTRUCTIONS.blend,
-      prompt: { tiles: piecesOf(w).map((text, i) => ({ text, audio: soundClip(gs[i]), vowel: isVowel(gs[i]) })) },
+      prompt: { tiles: piecesOf(w).map((text, i) => ({ text, vowel: isVowel(gs[i]) })), slow: clipKey('w', w) },
       options: shuffle([w, ...others.slice(0, 2)], rng).map(x => ({ value: x, audio: clipKey('w', x) })),
       answer: w,
       focus: gs.filter(g => gpc[g]),

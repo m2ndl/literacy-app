@@ -123,6 +123,11 @@ export function voicesFor(key) {
   return Object.keys(manifest.clips[key] || {});
 }
 
+/** Length of a recording in ms (from the manifest), or null. */
+export function clipMs(key, voice = 'f') {
+  return manifest.clips[key]?.[voice]?.d ?? null;
+}
+
 export function hasClip(key, voice = 'f') {
   return !!(manifest.clips[key] && manifest.clips[key][voice]);
 }

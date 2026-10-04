@@ -128,32 +128,27 @@ export function audioChoiceWidget(q, { play, onSubmit, isLocked }) {
  * connected phonation: Gonzalez-Frey & Ehri 2021), three spoken words appear: which one do the sounds make?
  * Returns { node }.
  */
-export function blendWidget(q, { play, playTogether, onSubmit, isLocked }) {
-  const heard = new Set();
+/**
+ * Read a word sound by sound: the learner reads the letters, can hear the word slowly while the letters
+ * light up left to right, then picks the spoken word from three. Natural recordings only.
+ * playSlow() plays the slow recording; slowMs is its length, to pace the highlighting.
+ */
+export function blendWidget(q, { play, playSlow, slowMs, onSubmit, isLocked }) {
   const choice = audioChoiceWidget(q, { play, onSubmit, isLocked });
-  const ask = el('p', { class: 'section-help hidden', text: 'أيّ كلمة تكوّنها هذه الأصوات؟' });
-  choice.node.classList.add('hidden');
-  const reveal = () => { ask.classList.remove('hidden'); choice.node.classList.remove('hidden'); };
-  const tiles = q.prompt.tiles.map((t, i) => {
-    const tile = el('button', { class: `blend-tile ${t.vowel ? 'vowel' : ''}`.trim(), 'aria-label': `صوت ${t.text}` }, t.text);
-    tile.addEventListener('click', () => {
-      if (isLocked()) return;
-      play(t.audio);
-      heard.add(i);
-      tile.classList.add('is-heard');
-      if (heard.size === q.prompt.tiles.length) reveal();
-    });
-    return tile;
-  });
-  const together = el('button', { class: 'small-btn' }, '▶ الأصوات متّصلة');
-  together.addEventListener('click', async () => {
+  const tiles = q.prompt.tiles.map(t => el('span', { class: `blend-tile ${t.vowel ? 'vowel' : ''}`.trim(), text: t.text }));
+  let timers = [];
+  const slow = el('button', { class: 'small-btn', 'data-slow': '' }, '🐢 اسمعها ببطء');
+  slow.addEventListener('click', () => {
     if (isLocked()) return;
-    tiles.forEach(t => t.classList.add('is-heard'));
-    await playTogether(q.prompt.tiles.map(t => t.audio));
-    reveal();
+    timers.forEach(clearTimeout);
+    tiles.forEach(t => t.classList.remove('is-heard'));
+    const step = (slowMs || 900) / tiles.length;
+    timers = tiles.map((t, i) => setTimeout(() => t.classList.add('is-heard'), i * step));
+    playSlow();
   });
   return {
-    node: el('div', { class: 'blend' }, el('div', { class: 'blend-tiles english-content', dir: 'ltr' }, ...tiles), together, ask, choice.node)
+    node: el('div', { class: 'blend' }, el('div', { class: 'blend-tiles english-content', dir: 'ltr' }, ...tiles), slow,
+      el('p', { class: 'section-help', text: 'أيّ كلمة قرأت؟' }), choice.node)
   };
 }
 

@@ -1024,8 +1024,14 @@ Phase 5 needs learners. Until the pilot can run, this round closes gaps that ear
   - "Listen and choose the letter" now plays a real word, the sound's keyword, with its picture, and asks where the sound sits: "what does it start with?" (*bus*), "how is the last sound written?" (*sock*), or "…the middle sound?" (*cake*). The position comes from the keyword (`soundPosition` in `phonics.js`). The word's spelling appears only after the answer.
   - Sound cards and the "what you chose" button play the word first, then the sound: "*map* … m".
   - Letters are still taught; this is how their sounds are presented. The letter name stays one tap away for spelling.
-  - A test makes sure no question plays a single cut sound.
-- Blending is the one place that still plays the sounds alone, because joining them is the skill. Its answer choices are whole spoken words.
+  - A test makes sure no question plays a single cut sound. Single sounds remain only on the sound cards, after their word.
+- **Blending without cut sounds.** The owner found that sounds cut out of words and played back to back sound strange, so blending ("اقرأ صوتًا صوتًا") was rebuilt on natural recordings only.
+  - The word is shown as letter tiles, with the vowels coloured, and the learner reads it.
+  - "🐢 Listen slowly" plays the word's slow recording: the normal recording slowed to 0.8 with pitch kept, which the 🐢 buttons already use. The tiles light up left to right in time with it.
+  - The learner then picks the spoken word from three: the word and two minimal-pair neighbours.
+  - The skill is now reading print into a spoken word, and every sound the learner hears is a whole, natural word. Because the activity no longer needs a recorded single sound for every letter, more words are eligible (255 items across the blending units).
+  - **Tried and rejected: stretched words ("sssaaat").** Asking the voice generator to lengthen sounds inserted extra vowels. Its own slow speed adds an "uh" before the word. Slowing a recording to half speed, or holding its vowels, made the speech recogniser hear *pin* as *pen* and *net* as *nat*: a held short vowel drifts towards its neighbour, which is the very contrast these learners find hardest. Holding only the consonants barely lengthened most words and still failed on some. None of these could be checked well enough to ship.
+  - This replaces the blending design described earlier in this section.
 - **Heart words removed as a taught strand** (owner decision). The learners are adults already frustrated with English, and exceptions are too early for them.
   - The heart-word activity, the "كلمات القلب ♥" lesson section, the ♥ marks and heart-word items in unit checks, the placement test and review are all gone. The placement slot is always a dictation item now.
   - The words themselves (*the, I, is, you, said*…) stay in sentences and texts, because 179 of the 203 sentences use at least one. Learners hear every sentence whole, so these words are picked up by ear and sight, with no rule or exception to learn.

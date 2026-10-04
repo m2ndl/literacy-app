@@ -6,7 +6,9 @@ import { createQuestionBank, PERCEPTION_VOICES, SHORT_PLACEMENT_FROM, CHECK_SIZE
 import { makeRng, requiredClips, sameSound, contrastOf, segment } from '../phonics.js';
 
 const bank = createQuestionBank({ units, gpc, alphabet: ALPHABET, perception: PERCEPTION, sense: SENSE, benchTexts: BENCHMARK_TEXTS, stages: STAGES, pictures: PICTURES, benchPseudo: BENCH_PSEUDO });
-const clipKeys = new Set(requiredClips(units, gpc, ALPHABET, PERCEPTION, BENCH_PSEUDO.flatMap(s => s.items)).map(c => c.key));
+const allClips = requiredClips(units, gpc, ALPHABET, PERCEPTION, BENCH_PSEUDO.flatMap(s => s.items));
+const clipKeys = new Set(allClips.map(c => c.key));
+const slowVoices = new Map(allClips.map(c => [c.key, c.voices]));
 const SEEDS = [1, 2, 3, 4, 5];
 
 // Minimum questions per activity (some pools are small by design, e.g. unit 1 has 6 sounds).
@@ -17,7 +19,7 @@ const MIN_ITEMS = { 'sound-match': 4, 'capital-match': 4, 'which-word': 3, 'word
 /** Checks shared by every question, whatever builds it. */
 function checkQuestion(q, activity) {
   if (q.prompt.audio) assert.ok(clipKeys.has(q.prompt.audio), `missing clip ${q.prompt.audio}`);
-  // Questions play real words, never a sound cut out of a word (only blending tiles do, to be joined).
+  // Questions play real words, never a sound cut out of a word.
   if (q.prompt.audio) assert.ok(!q.prompt.audio.startsWith('ph:'), `${activity} prompt plays a single sound`);
   if (activity === 'sound-match') {
     assert.equal(q.prompt.audio, `w:${q.prompt.kw}`);
@@ -45,7 +47,9 @@ function checkQuestion(q, activity) {
     return;
   }
   if (q.type === 'blend') {
-    q.prompt.tiles.forEach(t => assert.ok(clipKeys.has(t.audio), `missing sound ${t.audio}`));
+    assert.ok(q.prompt.tiles.every(t => !t.audio), 'blending tiles play no cut sounds');
+    assert.equal(q.prompt.slow, `w:${q.answer}`);
+    assert.ok(slowVoices.get(q.prompt.slow)?.includes('fs'), `no slow recording for ${q.prompt.slow}`);
     q.options.forEach(o => assert.ok(clipKeys.has(o.audio), `missing clip ${o.audio}`));
     assert.equal(q.prompt.tiles.map(t => t.text).join(''), q.answer);
     assert.equal(q.options.length, 3);
