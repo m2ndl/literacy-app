@@ -2589,7 +2589,7 @@
    "ok": true
   },
   "w:cheap@f": {
-   "heard": "Cheap.",
+   "heard": "cheap",
    "ok": true
   },
   "w:cheap@f2": {
@@ -2905,7 +2905,7 @@
    "ok": true
   },
   "w:cup@f": {
-   "heard": "copy",
+   "heard": "cup cup",
    "ok": false
   },
   "w:cup@f2": {
@@ -3657,7 +3657,7 @@
    "ok": false
   },
   "w:fit@m2": {
-   "heard": "Fed",
+   "heard": "vent",
    "ok": false
   },
   "w:five@f": {
@@ -4097,8 +4097,8 @@
    "ok": true
   },
   "w:help@f": {
-   "heard": "Help it.",
-   "ok": false
+   "heard": "Help",
+   "ok": true
   },
   "w:help@m": {
    "heard": "Help.",
@@ -4165,7 +4165,7 @@
    "ok": true
   },
   "w:hit@m2": {
-   "heard": "hit",
+   "heard": "Hit",
    "ok": true
   },
   "w:home@f": {
@@ -4249,7 +4249,7 @@
    "ok": false
   },
   "w:hut@m2": {
-   "heard": "Hadi",
+   "heard": "HUD",
    "ok": false
   },
   "w:i@f": {
@@ -4457,8 +4457,8 @@
    "ok": true
   },
   "w:jump@f": {
-   "heard": "JUMPY",
-   "ok": false
+   "heard": "jump",
+   "ok": true
   },
   "w:jump@m": {
    "heard": "jump",
@@ -4481,8 +4481,8 @@
    "ok": true
   },
   "w:keep@f": {
-   "heard": "KIBA",
-   "ok": false
+   "heard": "Keep",
+   "ok": true
   },
   "w:keep@m": {
    "heard": "Keep",
@@ -4865,8 +4865,8 @@
    "ok": true
   },
   "w:lip@f": {
-   "heard": "Lippie",
-   "ok": false
+   "heard": "lip",
+   "ok": true
   },
   "w:lip@f2": {
    "heard": "Lip",
@@ -4877,8 +4877,8 @@
    "ok": true
   },
   "w:lip@m2": {
-   "heard": "Lippie.",
-   "ok": false
+   "heard": "lip",
+   "ok": true
   },
   "w:list@f": {
    "heard": "list",
@@ -6013,8 +6013,8 @@
    "ok": false
   },
   "w:pick@f": {
-   "heard": "PECE",
-   "ok": false
+   "heard": "pick",
+   "ok": true
   },
   "w:pick@f2": {
    "heard": "Pick",
@@ -6025,8 +6025,8 @@
    "ok": true
   },
   "w:pick@m2": {
-   "heard": "PICKY",
-   "ok": false
+   "heard": "Pick",
+   "ok": true
   },
   "w:picnic@f": {
    "heard": "Picnect",
@@ -6305,7 +6305,7 @@
    "ok": false
   },
   "w:pup@f": {
-   "heard": "Poppy",
+   "heard": "pop",
    "ok": false
   },
   "w:pup@f2": {
@@ -6317,7 +6317,7 @@
    "ok": false
   },
   "w:pup@m2": {
-   "heard": "PUBBY",
+   "heard": "pub pub",
    "ok": false
   },
   "w:push@f": {
@@ -6341,8 +6341,8 @@
    "ok": true
   },
   "w:quick@f": {
-   "heard": "Quickie",
-   "ok": false
+   "heard": "quick",
+   "ok": true
   },
   "w:quick@m": {
    "heard": "quick",
@@ -7077,7 +7077,7 @@
    "ok": true
   },
   "w:sheep@f": {
-   "heard": "sheep",
+   "heard": "Sheep",
    "ok": true
   },
   "w:sheep@f2": {
@@ -7089,7 +7089,7 @@
    "ok": true
   },
   "w:sheep@m2": {
-   "heard": "Jeep",
+   "heard": "Jeep.",
    "ok": false
   },
   "w:sheet@f": {
@@ -7225,8 +7225,8 @@
    "ok": true
   },
   "w:sick@f": {
-   "heard": "SEGA",
-   "ok": false
+   "heard": "sick",
+   "ok": true
   },
   "w:sick@m": {
    "heard": "Sick.",
@@ -7305,8 +7305,8 @@
    "ok": false
   },
   "w:sip@f": {
-   "heard": "Zebra",
-   "ok": false
+   "heard": "Sip",
+   "ok": true
   },
   "w:sip@m": {
    "heard": "Zip.",
@@ -8345,8 +8345,8 @@
    "ok": true
   },
   "w:tip@f": {
-   "heard": "Tippe",
-   "ok": false
+   "heard": "Tip",
+   "ok": true
   },
   "w:tip@m": {
    "heard": "Tip.",
@@ -8453,16 +8453,16 @@
    "ok": true
   },
   "w:trip@f": {
-   "heard": "Trip it.",
-   "ok": false
+   "heard": "trip",
+   "ok": true
   },
   "w:trip@m": {
    "heard": "Drip",
    "ok": false
   },
   "w:truck@f": {
-   "heard": "truck it",
-   "ok": false
+   "heard": "truck",
+   "ok": true
   },
   "w:truck@m": {
    "heard": "drug drug",
@@ -8777,8 +8777,8 @@
    "ok": false
   },
   "w:vest@m2": {
-   "heard": "VESTI",
-   "ok": false
+   "heard": "Vest",
+   "ok": true
   },
   "w:vet@f": {
    "heard": "VET",
@@ -9676,7 +9676,6 @@
    "w:have@f",
    "w:he@f",
    "w:heat@m",
-   "w:help@f",
    "w:her@f",
    "w:her@m",
    "w:high@f",
@@ -9690,8 +9689,6 @@
    "w:jaw@m2",
    "w:jeer@m",
    "w:jot@m",
-   "w:jump@f",
-   "w:keep@f",
    "w:ken@f",
    "w:key@f",
    "w:kin@f2",
@@ -9703,8 +9700,6 @@
    "w:law@m",
    "w:leaf@f",
    "w:led@f",
-   "w:lip@f",
-   "w:lip@m2",
    "w:list@m",
    "w:lock@f2",
    "w:lock@m2",
@@ -9758,8 +9753,6 @@
    "w:peg@m2",
    "w:photo@f",
    "w:photo@m",
-   "w:pick@f",
-   "w:pick@m2",
    "w:picnic@f",
    "w:pie@m",
    "w:pig@m",
@@ -9773,7 +9766,6 @@
    "w:pup@m",
    "w:pup@m2",
    "w:push@f",
-   "w:quick@f",
    "w:quit@m",
    "w:quite@f",
    "w:rack@f2",
@@ -9826,12 +9818,10 @@
    "w:should@f",
    "w:shut@f2",
    "w:shut@m",
-   "w:sick@f",
    "w:sight@m",
    "w:sin@m2",
    "w:sing@m2",
    "w:sink@m",
-   "w:sip@f",
    "w:sip@m",
    "w:sit@f",
    "w:sit@m",
@@ -9883,15 +9873,12 @@
    "w:tie@f",
    "w:tin@f",
    "w:tin@m",
-   "w:tip@f",
    "w:to@f",
    "w:too@f",
    "w:too@m",
    "w:took@f",
    "w:took@m",
-   "w:trip@f",
    "w:trip@m",
-   "w:truck@f",
    "w:truck@m",
    "w:tuck@f",
    "w:tuck@m",
@@ -9907,7 +9894,6 @@
    "w:veal@m2",
    "w:vest@f",
    "w:vest@m",
-   "w:vest@m2",
    "w:vet@m",
    "w:vet@m2",
    "w:vine@m2",
@@ -9935,7 +9921,7 @@
    "w:you@f"
   ]
  },
- "files": 3,
+ "files": 190,
  "pipeline": "2",
  "sounds": {
   "aa": {
