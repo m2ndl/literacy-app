@@ -169,11 +169,11 @@ export function traceWidget(q, { onSubmit, isLocked, playName }) {
   };
 
   function drawGuides() {
-    const g = css('--c-border', '#cbd5e1');
+    const g = css('--c-border', 'rgba(10, 47, 58, .13)');
     ctx.save();
     ctx.lineWidth = Math.max(1, scale * 0.6);
     [[BOX.ascender, [4, 4]], [BOX.xHeight, [6, 4]], [BOX.baseline, []], [BOX.descender, [4, 4]]].forEach(([y, dash]) => {
-      ctx.strokeStyle = y === BOX.baseline ? css('--c-muted', '#64748b') : g;
+      ctx.strokeStyle = y === BOX.baseline ? css('--c-muted', 'rgba(10, 47, 58, .72)') : g;
       ctx.setLineDash(dash.map(d => d * scale * 0.5));
       ctx.beginPath();
       ctx.moveTo(4 * scale, y * scale);
@@ -188,7 +188,7 @@ export function traceWidget(q, { onSubmit, isLocked, playName }) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineWidth = scale * (dotted ? 5 : 6);
-    ctx.strokeStyle = color || (dotted ? css('--c-guide', '#cbd5e1') : css('--c-accent', '#2563eb'));
+    ctx.strokeStyle = color || (dotted ? css('--c-guide', '#b8ccd0') : css('--c-accent', '#1d6b78'));
     if (dotted) ctx.setLineDash([scale * 2, scale * 4]);
     let left = upTo;
     tmpl.forEach(s => {
@@ -214,7 +214,7 @@ export function traceWidget(q, { onSubmit, isLocked, playName }) {
       const [x, y] = s[0];
       ctx.beginPath();
       ctx.arc(x * scale, y * scale, scale * 4, 0, Math.PI * 2);
-      ctx.fillStyle = '#16a34a';
+      ctx.fillStyle = '#12805c';
       ctx.fill();
       ctx.fillStyle = '#fff';
       ctx.font = `bold ${Math.round(scale * 5)}px sans-serif`;
@@ -230,7 +230,7 @@ export function traceWidget(q, { onSubmit, isLocked, playName }) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineWidth = scale * 4;
-    ctx.strokeStyle = css('--c-text', '#0f172a');
+    ctx.strokeStyle = css('--c-text', '#0a2f3a');
     strokes.forEach(s => {
       if (s.length === 1) {
         ctx.beginPath();
@@ -250,7 +250,7 @@ export function traceWidget(q, { onSubmit, isLocked, playName }) {
     drawGuides();
     if (step === 'trace') { drawModel({ dotted: true }); drawStarts(); }
     drawInk();
-    if (showModelOverlay) drawModel({ color: 'rgba(22, 163, 74, .55)' });
+    if (showModelOverlay) drawModel({ color: 'rgba(18, 128, 92, .55)' });
   }
 
   function setStep(s, message = '') {

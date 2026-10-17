@@ -1,7 +1,7 @@
 // service-worker.js - Offline support.
 // Bump SHELL_CACHE whenever app files change. Audio clips live in their own cache: their URLs
 // carry a content hash (?v=...), so app updates don't throw away audio the learner downloaded.
-const SHELL_CACHE = 'lughatii-v16';
+const SHELL_CACHE = 'lughatii-v17';
 const AUDIO_CACHE = 'lughatii-audio-v1';
 const PREFIX = 'lughatii-';
 const NETWORK_TIMEOUT_MS = 4000;
@@ -42,8 +42,8 @@ const urlsToCache = [
   './icon-192.png',
   './icon-512.png',
   // External resources (may fail, that's OK)
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-  'https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap',
+  'https://fonts.googleapis.com/css2?family=Alexandria:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'
 ];
 
 self.addEventListener('install', event => {

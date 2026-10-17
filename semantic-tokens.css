@@ -1,42 +1,42 @@
 /* Recommendation #7 only: semantic tokens to stabilize contrast over time */
 :root {
-  --ui-text-default: #1f2937;
-  --ui-text-muted: #6b7280;
-  --ui-text-success: #166534;
+  --ui-text-default: #0a2f3a;
+  --ui-text-muted: rgba(10, 47, 58, 0.72);
+  --ui-text-success: #0b5d44;
 
   --ui-surface-default: #ffffff;
-  --ui-surface-complete-grad-start: #dcfce7;
-  --ui-surface-complete-grad-end: #d1fae5;
+  --ui-surface-complete-grad-start: #e6f6ef;
+  --ui-surface-complete-grad-end: #dcf3e8;
 
-  --ui-border-default: #e5e7eb;
-  --ui-border-success: #86efac;
+  --ui-border-default: rgba(10, 47, 58, 0.13);
+  --ui-border-success: #8fd3b6;
 
-  --ui-chip-bg: #e5e7eb;
-  --ui-chip-text: #374151;
-  --ui-chip-success-bg: #bbf7d0;
-  --ui-chip-success-text: #166534;
+  --ui-chip-bg: #e9f1f2;
+  --ui-chip-text: #2b4c55;
+  --ui-chip-success-bg: #c4ead9;
+  --ui-chip-success-text: #0b5d44;
 
-  --ui-icon-bg: rgba(59, 130, 246, 0.12);
+  --ui-icon-bg: rgba(29, 107, 120, 0.12);
 }
 
 body.dark-mode {
-  --ui-text-default: #e5e7eb;
-  --ui-text-muted: #9ca3af;
-  --ui-text-success: #d1fae5;
+  --ui-text-default: #e4eeef;
+  --ui-text-muted: #a9c4c9;
+  --ui-text-success: #cdefe2;
 
-  --ui-surface-default: #111827;
-  --ui-surface-complete-grad-start: #064e3b;
-  --ui-surface-complete-grad-end: #065f46;
+  --ui-surface-default: #0e3540;
+  --ui-surface-complete-grad-start: #0b3f33;
+  --ui-surface-complete-grad-end: #0e4a3c;
 
-  --ui-border-default: #374151;
-  --ui-border-success: #10b981;
+  --ui-border-default: #1f4d59;
+  --ui-border-success: #1e9e72;
 
-  --ui-chip-bg: #374151;
-  --ui-chip-text: #e5e7eb;
-  --ui-chip-success-bg: #10b981;
-  --ui-chip-success-text: #052e16;
+  --ui-chip-bg: #154552;
+  --ui-chip-text: #e4eeef;
+  --ui-chip-success-bg: #3fb68c;
+  --ui-chip-success-text: #062229;
 
-  --ui-icon-bg: rgba(96, 165, 250, 0.2);
+  --ui-icon-bg: rgba(108, 192, 204, 0.2);
 }
 
 /* token-driven mapping layer */
